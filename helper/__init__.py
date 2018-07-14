@@ -7,7 +7,6 @@ from . import database
 __all__ = ['database']
 
 
-
 async def handle_error(ctx, err):
     ignored_errors = (commands.errors.CommandOnCooldown,
                       commands.errors.CheckFailure, commands.errors.CommandNotFound)

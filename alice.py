@@ -23,7 +23,7 @@ class Alice(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=_prefix)
 
-        # Get config
+        # Get config and set initial variables
         if not os.path.isfile("config.json"):
             shutil.copy('exampleconfig.json', 'config.json')
         with open("config.json") as file_in:
