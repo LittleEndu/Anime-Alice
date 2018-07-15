@@ -43,7 +43,8 @@ class Database:
     async def run_once(self):
         base_sql = await self.execution_queue.get()
         if self.running:
-            self.bot.loop.create_task(self.run_once())  # run once again. Allows to execute more than SQL query
+            self.bot.loop.create_task(self.run_once())  # run once again.
+            # Allows to execute more than one SQL query at the time
         cursor = self.connection.cursor()
         future = self.bot.loop.run_in_executor(self.executor, cursor.execute, base_sql.sql, base_sql.args)
         while not future.done():

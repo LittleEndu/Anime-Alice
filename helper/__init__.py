@@ -2,20 +2,33 @@ import traceback
 
 import discord
 from discord.ext import commands
+
 from . import database
 
 __all__ = ['database']
 
 
 async def handle_error(ctx, err):
-    ignored_errors = (commands.errors.CommandOnCooldown,
-                      commands.errors.CheckFailure, commands.errors.CommandNotFound)
     can_send = ctx.channel.permissions_for(ctx.me).send_messages
-    if isinstance(err, ignored_errors):
+    if not can_send:
+        await react_or_false(ctx, ("\U0001f507",))
+    if isinstance(err, commands.errors.CommandOnCooldown):
+        if not await react_or_false(ctx, ("\u23f0",)) and can_send:
+            await ctx.send("\u23f0 " + str(err))
         return
-    elif isinstance(err, commands.UserInputError) and can_send:
+    if isinstance(err, commands.UserInputError) and can_send:
         await ctx.send("\u274c Bad argument: {}".format(' '.join(err.args)))
+    elif isinstance(err, commands.errors.CheckFailure) and can_send:
+        await ctx.send("\u274c Check failure. " + str(err))
+    elif isinstance(err, commands.errors.CommandNotFound):
+        await react_or_false(ctx, ("\u2753",))
     else:
+        content = "\u274c Error occurred while handling the command."
+        if isinstance(err, commands.errors.CommandInvokeError):
+            if isinstance(err.original, discord.errors.HTTPException):
+                content = None
+        if content:
+            await ctx.send(content)
         if ctx.command.name == 'debug':
             return
         ctx.bot.logger.error("{}.{}".format(err.__class__.__module__, err.__class__.__name__))
