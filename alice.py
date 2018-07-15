@@ -11,26 +11,46 @@ import os.path
 import shutil
 import sys
 import traceback
+import time
 
+import aiohttp
 import discord
 import logbook
 from discord.ext import commands
+from sqlitedatabase import AUTH
 
 import helper
 
+
+class Prefix:
+    def __init__(self, guild_id: int, prefix: str):
+        self.guild_id = guild_id
+        self.prefix = prefix
+
+    def __str__(self):
+        return self.prefix
+
+    def __hash__(self):
+        return f'{str(self.guild_id)}X{self.prefix}'.__hash__()
+
+    def __eq__(self, other):
+        if isinstance(other, Prefix):
+            return self.guild_id == other.guild_id and self.prefix == other.prefix
+        raise NotImplemented
 
 class Alice(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=_prefix)
 
-        # Get config and set initial variables
+        # Get config and set other initial variables
         if not os.path.isfile("config.json"):
             shutil.copy('exampleconfig.json', 'config.json')
         with open("config.json") as file_in:
             config = json.load(file_in)
         self.config = config
         self.executor = concurrent.futures.ThreadPoolExecutor()
-        self.database = helper.database.Database(self, 'alice.db')
+        self.database_session = aiohttp.ClientSession(headers={'auth': AUTH}, loop=self.loop)
+        self.prefixes_cache = {}
 
         # Setup logbook
         if not os.path.isdir("logs"):
@@ -54,8 +74,8 @@ class Alice(commands.Bot):
     async def on_ready(self):
         self.logger.info('Logged in as')
         self.logger.info(self.user.name)
-        self.logger.info(self.user.id)
-        self.logger.info("{} commands".format(len(self.commands)))
+        self.logger.info(f"id:{self.user.id}")
+        self.logger.info(f"{len(self.commands)} commands")
         self.logger.info('------')
 
     async def get_prefix(self, message: discord.Message):
@@ -222,13 +242,18 @@ class Alice(commands.Bot):
 
 
 async def _prefix(bot: Alice, message: discord.Message):
-    prefixes = await helper.database.get_prefixes(bot.database, message)
+    # TODO: actually use the cache
+    prefixes = (await helper.database.get_prefixes(bot.database_session, message)).get('result')
+    guild_id = message.guild.id
+    for prefix in prefixes:
+        bot.prefixes_cache[Prefix(guild_id, prefix)] = int(time.time())
     return commands.when_mentioned_or(*prefixes)(bot, message)
 
 
 if __name__ == '__main__':
     alice = Alice()
     alice.logger.info("\n\n\n")
+    alice.logger.info(f"Running python version {sys.version}")
     alice.logger.info("Initializing")
     if alice.config.get('token', ""):
         for ex in alice.config.get('auto_load', []):
@@ -237,7 +262,7 @@ if __name__ == '__main__':
                 alice.logger.info("Successfully loaded {}".format(ex))
             except Exception as e:
                 alice.logger.info('Failed to load extension {}\n{}: {}'.format(ex, type(e).__name__, e))
-        alice.logger.info("Logging in...")
+        alice.logger.info("Logging in...\n")
         alice.run(alice.config['token'])
     else:
         alice.logger.info("Please add the token to the config file!")
