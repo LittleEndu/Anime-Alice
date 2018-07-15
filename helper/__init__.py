@@ -3,9 +3,9 @@ import traceback
 import discord
 from discord.ext import commands
 
-from . import database
+from . import database, mediums
 
-__all__ = ['database']
+__all__ = ['database', 'mediums']
 
 
 async def handle_error(ctx, err):

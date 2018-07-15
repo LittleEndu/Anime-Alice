@@ -11,32 +11,15 @@ import os.path
 import shutil
 import sys
 import traceback
-import time
 
 import aiohttp
 import discord
 import logbook
 from discord.ext import commands
-from sqlitedatabase import AUTH
 
 import helper
+from sqlitedatabase import AUTH
 
-
-class Prefix:
-    def __init__(self, guild_id: int, prefix: str):
-        self.guild_id = guild_id
-        self.prefix = prefix
-
-    def __str__(self):
-        return self.prefix
-
-    def __hash__(self):
-        return f'{str(self.guild_id)}X{self.prefix}'.__hash__()
-
-    def __eq__(self, other):
-        if isinstance(other, Prefix):
-            return self.guild_id == other.guild_id and self.prefix == other.prefix
-        raise NotImplemented
 
 class Alice(commands.Bot):
     def __init__(self):
@@ -215,7 +198,7 @@ class Alice(commands.Bot):
                     "| Command has been awaited" if has_been_awaited else "",
                     "| Result has been cut" if result_too_big else ""))
 
-    @commands.command(name='latency', aliases=['ping', 'marco'])
+    @commands.command(name='latency', aliases=['ping', 'marco', 'hello', 'hi', 'hey'])
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _latency(self, ctx):
         """Reports bot latency"""
@@ -223,6 +206,8 @@ class Alice(commands.Bot):
             msg = await ctx.send("Pong")
         elif ctx.invoked_with == 'marco':
             msg = await ctx.send("Polo")
+        elif ctx.invoked_with in ['hello', 'hi', 'hey']:
+            msg = await ctx.send("Hey")
         else:
             msg = await ctx.send("\u200b")
         latency = msg.created_at.timestamp() - ctx.message.created_at.timestamp()
@@ -232,7 +217,7 @@ class Alice(commands.Bot):
     @_latency.error
     async def latency_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
-            if self.is_owner(ctx.author):
+            if await self.is_owner(ctx.author):
                 await ctx.reinvoke()
                 return
         else:
@@ -242,11 +227,13 @@ class Alice(commands.Bot):
 
 
 async def _prefix(bot: Alice, message: discord.Message):
-    # TODO: actually use the cache
-    prefixes = (await helper.database.get_prefixes(bot.database_session, message)).get('result')
     guild_id = message.guild.id
-    for prefix in prefixes:
-        bot.prefixes_cache[Prefix(guild_id, prefix)] = int(time.time())
+    if guild_id in bot.prefixes_cache:
+        prefixes = bot.prefixes_cache.get(guild_id)
+    else:
+        prefixes = (await helper.database.get_prefixes(bot.database_session, message)).get('result')
+        for prefix in prefixes:
+            bot.prefixes_cache.setdefault(guild_id, list()).append(prefix)
     return commands.when_mentioned_or(*prefixes)(bot, message)
 
 
