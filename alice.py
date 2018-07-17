@@ -42,15 +42,12 @@ class Alice(commands.Bot):
             os.makedirs("logs")
         self.logger = logging.getLogger('Control')
         fh = logging.FileHandler("logs/" + str(datetime.datetime.now().date()) + ".log")
-        fh.setLevel(logging.INFO)
+        fh.setLevel(logging.DEBUG)
         self.logger.addHandler(fh)
         ch = logging.StreamHandler()
-        ch.setLevel(logging.ERROR)
+        ch.setLevel(logging.INFO)
         self.logger.addHandler(ch)
-        erh = logging.StreamHandler(sys.stderr)
-        erh.setLevel(logging.ERROR)
-        self.logger.addHandler(erh)
-        logging.root.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
 
         # Remove default help and add other commands
         self.remove_command("help")
