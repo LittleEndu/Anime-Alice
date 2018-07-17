@@ -3,6 +3,7 @@ import concurrent.futures
 import datetime
 import importlib
 import inspect
+import io
 import itertools
 import json
 import logging
@@ -10,7 +11,9 @@ import os
 import os.path
 import shutil
 import sys
+import textwrap
 import traceback
+from contextlib import redirect_stdout
 
 import aiohttp
 import discord
@@ -46,7 +49,7 @@ class Alice(commands.Bot):
 
         # Remove default help and add other commands
         self.remove_command("help")
-        for i in [self.reload, self.load, self.unload, self.debug, self.loadconfig, self._latency]:
+        for i in [self.reload, self.load, self.unload, self.debug, self.loadconfig, self._latency, self._exec]:
             self.add_command(i)
         self._last_result = None
 
@@ -197,6 +200,72 @@ class Alice(commands.Bot):
                     result_class,
                     "| Command has been awaited" if has_been_awaited else "",
                     "| Result has been cut" if result_too_big else ""))
+
+    async def send_or_post_hastebin(self, ctx: commands.Context, content: str):
+        try:
+            await ctx.send(content)
+        except discord.HTTPException:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                        'https://hastebin.com/documents',
+                        data="\n".join(content.splitlines()[1:-1])
+                ) as response:
+                    if response.status == 200:
+                        jj = json.loads(await response.text())
+                        await ctx.send(f"https://hastebin.com/{jj.get('key')}")
+                    else:
+                        await ctx.send(f"Result too big and hastebin responded with {response.status}")
+
+    @commands.command(hidden=True, name='exec')
+    @commands.is_owner()
+    async def _exec(self, ctx, *, body: str):
+        """
+        Evaluates a piece of code
+        Shamelessly stolen from R.Danny because its license is MIT
+        """
+
+        self.trace(f"Running exec command: {ctx.message.content}")
+        env = {
+            'bot': self,
+            'ctx': ctx,
+            'channel': ctx.channel,
+            'author': ctx.author,
+            'guild': ctx.guild,
+            'message': ctx.message,
+            '_': self._last_result
+        }
+        env.update(globals())
+
+        if body.startswith('```') and body.endswith('```'):
+            body = '\n'.join(body[:-3].split('\n')[1:])
+        body = body.strip('` \n')
+        stdout = io.StringIO()
+
+        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
+
+        try:
+            exec(to_compile, env)
+        except Exception as e:
+            return await self.send_or_post_hastebin(ctx, f'```py\n{e.__class__.__name__}: {e}\n```')
+
+        func = env['func']
+        try:
+            with redirect_stdout(stdout):
+                ret = await func()
+        except Exception as e:
+            value = stdout.getvalue()
+            await self.send_or_post_hastebin(ctx, f'```py\n{value}{traceback.format_exc()}\n```')
+        else:
+            value = stdout.getvalue()
+            if not await helper.react_or_false(ctx):
+                await ctx.send('\u2705')
+
+            if ret is None:
+                if value:
+                    await self.send_or_post_hastebin(ctx, f'```py\n{value}\n```')
+            else:
+                self._last_result = ret
+                await self.send_or_post_hastebin(ctx, f'```py\n{value}{ret}\n```')
 
     @commands.command(name='latency', aliases=['ping', 'marco', 'hello', 'hi', 'hey'])
     @commands.cooldown(1, 60, commands.BucketType.user)

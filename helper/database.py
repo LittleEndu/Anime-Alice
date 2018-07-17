@@ -3,6 +3,8 @@ import json
 import aiohttp
 import discord
 
+owner = discord.role
+
 # basically this module should provide consistency
 # all functions in here should achieve the same thing, no matter what database is running
 # it's here just so I could use some other database (like postgres :shrug:) in future
@@ -20,7 +22,7 @@ async def deal_with_response(response):
     if response.status == 200:
         return jj
     else:
-        raise UnexpectedResponse(jj.get('response'))
+        raise UnexpectedResponse(jj)
 
 
 async def get_prefixes(session: aiohttp.ClientSession, message: discord.Message):
