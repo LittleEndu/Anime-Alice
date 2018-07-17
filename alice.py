@@ -17,7 +17,6 @@ from contextlib import redirect_stdout
 
 import aiohttp
 import discord
-import logbook
 from discord.ext import commands
 
 import helper
@@ -38,13 +37,19 @@ class Alice(commands.Bot):
         self.database_session = aiohttp.ClientSession(headers={'auth': AUTH}, loop=self.loop)
         self.prefixes_cache = {}
 
-        # Setup logbook
+        # Setup logging
         if not os.path.isdir("logs"):
             os.makedirs("logs")
-        self.logger = logbook.Logger("Control")
-        self.logger.handlers.append(
-            logbook.FileHandler("logs/" + str(datetime.datetime.now().date()) + ".log", level="TRACE", bubble=True))
-        self.logger.handlers.append(logbook.StreamHandler(sys.stderr, level='INFO', bubble=True))
+        self.logger = logging.getLogger('Control')
+        fh = logging.FileHandler("logs/" + str(datetime.datetime.now().date()) + ".log")
+        fh.setLevel(logging.INFO)
+        self.logger.addHandler(fh)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.ERROR)
+        self.logger.addHandler(ch)
+        erh = logging.StreamHandler(sys.stderr)
+        erh.setLevel(logging.ERROR)
+        self.logger.addHandler(erh)
         logging.root.setLevel(logging.INFO)
 
         # Remove default help and add other commands
@@ -52,10 +57,6 @@ class Alice(commands.Bot):
         for i in [self.reload, self.load, self.unload, self.debug, self.loadconfig, self._latency, self._exec]:
             self.add_command(i)
         self._last_result = None
-
-        # alias for when I might fck up
-        self.info = self.logger.info
-        self.trace = self.logger.trace
 
     async def on_ready(self):
         self.logger.info('Logged in as')
@@ -150,7 +151,7 @@ class Alice(commands.Bot):
         """
         Runs a debug command
         """
-        self.trace(f"Running debug command: {ctx.message.content}")
+        self.logger.debug(f"Running debug command: {ctx.message.content}")
         env = {
             'bot': self,
             'ctx': ctx,
@@ -224,7 +225,7 @@ class Alice(commands.Bot):
         Shamelessly stolen from R.Danny because its license is MIT
         """
 
-        self.trace(f"Running exec command: {ctx.message.content}")
+        self.logger.debug(f"Running exec command: {ctx.message.content}")
         env = {
             'bot': self,
             'ctx': ctx,
