@@ -60,9 +60,7 @@ def db_table_exists(table_name: str):
 def db_get_prefixes(guild_id: int):
     if not verify_auth_header(request):
         return jsonify({'response': 'Unauthorized'}), 401
-    exists = db_table_exists('prefixes')
-    print(exists)
-    if exists:
+    if db_table_exists('prefixes'):
         cursor = database.cursor()
         result = cursor.execute("""SELECT prefix FROM prefixes WHERE guild_id = ?;""", (guild_id,))
         prefixes = [i[0] for i in result]
@@ -180,4 +178,4 @@ def method_not_allowed(err):
 
 if __name__ == "__main__":
     database = apsw.Connection('alice.db')
-    app.run(port=80, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)
