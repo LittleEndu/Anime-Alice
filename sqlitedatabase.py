@@ -90,8 +90,12 @@ def db_set_prefix():
     if not dd.get('prefix'):
         return jsonify({'response': 'Missing "prefix" key'}), 400
     try:
-        guild_id = int(dd.get('guild_id'))
-        prefix = str(dd.get('prefix'))
+        if isinstance(dd.get('guild_id'), list):
+            guild_id = int(dd.get('guild_id')[0])
+            prefix = str(dd.get('prefix')[0])
+        else:
+            guild_id = int(dd.get('guild_id'))
+            prefix = str(dd.get('prefix'))
     except Exception as e:
         return jsonify({'response': f'Failed to parse: {repr(e)}'}), 400
     else:
@@ -118,8 +122,12 @@ def db_remove_prefix():
     else:
         dd = dict(request.form)
     try:
-        guild_id = int(dd.get('guild_id'))
-        prefix = str(dd.get('prefix'))
+        if isinstance(dd.get('guild_id'), list):
+            guild_id = int(dd.get('guild_id')[0])
+            prefix = str(dd.get('prefix')[0])
+        else:
+            guild_id = int(dd.get('guild_id'))
+            prefix = str(dd.get('prefix'))
     except Exception as e:
         return jsonify({'response': f'Failed to parse: {repr(e)}'}), 400
     else:
