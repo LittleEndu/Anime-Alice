@@ -53,14 +53,16 @@ def db_create_prefixes_table():
 
 def db_table_exists(table_name: str):
     cursor = database.cursor()
-    return cursor.execute("""SELECT 1 FROM sqlite_master WHERE type='table' AND name=?;""", (table_name,))
+    return list(cursor.execute("""SELECT 1 FROM sqlite_master WHERE type='table' AND name=?;""", (table_name,)))
 
 
 @app.route('/db/getPrefixes/<int:guild_id>')
 def db_get_prefixes(guild_id: int):
     if not verify_auth_header(request):
         return jsonify({'response': 'Unauthorized'}), 401
-    if db_table_exists('prefixes'):
+    exists = db_table_exists('prefixes')
+    print(exists)
+    if exists:
         cursor = database.cursor()
         result = cursor.execute("""SELECT prefix FROM prefixes WHERE guild_id = ?;""", (guild_id,))
         prefixes = [i[0] for i in result]
