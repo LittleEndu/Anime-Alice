@@ -12,7 +12,7 @@ import shutil
 import sys
 import textwrap
 import traceback
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, redirect_stderr
 from logging.handlers import RotatingFileHandler
 
 import aiohttp
@@ -42,12 +42,10 @@ class Alice(commands.Bot):
         self.logger = logging.getLogger('Control')
         fh = RotatingFileHandler("logs/alice.log", maxBytes=1000000)
         fh.setLevel(logging.DEBUG)
-        self.logger.addHandler(fh)
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
+        self.logger.addHandler(fh)
         self.logger.addHandler(ch)
-        self.logger.setLevel(logging.DEBUG)
-
 
         # Remove default help and add other commands
         self.remove_command("help")
@@ -337,18 +335,19 @@ async def _prefix(bot: Alice, message: discord.Message):
 if __name__ == '__main__':
     alice = Alice()
     with redirect_stdout(alice.logger):
-        alice.logger.info("\n\n\n")
-        alice.logger.info(f"Running python version {sys.version}")
-        alice.logger.info("Initializing")
-        if alice.config.get('token', ""):
-            for ex in alice.config.get('auto_load', []):
-                try:
-                    alice.load_extension("cogs.{}".format(ex))
-                    alice.logger.info("Successfully loaded {}".format(ex))
-                except Exception as e:
-                    alice.logger.info('Failed to load extension {}\n{}: {}'.format(ex, type(e).__name__, e))
-            alice.logger.info("Logging in...\n")
-            alice.run(alice.config['token'])
-        else:
-            alice.logger.info("Please add the token to the config file!")
-            asyncio.get_event_loop().run_until_complete(alice.close())
+        with redirect_stderr(alice.logger):
+            alice.logger.info("\n\n\n")
+            alice.logger.info(f"Running python version {sys.version}")
+            alice.logger.info("Initializing")
+            if alice.config.get('token', ""):
+                for ex in alice.config.get('auto_load', []):
+                    try:
+                        alice.load_extension("cogs.{}".format(ex))
+                        alice.logger.info("Successfully loaded {}".format(ex))
+                    except Exception as e:
+                        alice.logger.info('Failed to load extension {}\n{}: {}'.format(ex, type(e).__name__, e))
+                alice.logger.info("Logging in...\n")
+                alice.run(alice.config['token'])
+            else:
+                alice.logger.info("Please add the token to the config file!")
+                asyncio.get_event_loop().run_until_complete(alice.close())
