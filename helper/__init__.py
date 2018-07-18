@@ -37,8 +37,8 @@ async def handle_error(ctx, err):
         if ctx.command.name == 'debug':
             return
         ctx.bot.logger.error("{}.{}".format(err.__class__.__module__, err.__class__.__name__))
-        ctx.bot.logger.trace("".join(traceback.format_exception(type(err), err, err.__traceback__)))
-        ctx.bot.logger.trace("".join(traceback.format_exception(type(err), err.__cause__, err.__cause__.__traceback__)))
+        ctx.bot.logger.debug("".join(traceback.format_exception(type(err), err, err.__traceback__)))
+        ctx.bot.logger.debug("".join(traceback.format_exception(type(err), err.__cause__, err.__cause__.__traceback__)))
 
 
 async def react_or_false(ctx, reactions=("\u2705",)):
