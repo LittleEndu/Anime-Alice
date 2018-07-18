@@ -76,7 +76,6 @@ class Alice(commands.Bot):
                     except discord.Forbidden:
                         pass
                     msg = await ctx.send(message.content)
-                    await helper.react_or_false(await self.get_context(msg), ['\U0001f502'])
                     ctx.re_runner = msg
                     await ctx.reinvoke()
 
@@ -289,6 +288,11 @@ class Alice(commands.Bot):
                 self._last_result = ret
                 await self.send_or_post_hastebin(ctx, f'```py\n{value}{ret}\n```')
         await helper.react_or_false(ctx, ['\U0001f502'])
+        if hasattr(ctx, 're_runner'):
+            try:
+                await ctx.re_runner.add_reaction('\U0001f502')
+            except discord.Forbidden:
+                pass
 
     @commands.command(name='latency', aliases=['ping', 'marco', 'hello', 'hi', 'hey'])
     @commands.cooldown(1, 60, commands.BucketType.user)
