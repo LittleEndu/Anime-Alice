@@ -70,6 +70,10 @@ class Alice(commands.Bot):
             ctx = await self.get_context(message)
             if ctx.command:
                 if ctx.command.name in ['debug','exec']:
+                    try:
+                        await message.remove_reaction(payload.emoji, discord.Object(payload.user_id))
+                    except discord.Forbidden:
+                        pass
                     await ctx.reinvoke()
 
     async def get_prefix(self, message: discord.Message):
