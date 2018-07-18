@@ -198,6 +198,11 @@ if __name__ == "__main__":
     fh = RotatingFileHandler('logs/sqlite.log', maxBytes=1000000)
     fh.setLevel(logging.DEBUG)
     app.logger.addHandler(fh)
+    
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.DEBUG)
+    log.addHandler(fh)
+
     database = apsw.Connection('alice.db')
     generate_auth()
     app.run(host='0.0.0.0', port=80, debug=True)
