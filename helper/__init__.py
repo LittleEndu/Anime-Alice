@@ -43,12 +43,14 @@ async def handle_error(ctx, err):
 
 async def react_or_false(ctx, reactions=("\u2705",)):
     if ctx.channel.permissions_for(ctx.me).add_reactions:
+        aa = True
         for r in reactions:
             try:
                 await ctx.message.add_reaction(r)
             except:
+                aa = False
                 continue
-        return True
+        return aa
     return False
 
 
