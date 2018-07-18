@@ -121,6 +121,7 @@ class Asker:
                 return
 
         emb = discord.Embed(
+            title="Please choose",
             description="\n".join([f"**{i+1}**: {self.choices[i]}" for i in range(len(self.choices))]).strip()
         )
         asker = await self.ctx.send(embed=emb)

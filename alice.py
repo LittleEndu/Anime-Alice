@@ -62,6 +62,16 @@ class Alice(commands.Bot):
         self.logger.info(f"{len(self.commands)} commands")
         self.logger.info('------')
 
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if payload.user_id != self.owner_id:
+            return
+        if str(payload.emoji) == '\U0001f502':
+            message = await self.get_channel(payload.channel_id).get_message(payload.message_id)
+            ctx = await self.get_context(message)
+            if ctx.command:
+                if ctx.command.name in ['debug','exec']:
+                    await ctx.reinvoke()
+
     async def get_prefix(self, message: discord.Message):
         if isinstance(message.channel, discord.DMChannel):
             return [
@@ -198,6 +208,7 @@ class Alice(commands.Bot):
                     result_class,
                     "| Command has been awaited" if has_been_awaited else "",
                     "| Result has been cut" if result_too_big else ""))
+            await helper.react_or_false(ctx, ['\U0001f502'])
 
     async def send_or_post_hastebin(self, ctx: commands.Context, content: str):
         try:
@@ -264,6 +275,7 @@ class Alice(commands.Bot):
             else:
                 self._last_result = ret
                 await self.send_or_post_hastebin(ctx, f'```py\n{value}{ret}\n```')
+        await helper.react_or_false(ctx, ['\U0001f502'])
 
     @commands.command(name='latency', aliases=['ping', 'marco', 'hello', 'hi', 'hey'])
     @commands.cooldown(1, 60, commands.BucketType.user)
