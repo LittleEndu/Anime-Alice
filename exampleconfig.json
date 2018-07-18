@@ -4,7 +4,8 @@
     "core"
   ],
   "unsafe_to_expose": [
-    "token"
+    "token",
+    "DB_HOST"
   ],
   "DB_HOST": "http://localhost"
 }
