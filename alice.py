@@ -265,8 +265,9 @@ class Alice(commands.Bot):
 
         func = env['func']
         try:
-            with redirect_stdout(stdout):
-                ret = await func()
+            with redirect_stderr(stdout):
+                with redirect_stdout(stdout):
+                    ret = await func()
         except Exception as e:
             value = stdout.getvalue()
             await self.send_or_post_hastebin(ctx, f'```py\n{value}{traceback.format_exc()}\n```')
