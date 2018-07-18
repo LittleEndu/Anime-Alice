@@ -67,6 +67,7 @@ class Alice(commands.Bot):
             return
         if str(payload.emoji) == '\U0001f502':
             message = await self.get_channel(payload.channel_id).get_message(payload.message_id)
+            message.author = self.get_user(payload.user_id)
             ctx = await self.get_context(message)
             if ctx.command:
                 if ctx.command.name in ['debug','exec']:
@@ -74,6 +75,8 @@ class Alice(commands.Bot):
                         await message.remove_reaction(payload.emoji, discord.Object(payload.user_id))
                     except discord.Forbidden:
                         pass
+                    msg = await ctx.send(message.content)
+                    await helper.react_or_false(await self.get_context(msg), ['\U0001f502'])
                     await ctx.reinvoke()
 
     async def get_prefix(self, message: discord.Message):
