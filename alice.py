@@ -40,6 +40,7 @@ class Alice(commands.Bot):
         if not os.path.isdir("logs"):
             os.makedirs("logs")
         self.logger = logging.getLogger()
+        logging.basicConfig(format='%(asctime)s [%(threadName)-12s] %(levelname)-8s %(message)s')
         fh = RotatingFileHandler("logs/alice.log", maxBytes=1000000)
         fh.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
