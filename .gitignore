@@ -3,4 +3,3 @@ __pycache__
 /config.json
 /alice.db
 /logs
-/DB_AUTH

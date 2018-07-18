@@ -33,8 +33,7 @@ class Alice(commands.Bot):
             config = json.load(file_in)
         self.config = config
         self.executor = concurrent.futures.ThreadPoolExecutor()
-        with open('DB_AUTH') as AUTH_file:
-            self.database_session = aiohttp.ClientSession(headers={'auth': AUTH_file.read()}, loop=self.loop)
+        self.database_session = aiohttp.ClientSession(headers={'auth': config.get('DB_AUTH')}, loop=self.loop)
         self.prefixes_cache = {}
 
         # Setup logging

@@ -9,10 +9,17 @@ app = Flask(__name__)
 
 
 def generate_auth():
-    with open('DB_AUTH', 'w') as AUTH_file:
+    import json
+    import shutil
+    if not os.path.isfile("config.json"):
+        shutil.copy('exampleconfig.json', 'config.json')
+    with open('config.json') as read_json:
+        data = json.load(read_json)
         AUTH = ''.join([random.choice(string.ascii_letters + string.digits) for _ in range(32)])
+        data['DB_AUTH'] = AUTH
         app.__AUTH = AUTH
-        AUTH_file.write(AUTH)
+    with open('config.json', 'w') as write_json:
+        json.dump(data, write_json, indent=4)
 
 
 def verify_auth_header(request):

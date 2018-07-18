@@ -5,7 +5,8 @@
   ],
   "unsafe_to_expose": [
     "token",
-    "DB_HOST"
+    "DB_HOST",
+    "DB_AUTH"
   ],
   "DB_HOST": "http://localhost"
 }
