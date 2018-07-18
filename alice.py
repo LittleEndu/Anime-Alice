@@ -273,7 +273,7 @@ class Alice(commands.Bot):
             await self.send_or_post_hastebin(ctx, f'```py\n{value}{traceback.format_exc()}\n```')
         else:
             value = stdout.getvalue()
-            if ctx.author == self.user or not await helper.react_or_false(ctx):
+            if not await helper.react_or_false(ctx):
                 await ctx.send('\u2705')
 
             if ret is None:
