@@ -39,22 +39,29 @@ class Alice(commands.Bot):
         # Setup logging
         if not os.path.isdir("logs"):
             os.makedirs("logs")
-        self.root_logger = logging.getLogger()
+        root_logger = logging.getLogger()
         self.logger = logging.getLogger('alice')
-        formater = logging.Formatter('%(asctime)s [%(name)s] %(levelname)-8s %(message)s')
+        formatter = logging.Formatter('%(asctime)s [%(name)s] %(levelname)-8s %(message)s')
+
         fh = RotatingFileHandler("logs/alice.log", maxBytes=1000000)
         fh.setLevel(logging.INFO)
-        fh.setFormatter(formater)
-        dh = RotatingFileHandler("logs/alice_debug.log", maxBytes=1000000)
+        fh.setFormatter(formatter)
+        dh = RotatingFileHandler("logs/debug.log", maxBytes=1000000)
         dh.setLevel(1)
-        dh.setFormatter(formater)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
-        ch.setFormatter(formater)
-        self.root_logger.addHandler(fh)
-        self.root_logger.addHandler(ch)
-        self.root_logger.addHandler(dh)
-        self.root_logger.setLevel(1)
+        dh.setFormatter(formatter)
+        th = RotatingFileHandler("logs/trace.log", maxBytes=1000000)
+        th.setLevel(1)
+        th.setFormatter(formatter)
+        sh = logging.StreamHandler()
+        sh.setLevel(logging.INFO)
+        sh.setFormatter(formatter)
+
+        root_logger.addHandler(fh)
+        root_logger.addHandler(sh)
+        root_logger.addHandler(dh)
+        root_logger.setLevel(1)
+
+        self.logger.addHandler(th)
         self.logger.setLevel(1)
 
         # Remove default help and add other commands
@@ -346,7 +353,7 @@ async def _prefix(bot: Alice, message: discord.Message):
 if __name__ == '__main__':
     alice = Alice()
     with redirect_stderr(sys.stdout):
-        with redirect_stdout(alice.root_logger):
+        with redirect_stdout(logging.getLogger()):
             alice.logger.info("\n\n\n")
             alice.logger.info(f"Running python version {sys.version}")
             alice.logger.info("Initializing")
