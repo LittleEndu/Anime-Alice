@@ -76,6 +76,8 @@ class Asker:
                 self.choices.append(choice.discord_str())
             else:
                 self.choices.append(str(choice))
+        if len(self.choices) > 9:
+            raise ValueError("Amount of choices can't exceed 9")
         self.chosen = None
 
     def get_choice(self):
@@ -118,7 +120,7 @@ class Asker:
             except asyncio.InvalidStateError:
                 return
 
-        emb = discord.Embed(description="\n".join(self.choices).strip())
+        emb = discord.Embed(description="\n".join([f"{self.choices[i]}" for i in range(len(self.choices))]).strip())
         asker = await self.ctx.send(embed=emb)
         fut = asyncio.Future()
         reaction_task = self.ctx.bot.loop.create_task(reaction_waiter(asker, fut))
@@ -128,16 +130,18 @@ class Asker:
                 if fut.done():
                     break
                 await asker.add_reaction(em)
+        message_exists = True
         try:
             async with async_timeout.timeout(60):
                 while not fut.done():
                     await asyncio.sleep(0)
         except asyncio.TimeoutError:
             await asker.delete()
+            message_exists = False
         finally:
             reaction_task.cancel()
             message_task.cancel()
-            if not asker:
+            if not message_exists:
                 return
             await asker.delete()
         self.chosen = fut.result() - 1
