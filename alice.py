@@ -39,15 +39,23 @@ class Alice(commands.Bot):
         # Setup logging
         if not os.path.isdir("logs"):
             os.makedirs("logs")
-        self.logger = logging.getLogger()
-        logging.basicConfig(format='%(asctime)s [%(threadName)-12s] %(levelname)-8s %(message)s')
+        self.root_logger = logging.getLogger()
+        self.logger = logging.getLogger('alice')
+        formater = logging.Formatter('%(asctime)s [%(name)s] %(levelname)-8s %(message)s')
         fh = RotatingFileHandler("logs/alice.log", maxBytes=1000000)
-        fh.setLevel(logging.DEBUG)
+        fh.setLevel(logging.INFO)
+        fh.setFormatter(formater)
+        dh = RotatingFileHandler("logs/alice_debug.log", maxBytes=1000000)
+        dh.setLevel(1)
+        dh.setFormatter(formater)
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
-        self.logger.addHandler(fh)
-        self.logger.addHandler(ch)
-        self.logger.setLevel(logging.DEBUG)
+        ch.setFormatter(formater)
+        self.root_logger.addHandler(fh)
+        self.root_logger.addHandler(ch)
+        self.root_logger.addHandler(dh)
+        self.root_logger.setLevel(1)
+        self.logger.setLevel(1)
 
         # Remove default help and add other commands
         self.remove_command("help")
@@ -338,7 +346,7 @@ async def _prefix(bot: Alice, message: discord.Message):
 if __name__ == '__main__':
     alice = Alice()
     with redirect_stderr(sys.stdout):
-        with redirect_stdout(alice.logger):
+        with redirect_stdout(alice.root_logger):
             alice.logger.info("\n\n\n")
             alice.logger.info(f"Running python version {sys.version}")
             alice.logger.info("Initializing")
