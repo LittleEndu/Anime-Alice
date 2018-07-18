@@ -24,7 +24,10 @@ async def deal_with_response(response):
         raise UnexpectedResponse(jj)
 
 
-# TODO: handle Make prefixes table
+async def create_prefixes_table(db_host: str, session: aiohttp.ClientSession):
+    async with session.get(f'{db_host}/db/createPrefixesTable') as response:
+        return await deal_with_response(response)
+
 
 async def get_prefixes(db_host: str, session: aiohttp.ClientSession, message: discord.Message):
     async with session.get(f'{db_host}/db/getPrefixes/{message.guild.id}') as response:

@@ -20,7 +20,6 @@ import discord
 from discord.ext import commands
 
 import helper
-from sqlitedatabase import AUTH
 
 
 class Alice(commands.Bot):
@@ -34,7 +33,8 @@ class Alice(commands.Bot):
             config = json.load(file_in)
         self.config = config
         self.executor = concurrent.futures.ThreadPoolExecutor()
-        self.database_session = aiohttp.ClientSession(headers={'auth': AUTH}, loop=self.loop)
+        with open('DB_AUTH') as AUTH_file:
+            self.database_session = aiohttp.ClientSession(headers={'auth': AUTH_file.read()}, loop=self.loop)
         self.prefixes_cache = {}
 
         # Setup logging
@@ -70,7 +70,7 @@ class Alice(commands.Bot):
             message.author = self.get_user(payload.user_id)
             ctx = await self.get_context(message)
             if ctx.command:
-                if ctx.command.name in ['debug','exec']:
+                if ctx.command.name in ['debug', 'exec']:
                     try:
                         await message.remove_reaction(payload.emoji, discord.Object(payload.user_id))
                     except discord.Forbidden:
@@ -327,7 +327,8 @@ async def _prefix(bot: Alice, message: discord.Message):
     if guild_id in bot.prefixes_cache:
         prefixes = bot.prefixes_cache.get(guild_id)
     else:
-        prefixes = (await helper.database.get_prefixes(bot.config.get('DB_HOST'), bot.database_session, message)).get('result')
+        prefixes = (await helper.database.get_prefixes(bot.config.get('DB_HOST'), bot.database_session, message)).get(
+            'result')
         for prefix in prefixes:
             bot.prefixes_cache.setdefault(guild_id, list()).append(prefix)
     return commands.when_mentioned_or(*prefixes)(bot, message)

@@ -1,16 +1,24 @@
+import os
 from flask import Flask, request, jsonify
 from werkzeug.exceptions import BadRequest
 import apsw
+import random
+import string
 
 app = Flask(__name__)
 
-# TODO: Remove this before publishing
-AUTH = "L8CiTJiCDOZy7x9IrOy93SZATziN7HuZ"
+
+def generate_auth():
+    with open('DB_AUTH', 'w') as AUTH_file:
+        AUTH = ''.join([random.choice(string.ascii_letters + string.digits) for _ in range(32)])
+        app.__AUTH = AUTH
+        AUTH_file.write(AUTH)
 
 
 def verify_auth_header(request):
-    # TODO: replace with auth file
-    return request.headers.get('auth') == AUTH
+    if hasattr(app, '__AUTH'):
+        return request.headers.get('auth') == app.__AUTH
+    return False
 
 
 @app.route('/test', methods=['GET', 'POST'])
@@ -178,4 +186,5 @@ def method_not_allowed(err):
 
 if __name__ == "__main__":
     database = apsw.Connection('alice.db')
+    generate_auth()
     app.run(host='0.0.0.0', port=80, debug=True)
