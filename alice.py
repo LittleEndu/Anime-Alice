@@ -77,6 +77,7 @@ class Alice(commands.Bot):
                         pass
                     msg = await ctx.send(message.content)
                     await helper.react_or_false(await self.get_context(msg), ['\U0001f502'])
+                    ctx.re_runner = msg
                     await ctx.reinvoke()
 
     async def get_prefix(self, message: discord.Message):
@@ -275,6 +276,11 @@ class Alice(commands.Bot):
             value = stdout.getvalue()
             if not await helper.react_or_false(ctx):
                 await ctx.send('\u2705')
+            if hasattr(ctx, 're_runner'):
+                try:
+                    await ctx.re_runner.add_reaction('\u2705')
+                except discord.Forbidden:
+                    await ctx.send('\u2705')
 
             if ret is None:
                 if value:
