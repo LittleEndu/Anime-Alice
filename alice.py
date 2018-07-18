@@ -46,6 +46,7 @@ class Alice(commands.Bot):
         ch.setLevel(logging.INFO)
         self.logger.addHandler(fh)
         self.logger.addHandler(ch)
+        self.logger.setLevel(logging.DEBUG)
 
         # Remove default help and add other commands
         self.remove_command("help")
@@ -334,8 +335,8 @@ async def _prefix(bot: Alice, message: discord.Message):
 
 if __name__ == '__main__':
     alice = Alice()
-    with redirect_stdout(alice.logger):
-        with redirect_stderr(alice.logger):
+    with redirect_stderr(sys.stdout):
+        with redirect_stdout(alice.logger):
             alice.logger.info("\n\n\n")
             alice.logger.info(f"Running python version {sys.version}")
             alice.logger.info("Initializing")
