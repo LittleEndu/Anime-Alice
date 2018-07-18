@@ -1,6 +1,5 @@
 import asyncio
 import concurrent.futures
-import datetime
 import importlib
 import inspect
 import io
@@ -14,6 +13,7 @@ import sys
 import textwrap
 import traceback
 from contextlib import redirect_stdout
+from logging.handlers import RotatingFileHandler
 
 import aiohttp
 import discord
@@ -40,7 +40,7 @@ class Alice(commands.Bot):
         if not os.path.isdir("logs"):
             os.makedirs("logs")
         self.logger = logging.getLogger('Control')
-        fh = logging.FileHandler("logs/" + str(datetime.datetime.now().date()) + ".log")
+        fh = RotatingFileHandler("logs/alice.log", maxBytes=1000000)
         fh.setLevel(logging.DEBUG)
         self.logger.addHandler(fh)
         ch = logging.StreamHandler()

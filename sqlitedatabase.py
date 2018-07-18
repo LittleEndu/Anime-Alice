@@ -1,9 +1,12 @@
 import os
-from flask import Flask, request, jsonify
-from werkzeug.exceptions import BadRequest
-import apsw
 import random
 import string
+import logging
+from logging.handlers import RotatingFileHandler
+
+import apsw
+from flask import Flask, request, jsonify
+from werkzeug.exceptions import BadRequest
 
 app = Flask(__name__)
 
@@ -192,6 +195,9 @@ def method_not_allowed(err):
 # endregion
 
 if __name__ == "__main__":
+    fh = RotatingFileHandler('logs/sqlite.log', maxBytes=1000000)
+    fh.setLevel(logging.DEBUG)
+    app.logger.addHandler(fh)
     database = apsw.Connection('alice.db')
     generate_auth()
     app.run(host='0.0.0.0', port=80, debug=True)
