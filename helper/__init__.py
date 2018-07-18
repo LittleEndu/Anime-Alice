@@ -1,5 +1,8 @@
 import traceback
 
+import asyncio
+
+import async_timeout
 import discord
 from discord.ext import commands
 
@@ -49,6 +52,91 @@ async def react_or_false(ctx, reactions=("\u2705",)):
     return False
 
 
+def clamp(minimum, value, maximum):
+    return min(maximum, max(minimum, value))
+
+
+def number_to_reaction(number: int):
+    return f"{number}\u20E3"
+
+
+def reaction_to_number(reaction: str):
+    try:
+        return int(reaction[0])
+    except:
+        return None
+
+
+class Asker:
+    def __init__(self, ctx: commands.Context, *args, choices: tuple = None):
+        self.ctx = ctx
+        self.choices = []
+        for choice in args + choices:
+            if hasattr(choice, 'discord_str'):
+                self.choices.append(choice.discord_str())
+            else:
+                self.choices.append(str(choice))
+        self.chosen = None
+
+    def get_choice(self):
+        return self.chosen
+
+    def __await__(self):
+        return self.make_choice().__await__()
+
+    async def make_choice(self):
+        async def reaction_waiter(msg: discord.Message, choice_fut: asyncio.Future):
+            def reaction_check(r: discord.Reaction, u: discord.User):
+                return all([
+                    u.id == self.ctx.author.id,
+                    r.message.id == msg.id,
+                    0 < reaction_to_number(r.emoji) <= len(self.choices)])
+
+            reaction, user = await self.ctx.bot.wait_for('reaction_add', check=reaction_check)
+            try:
+                choice_fut.set_result(reaction_to_number(reaction.emoji))
+            except asyncio.InvalidStateError:
+                return
+
+        async def message_waiter(choice_fut: asyncio.Future):
+            def message_check(message: discord.Message):
+                try:
+                    number = int(message.content)
+                except:
+                    return False
+                else:
+                    return message.author.id == self.ctx.author.id and 0 < number <= len(self.choices)
+
+            msg = await self.ctx.bot.wait_for('message', check=message_check)
+            try:
+                choice_fut.set_result(int(msg.content))
+            except asyncio.InvalidStateError:
+                return
+
+        emb = discord.Embed(description="\n".join(self.choices).strip())
+        asker = await self.ctx.send(embed=emb)
+        fut = asyncio.Future()
+        reaction_task = self.ctx.bot.loop.create_task(reaction_waiter(asker, fut))
+        message_task = self.ctx.bot.loop.create_task(message_waiter(fut))
+        if self.ctx.channel.permissions_for(self.ctx.me).add_reactions:
+            for em in map(number_to_reaction, range(1, len(self.choices) + 1)):
+                if fut.done():
+                    break
+                await asker.add_reaction(em)
+        try:
+            async with async_timeout.timeout(60):
+                while not fut.done():
+                    await asyncio.sleep(0)
+        except asyncio.TimeoutError:
+            await asker.delete()
+        finally:
+            reaction_task.cancel()
+            message_task.cancel()
+            if not asker:
+                return
+        self.chosen = fut.result() - 1
+
+
 class AppendOrSend:
     def __init__(self, channel: discord.abc.Messageable):
         self.data = ""
@@ -72,7 +160,3 @@ class AppendOrSend:
     async def flush(self):
         await self.channel.send(self.data)
         self.data = ""
-
-
-def clamp(minimum, value, maximum):
-    return min(maximum, max(minimum, value))

@@ -9,7 +9,7 @@ owner = discord.role
 # all functions in here should achieve the same thing, no matter what database is running
 # it's here just so I could use some other database (like postgres :shrug:) in future
 
-DB_HOST = 'http://localhost'
+DB_HOST = 'http://localhost' # TODO: Read from config
 
 
 class UnexpectedResponse(Exception):
