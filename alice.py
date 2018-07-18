@@ -317,7 +317,7 @@ async def _prefix(bot: Alice, message: discord.Message):
     if guild_id in bot.prefixes_cache:
         prefixes = bot.prefixes_cache.get(guild_id)
     else:
-        prefixes = (await helper.database.get_prefixes(bot.database_session, message)).get('result')
+        prefixes = (await helper.database.get_prefixes(bot.config.get('DB_HOST'), bot.database_session, message)).get('result')
         for prefix in prefixes:
             bot.prefixes_cache.setdefault(guild_id, list()).append(prefix)
     return commands.when_mentioned_or(*prefixes)(bot, message)
