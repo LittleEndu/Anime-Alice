@@ -297,11 +297,17 @@ class Alice(commands.Bot):
                 except discord.Forbidden:
                     await ctx.send('\u2705')
 
+            for sens in [self.config.get(i) for i in self.config.get('unsafe_to_expose')]:
+                value = str(value).replace(sens,'\u2588'.join([r for r in 'REDACTED']))
+
             if ret is None:
+
                 if value:
                     await self.send_or_post_hastebin(ctx, f'```py\n{value}\n```')
             else:
                 self._last_result = ret
+                for sens in [self.config.get(i) for i in self.config.get('unsafe_to_expose')]:
+                    ret = str(ret).replace(sens,'\u2588'.join([r for r in 'REDACTED']))
                 await self.send_or_post_hastebin(ctx, f'```py\n{value}{ret}\n```')
         await helper.react_or_false(ctx, ['\U0001f502'])
         if hasattr(ctx, 're_runner'):
