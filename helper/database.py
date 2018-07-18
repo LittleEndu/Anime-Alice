@@ -12,8 +12,9 @@ owner = discord.role
 
 
 class UnexpectedResponse(Exception):
-    def __init__(self, response):
+    def __init__(self, response, status):
         self.response = response
+        self.status = status
 
 
 async def deal_with_response(response):
@@ -21,7 +22,7 @@ async def deal_with_response(response):
     if response.status == 200:
         return jj
     else:
-        raise UnexpectedResponse(jj)
+        raise UnexpectedResponse(jj, response.status)
 
 
 async def create_prefixes_table(db_host: str, session: aiohttp.ClientSession):

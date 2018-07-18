@@ -12,6 +12,7 @@ app = Flask(__name__)
 
 
 def generate_auth():
+    logging.info('Generating new auth config')
     import json
     import shutil
     if not os.path.isfile("config.json"):
@@ -198,11 +199,12 @@ if __name__ == "__main__":
     fh = RotatingFileHandler('logs/sqlite.log', maxBytes=1000000)
     fh.setLevel(logging.DEBUG)
     app.logger.addHandler(fh)
-    
+
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.DEBUG)
     log.addHandler(fh)
 
     database = apsw.Connection('alice.db')
-    generate_auth()
+    if not hasattr(app, '__AUTH'):
+        generate_auth()
     app.run(host='0.0.0.0', port=80, debug=True)

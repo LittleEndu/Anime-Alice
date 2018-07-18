@@ -22,6 +22,18 @@ from discord.ext import commands
 import helper
 
 
+class LoggerWriter:
+    def __init__(self, level):
+        self.level = level
+
+    def write(self, message):
+        if message != '\n':
+            self.level(message)
+
+    def flush(self):
+        self.level(sys.stderr)
+
+
 class Alice(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=_prefix)
@@ -47,6 +59,8 @@ class Alice(commands.Bot):
         ch.setLevel(logging.INFO)
         self.logger.addHandler(ch)
         self.logger.setLevel(logging.DEBUG)
+        sys.stdout = LoggerWriter(self.logger)
+        sys.stderr = LoggerWriter(self.logger)
 
         # Remove default help and add other commands
         self.remove_command("help")
