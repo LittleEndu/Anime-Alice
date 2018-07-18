@@ -207,30 +207,30 @@ class Alice(commands.Bot):
         if result_class is None:
             result_class = "{}.{}".format(result.__class__.__module__, result.__class__.__name__)
         result_too_big = len(str(result)) > 2000
-        if any([(self.config.get(i) in str(result)) if i in self.config.keys() else False
-                for i in self.config.get("unsafe_to_expose")]):
-            await ctx.send("Doing this would reveal sensitive info!!!")
-            return
+
+        safe_result = str(result)
+        for sens in [self.config.get(i) for i in self.config.get('unsafe_to_expose')]:
+            safe_result = str(safe_result).replace(sens, '\u2588' * 10)
+
+        if ctx.channel.permissions_for(ctx.me).embed_links:
+            color = discord.Color(0)
+            if isinstance(result, discord.Colour):
+                color = result
+            emb = discord.Embed(description="{}".format(safe_result)[:2000],
+                                color=color)
+            emb.set_footer(text="{} {} {}".format(
+                result_class,
+                "| Command has been awaited" if has_been_awaited else "",
+                "| Result has been cut" if result_too_big else "")
+            )
+            await ctx.send(embed=emb)
         else:
-            if ctx.channel.permissions_for(ctx.me).embed_links:
-                color = discord.Color(0)
-                if isinstance(result, discord.Colour):
-                    color = result
-                emb = discord.Embed(description="{}".format(result)[:2000],
-                                    color=color)
-                emb.set_footer(text="{} {} {}".format(
-                    result_class,
-                    "| Command has been awaited" if has_been_awaited else "",
-                    "| Result has been cut" if result_too_big else "")
-                )
-                await ctx.send(embed=emb)
-            else:
-                await ctx.send("```xl\nOutput: {}\nOutput class: {} {} {}```".format(
-                    str(result).replace("`", "\u02cb")[:1500],
-                    result_class,
-                    "| Command has been awaited" if has_been_awaited else "",
-                    "| Result has been cut" if result_too_big else ""))
-            await helper.react_or_false(ctx, ['\U0001f502'])
+            await ctx.send("```xl\nOutput: {}\nOutput class: {} {} {}```".format(
+                str(safe_result).replace("`", "\u02cb")[:1500],
+                result_class,
+                "| Command has been awaited" if has_been_awaited else "",
+                "| Result has been cut" if result_too_big else ""))
+        await helper.react_or_false(ctx, ['\U0001f502'])
 
     async def send_or_post_hastebin(self, ctx: commands.Context, content: str):
         try:
@@ -301,13 +301,14 @@ class Alice(commands.Bot):
                 value = str(value).replace(sens,'\u2588'*10)
 
             if ret is None:
-
                 if value:
+                    value = value.replace("`", "\u02cb")
                     await self.send_or_post_hastebin(ctx, f'```py\n{value}\n```')
             else:
                 self._last_result = ret
                 for sens in [self.config.get(i) for i in self.config.get('unsafe_to_expose')]:
                     ret = str(ret).replace(sens,'\u2588'*10)
+                ret = ret.replace("`", "\u02cb")
                 await self.send_or_post_hastebin(ctx, f'```py\n{value}{ret}\n```')
         await helper.react_or_false(ctx, ['\U0001f502'])
         if hasattr(ctx, 're_runner'):
