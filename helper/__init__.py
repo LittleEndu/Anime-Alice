@@ -82,9 +82,14 @@ class Asker:
         return self.chosen
 
     def __await__(self):
+        if self.chosen:
+            raise asyncio.InvalidStateError
         return self.make_choice().__await__()
 
     async def make_choice(self):
+        if self.chosen:
+            raise asyncio.InvalidStateError
+
         async def reaction_waiter(msg: discord.Message, choice_fut: asyncio.Future):
             def reaction_check(r: discord.Reaction, u: discord.User):
                 return all([
@@ -134,7 +139,9 @@ class Asker:
             message_task.cancel()
             if not asker:
                 return
+            await asker.delete()
         self.chosen = fut.result() - 1
+        return self.chosen
 
 
 class AppendOrSend:
