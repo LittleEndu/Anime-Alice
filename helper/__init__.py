@@ -120,7 +120,9 @@ class Asker:
             except asyncio.InvalidStateError:
                 return
 
-        emb = discord.Embed(description="\n".join([f"{self.choices[i]}" for i in range(len(self.choices))]).strip())
+        emb = discord.Embed(
+            description="\n".join([f"**{i+1}**: {self.choices[i]}" for i in range(len(self.choices))]).strip()
+        )
         asker = await self.ctx.send(embed=emb)
         fut = asyncio.Future()
         reaction_task = self.ctx.bot.loop.create_task(reaction_waiter(asker, fut))
