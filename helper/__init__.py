@@ -68,7 +68,7 @@ def reaction_to_number(reaction: str):
 
 
 class Asker:
-    def __init__(self, ctx: commands.Context, *args, choices: tuple = None):
+    def __init__(self, ctx: commands.Context, *args, choices: tuple = tuple()):
         self.ctx = ctx
         self.choices = []
         for choice in args + choices:
