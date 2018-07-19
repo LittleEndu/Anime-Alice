@@ -162,7 +162,8 @@ query ($terms: String) {
             asking = []
             for i in results:
                 under = i['title']['english']
-                if under:
+                if under is not None:
+                    ctx.bot.logger.debug(f'Currently under is {under} of type {type(under)}')
                     under = f"*{under}*"
                 asking.append(f"  {i['title']['romaji']}\n\t{under}")
             index = await helper.Asker(ctx, *asking)
