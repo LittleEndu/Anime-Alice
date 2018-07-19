@@ -1,6 +1,7 @@
 import abc
 
 import aiohttp
+import asyncio
 import discord
 import dateutil.parser
 from bs4 import BeautifulSoup as BS

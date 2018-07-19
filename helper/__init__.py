@@ -176,6 +176,7 @@ class Asker:
         except asyncio.TimeoutError:
             await asker.delete()
             message_exists = False
+            raise
         finally:
             reaction_task.cancel()
             message_task.cancel()

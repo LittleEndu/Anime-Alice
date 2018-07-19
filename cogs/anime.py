@@ -24,7 +24,10 @@ class Anime:
         cls = getattr(helper.mediums, medium_name.capitalize())
         assert issubclass(cls, helper.mediums.Medium)
         await ctx.trigger_typing()
-        medium = await cls.via_search(ctx, query)
+        try:
+            medium = await cls.via_search(ctx, query)
+        except asyncio.TimeoutError:
+            return
         if medium is NotImplemented:
             await ctx.send("I'm sorry. I can't do that yet.")
         elif medium is None:
