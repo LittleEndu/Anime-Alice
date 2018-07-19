@@ -376,6 +376,10 @@ class RedirectToLog(io.StringIO):
 
 if __name__ == '__main__':
     alice = Alice()
+    if len(sys.argv) == 2:
+        token = sys.argv[1]
+    else:
+        token = alice.config.get('token', "")
     err = RedirectToLog(logging.ERROR)
     out = RedirectToLog(logging.INFO)
     asyncio.get_event_loop().create_task(err.flush_task())
@@ -385,7 +389,7 @@ if __name__ == '__main__':
             alice.logger.info("\n\n\n")
             alice.logger.info(f"Running python version {sys.version}")
             alice.logger.info("Initializing")
-            if alice.config.get('token', ""):
+            if token:
                 for ex in alice.config.get('auto_load', []):
                     try:
                         alice.load_extension("cogs.{}".format(ex))
@@ -393,7 +397,7 @@ if __name__ == '__main__':
                     except Exception as e:
                         alice.logger.info('Failed to load extension {}\n{}: {}'.format(ex, type(e).__name__, e))
                 alice.logger.info("Logging in...\n")
-                alice.run(alice.config['token'])
+                alice.run(token)
             else:
                 alice.logger.info("Please add the token to the config file!")
                 asyncio.get_event_loop().run_until_complete(alice.close())
