@@ -101,9 +101,9 @@ class Asker:
         self.choices = []
         for choice in args + choices:
             if hasattr(choice, 'discord_str'):
-                self.choices.append(choice.discord_str().strip())
+                self.choices.append(choice.discord_str())
             else:
-                self.choices.append(str(choice).strip())
+                self.choices.append(str(choice))
         if len(self.choices) > 9:
             raise ValueError("Amount of choices can't exceed 9")
         if not self.choices:
