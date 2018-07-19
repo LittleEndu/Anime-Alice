@@ -190,9 +190,8 @@ query ($terms: String) {
                          cover_url=wanted['coverImage']['large'],
                          episodes=wanted['episodes'],
                          alice_score=wanted['alice_score'],
-                         description="(Source".join(wanted['description'].split("(Source")[:-1]),
+                         description=wanted['description'],
                          # InFuture: Get description at any site
-                         # FIXME: This even fails if anilist has desc...
                          status=wanted['status'].replace("_", " ").capitalize(),
                          start_date=start_date,
                          end_date=end_date)
