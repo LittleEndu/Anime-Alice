@@ -1,48 +1,61 @@
-import aiohttp
+import asyncpg
 import discord
-
-owner = discord.role
-
-
-# basically this module should provide consistency
-# all functions in here should achieve the same thing, no matter what database is running
-# it's here just so I could use some other database (like postgres :shrug:) in future
+import alice
 
 
-class UnexpectedResponse(Exception):
-    def __init__(self, response, status):
-        self.response = response
-        self.status = status
+class Database:
+    def __init__(self, bot: alice.Alice, db_host: str, db_name: str, user_name: str, password: str):
+        self.bot = bot
+        self.db_host = db_host
+        self.db_name = db_name
+        self.user_name = user_name
+        self.password = password
+        self.pool: asyncpg.pool.Pool = None
 
+    async def start(self):
+        self.pool = await asyncpg.create_pool(host=self.db_host,
+                                              database=self.db_name,
+                                              user=self.user_name,
+                                              password=self.password)
 
-async def deal_with_response(response):
-    jj = await response.json()
-    if response.status == 200:
-        return jj
-    else:
-        raise UnexpectedResponse(jj, response.status)
+    async def table_exists(self, table_name: str):
+        async with self.pool.acquire() as connection:
+            assert isinstance(connection, asyncpg.Connection)
+            result = await connection.fetchrow("""
+                     SELECT 1
+                     FROM   information_schema.tables 
+                     WHERE  table_name = $1;
+                     """, table_name)
+            return result
 
+    async def create_prefixes_table(self):
+        async with self.pool.acquire() as connection:
+            assert isinstance(connection, asyncpg.Connection)
+            await connection.execute("""
+            CREATE TABLE IF NOT EXISTS prefixes(
+                guild_id BIGINT,
+                prefix TEXT,
+                UNIQUE (guild_id, prefix)
+            );
+            """)
+            await connection.execute("""
+            CREATE INDEX IF NOT EXISTS prefix_index ON prefixes (guild_id);
+            """)
 
-async def create_prefixes_table(db_host: str, session: aiohttp.ClientSession):
-    async with session.get(f'{db_host}/db/createPrefixesTable') as response:
-        return await deal_with_response(response)
+    async def get_prefixes(self, message: discord.Message):
+        if not await self.table_exists('prefixes'):
+            return []
+        async with self.pool.acquire() as connection:
+            assert isinstance(connection, asyncpg.Connection)
+            result = await connection.fetch("""
+                     SELECT prefix FROM prefixes WHERE guild_id = $1;
+                     """, message.guild.id)
+            return [i['prefix'] for i in result]
 
-
-async def get_prefixes(db_host: str, session: aiohttp.ClientSession, message: discord.Message):
-    async with session.get(f'{db_host}/db/getPrefixes/{message.guild.id}') as response:
-        return await deal_with_response(response)
-
-
-async def set_prefix(db_host: str, session: aiohttp.ClientSession, guild: discord.Guild, prefix: str):
-    async with session.post(f'{db_host}/db/setPrefix', data={'guild_id': guild.id, 'prefix': prefix}) as response:
-        return await deal_with_response(response)
-
-
-async def remove_prefix(db_host: str, session: aiohttp.ClientSession, guild: discord.Guild, prefix: str):
-    async with session.delete(f'{db_host}/db/removePrefix', data={'guild_id': guild.id, 'prefix': prefix}) as response:
-        return await deal_with_response(response)
-
-
-async def count_prefix(db_host: str, session: aiohttp.ClientSession, guild: discord.Guild):
-    async with session.get(f'{db_host}/db/countPrefix/{guild.id}') as response:
-        return await deal_with_response(response)
+    async def set_prefix(self, guild: discord.Guild, prefix: str):
+        async with self.pool.acquire() as connection:
+            assert isinstance(connection, asyncpg.Connection)
+            await connection.execute("""
+            INSERT INTO prefixes (guild_id, prefix)
+            VALUES ($1, $2);
+            """, *(guild.id, prefix))

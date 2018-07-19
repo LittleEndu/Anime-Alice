@@ -6,8 +6,11 @@
   ],
   "unsafe_to_expose": [
     "token",
-    "DB_HOST",
-    "DB_AUTH"
+    "DB_host",
+    "DB_password"
   ],
-  "DB_HOST": "http://localhost"
+  "DB_host": "localhost",
+  "DB_name": "",
+  "DB_user": "",
+  "DB_password": ""
 }

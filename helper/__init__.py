@@ -7,8 +7,9 @@ import discord
 from discord.ext import commands
 
 from . import database, mediums
+from .database import Database
 
-__all__ = ['database', 'mediums']
+__all__ = ['database', 'mediums', 'Database']
 
 
 async def handle_error(ctx, err):

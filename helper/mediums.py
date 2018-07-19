@@ -1,4 +1,7 @@
 import abc
+
+import aiohttp
+
 import helper
 
 import discord
@@ -36,7 +39,7 @@ class Anime(Medium):
         self.kwargs = kwargs
 
     @staticmethod
-    def search_query(query):
+    def search_query(query: str):
         return """
 {
   Page (page:1){
@@ -73,19 +76,53 @@ class Anime(Medium):
 """ % query
 
     @staticmethod
+    def get_query(anilist_id: int):
+        return """
+{
+  Page (page:1){
+    pageInfo{
+      total
+    }
+    media (id: "%s", type: ANIME){
+      id
+      idMal
+      description
+      episodes
+      title {
+        romaji
+        english
+        native
+      }
+      popularity
+      status
+      isAdult
+      stats {
+        scoreDistribution {
+          score,
+          amount
+        }
+      }
+      startDate {year, month, day}
+      endDate {year, month, day}
+      coverImage {
+        large
+      }
+    }
+  }
+}
+""" % anilist_id
+
+    @staticmethod
     async def via_query(ctx: commands.Context, query: str):
         # TODO: Implement
         pass
 
     @staticmethod
-    async def via_api(anilist_id: int):
+    async def via_id(db_host: str, db_session: aiohttp.ClientSession, anilist_id: int):
         # TODO: Implement
+
         to_return = Anime(anilist_id=id, name='name')
         return to_return
-
-    async def via_database(self):
-        # TODO: Implement
-        pass
 
     async def anime(self):
         # TODO: Return related anime instead

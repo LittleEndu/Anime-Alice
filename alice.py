@@ -33,8 +33,11 @@ class Alice(commands.Bot):
             config = json.load(file_in)
         self.config = config
         self.executor = concurrent.futures.ThreadPoolExecutor()
-        self.database_session = aiohttp.ClientSession(headers={'auth': config.get('DB_AUTH')}, loop=self.loop)
-        self.prefixes_cache = {}
+        self.database = helper.Database(self,
+                                        config.get('DB_host'),
+                                        config.get('DB_name'),
+                                        config.get('DB_user'),
+                                        config.get('DB_password'))
 
         # Setup logging
         if not os.path.isdir("logs"):
@@ -69,6 +72,10 @@ class Alice(commands.Bot):
         for i in [self.reload, self.load, self.unload, self.debug, self.loadconfig, self._latency, self._exec]:
             self.add_command(i)
         self._last_result = None
+
+    async def start(self, *args, **kwargs):
+        await self.database.start()
+        await super().start(*args, **kwargs)
 
     async def on_ready(self):
         self.logger.info('Logged in as')
@@ -346,15 +353,7 @@ class Alice(commands.Bot):
 
 
 async def _prefix(bot: Alice, message: discord.Message):
-    guild_id = message.guild.id
-    if guild_id in bot.prefixes_cache:
-        prefixes = bot.prefixes_cache.get(guild_id)
-    else:
-        prefixes = (await helper.database.get_prefixes(bot.config.get('DB_HOST'), bot.database_session, message)).get(
-            'result')
-        for prefix in prefixes:
-            bot.prefixes_cache.setdefault(guild_id, list()).append(prefix)
-    return commands.when_mentioned_or(*prefixes)(bot, message)
+    return commands.when_mentioned_or(*await bot.database.get_prefixes(message))(bot, message)
 
 
 if __name__ == '__main__':
