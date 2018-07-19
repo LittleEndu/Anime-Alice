@@ -156,9 +156,7 @@ query ($terms: String) {
             if i['isAdult'] and not adult:
                 results.remove(i)
                 continue
-            ctx.bot.logger.debug(f'This anime has a description of: {i["description"]}')
             i['description'] = BS(i['description'], "html.parser").text
-            ctx.bot.logger.debug(f'{"There still is one" if i["description"] else "BS failed to parse it"}')
 
         if results:
             asking = []
