@@ -1,5 +1,3 @@
-import json
-
 import aiohttp
 import discord
 
@@ -18,7 +16,7 @@ class UnexpectedResponse(Exception):
 
 
 async def deal_with_response(response):
-    jj = json.loads(await response.text())
+    jj = await response.json()
     if response.status == 200:
         return jj
     else:

@@ -298,7 +298,7 @@ class Alice(commands.Bot):
                     await ctx.send('\u2705')
 
             for sens in [self.config.get(i) for i in self.config.get('unsafe_to_expose')]:
-                value = str(value).replace(sens,'\u2588'*10)
+                value = str(value).replace(sens, '\u2588' * 10)
 
             if ret is None:
                 if value:
@@ -307,7 +307,7 @@ class Alice(commands.Bot):
             else:
                 self._last_result = ret
                 for sens in [self.config.get(i) for i in self.config.get('unsafe_to_expose')]:
-                    ret = str(ret).replace(sens,'\u2588'*10)
+                    ret = str(ret).replace(sens, '\u2588' * 10)
                 ret = ret.replace("`", "\u02cb")
                 await self.send_or_post_hastebin(ctx, f'```py\n{value}{ret}\n```')
         await helper.react_or_false(ctx, ['\U0001f502'])
