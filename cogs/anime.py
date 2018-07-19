@@ -3,14 +3,14 @@ from discord.ext import commands
 import alice
 import helper.mediums
 
-
 import asyncio
+
 
 class Anime:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
-        self._last_medium = dict() # TODO: Add a time limit or something
-        find_command = commands.command()(self.find)
+        self._last_medium = dict()  # TODO: Add a time limit or something
+        find_command = commands.command(aliases=['?', 'search'])(self.find)
         self.anime.add_command(find_command)
 
     @commands.group()
@@ -21,6 +21,18 @@ class Anime:
 
     async def find(self, ctx: commands.Context, *, query: str):
         medium_name = ctx.command.parent.name
+        cls = getattr(helper.mediums, medium_name.capitalize())
+        assert issubclass(cls, helper.mediums.Medium)
+        await ctx.trigger_typing()
+        medium = await cls.via_search(ctx, query)
+        if medium is NotImplemented:
+            await ctx.send("I'm sorry. I can't do that yet.")
+        elif medium is None:
+            await ctx.send('No results...')
+        else:
+            await ctx.send(embed=medium.to_embed())
+
+
 
 
 def setup(bot):

@@ -1,11 +1,22 @@
 import abc
 
 import aiohttp
+import discord
+import dateutil.parser
+from bs4 import BeautifulSoup as BS
+from discord.ext import commands
 
 import helper
 
-import discord
-from discord.ext import commands
+ANILIST_ANIME_LINK = "https://anilist.co/anime/%s"
+ANILIST_QUERY_URL = 'https://graphql.anilist.co'
+
+
+class ResponseError(Exception):
+    def __init__(self, status, *args, **kwargs):
+        self.status = status
+
+    pass
 
 
 class Medium(metaclass=abc.ABCMeta):
@@ -14,20 +25,27 @@ class Medium(metaclass=abc.ABCMeta):
         self.name = name
 
     async def anime(self):
-        raise NotImplemented
+        return NotImplemented
 
     async def manga(self):
-        raise NotImplemented
+        return NotImplemented
 
     async def characters(self):
-        raise NotImplemented
+        return NotImplemented
+
+    @staticmethod
+    async def via_search(ctx: commands.Context, query: str, adult=False):
+        return NotImplemented
+
+    def to_embed(self):
+        return NotImplemented
 
 
 class Anime(Medium):
     def __init__(self, anilist_id, name, **kwargs):
         super().__init__(anilist_id, name)
         self.url = kwargs.get('url')
-        self.romaji_name = kwargs.get('romaji_name')
+        self.romaji_name = kwargs.get('romaji_name', name)
         self.aliases = kwargs.get('aliases', [])
         self.cover_url = kwargs.get('cover_url', 'https://puu.sh/vPxRa/6f563946ec.png')
         self.episodes = kwargs.get('episodes', 'Unknown')
@@ -39,14 +57,14 @@ class Anime(Medium):
         self.kwargs = kwargs
 
     @staticmethod
-    def search_query(query: str):
+    def search_query():
         return """
-{
-  Page (page:1){
-    pageInfo{
+query ($terms: String) {
+  Page(page: 1) {
+    pageInfo {
       total
     }
-    media (search: "%s", type: ANIME){
+    media(search: $terms, type: ANIME) {
       id
       idMal
       description
@@ -61,22 +79,30 @@ class Anime(Medium):
       isAdult
       stats {
         scoreDistribution {
-          score,
+          score
           amount
         }
       }
-      startDate {year, month, day}
-      endDate {year, month, day}
+      startDate {
+        year
+        month
+        day
+      }
+      endDate {
+        year
+        month
+        day
+      }
       coverImage {
         large
       }
     }
   }
 }
-""" % query
+"""
 
     @staticmethod
-    def get_query(anilist_id: int):
+    def id_query(anilist_id: int):
         return """
 {
   Page (page:1){
@@ -113,12 +139,57 @@ class Anime(Medium):
 """ % anilist_id
 
     @staticmethod
-    async def via_query(ctx: commands.Context, query: str):
-        # TODO: Implement
-        pass
+    async def via_search(ctx: commands.Context, query: str, adult=False):
+        results = []  # Because PyCharm :shrug:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url=ANILIST_QUERY_URL,
+                                    json={'query': Anime.search_query(),
+                                          'variables': {'terms': query}}) as response:
+                if response.status == 200:
+                    jj = await response.json()
+                    results = jj['data']['Page']['media']
+                    ctx.bot.logger.debug(jj)
+                else:
+                    raise ResponseError(response.status, await response.text())
+        results.sort(key=lambda k: k['popularity'], reverse=True)
+        for i in results[:]:
+            if i['isAdult'] and not adult:
+                results.remove(i)
+                continue
+            i['description'] = BS(i['description'], "html.parser").text
+
+        ctx.bot.logger.debug(f'There were {len(results)} results, here they are:\n{results}')
+        if results:
+            index = await helper.Asker(ctx, *[f"\t{i['title']['romaji']}\n\t\t{i['title']['english']}" for i in results])
+            wanted = results[index]
+            await ctx.trigger_typing()
+            anilist_scores = [0 for i in range(10)]  # InFuture: Add scores from other sites maybe
+            for score in wanted['stats']['scoreDistribution']:
+                anilist_scores[score['score'] // 10 - 1] = score['amount']
+            wanted['alice_score'] = helper.ci_score(anilist_scores)
+            start_date = None
+            end_date = None
+            if all([wanted['startDate'][i] for i in wanted['startDate']]):
+                start_date = str(dateutil.parser.parse("{year}-{month}-{day}".format(**wanted['startDate'])).date())
+            if all([wanted['endDate'][i] for i in wanted['endDate']]):
+                end_date = str(dateutil.parser.parse("{year}-{month}-{day}".format(**wanted['endDate'])).date())
+
+            return Anime(anilist_id=wanted['id'],
+                         name=wanted['title']['romaji'],
+                         url=ANILIST_ANIME_LINK % wanted['id'],
+                         aliases=[i for i in [wanted['title']['english'], wanted['title']['native']] if i],
+                         cover_url=wanted['coverImage']['large'],
+                         episodes=wanted['episodes'],
+                         alice_score=wanted['alice_score'],
+                         description="(Source".join(wanted['description'].split("(Source")[:-1]),
+                         # InFuture: Get description at any site
+                         status=wanted['status'].replace("_", " ").capitalize(),
+                         start_date=start_date,
+                         end_date=end_date)
+        return
 
     @staticmethod
-    async def via_id(db_host: str, db_session: aiohttp.ClientSession, anilist_id: int):
+    async def via_id(ctx: commands.Context, anilist_id: int):
         # TODO: Implement
 
         to_return = Anime(anilist_id=id, name='name')
@@ -128,7 +199,7 @@ class Anime(Medium):
         # TODO: Return related anime instead
         return [self]
 
-    async def to_embed(self):
+    def to_embed(self):
         embed = discord.Embed(description="\n".join(self.aliases) if self.aliases else None)
         embed.set_author(name=self.romaji_name, url=self.url)
         embed.set_thumbnail(url=self.cover_url)
@@ -140,7 +211,7 @@ class Anime(Medium):
             embed.add_field(name="Synopsis", value=text + " ...", inline=False)
         else:
             embed.add_field(name="Synopsis", value=text, inline=False)
-        embed.add_field(name="Status", value=self.status.replace("_", " ").capitalize())
+        embed.add_field(name="Status", value=self.status)
         if self.start_date:
             embed.add_field(name=f"Airing date{'s' if self.end_date else ''}",
                             value="{}{}".format(

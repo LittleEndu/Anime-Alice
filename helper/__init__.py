@@ -1,6 +1,7 @@
 import traceback
 
 import asyncio
+import math
 
 import async_timeout
 import discord
@@ -11,6 +12,8 @@ from .database import Database
 
 __all__ = ['database', 'mediums', 'Database']
 
+
+# region discord stuff
 
 async def handle_error(ctx, err):
     can_send = ctx.channel.permissions_for(ctx.me).send_messages
@@ -55,10 +58,6 @@ async def react_or_false(ctx, reactions=("\u2705",)):
     return False
 
 
-def clamp(minimum, value, maximum):
-    return min(maximum, max(minimum, value))
-
-
 def number_to_reaction(number: int):
     return f"{number}\u20E3"
 
@@ -69,6 +68,32 @@ def reaction_to_number(reaction: str):
     except:
         return None
 
+
+# endregion
+
+# region general stuff
+
+def clamp(minimum, value, maximum):
+    return min(maximum, max(minimum, value))
+
+
+def ci_score(ratings: list):
+    pos = sum([ratings[i] * i / (len(ratings) - 1) for i in range(1, len(ratings))])
+    n = sum([i for i in ratings])
+    return ci(pos, n) * 10
+
+
+def ci(pos, n):
+    z = 1.98
+    phat = 1.0 * pos / n
+
+    return (phat + z * z / (2 * n) - z * math.sqrt((phat * (1 - phat) + z * z / (4 * n)) / n)) / (1 + z * z / n)
+
+
+# endregion
+
+
+# region classes
 
 class Asker:
     def __init__(self, ctx: commands.Context, *args, choices: tuple = tuple()):
@@ -81,6 +106,9 @@ class Asker:
                 self.choices.append(str(choice))
         if len(self.choices) > 9:
             raise ValueError("Amount of choices can't exceed 9")
+        if not self.choices:
+            raise ValueError("Amount of choices can't be 0")
+
         self.chosen = None
 
     def get_choice(self):
@@ -94,6 +122,10 @@ class Asker:
     async def make_choice(self):
         if self.chosen:
             raise asyncio.InvalidStateError
+
+        if len(self.choices) == 1:
+            self.chosen = 0
+            return self.chosen
 
         async def reaction_waiter(msg: discord.Message, choice_fut: asyncio.Future):
             def reaction_check(r: discord.Reaction, u: discord.User):
@@ -177,3 +209,5 @@ class AppendOrSend:
     async def flush(self):
         await self.channel.send(self.data)
         self.data = ""
+
+# endregion

@@ -356,10 +356,32 @@ async def _prefix(bot: Alice, message: discord.Message):
     return commands.when_mentioned_or(*await bot.database.get_prefixes(message))(bot, message)
 
 
+class RedirectToLog(io.StringIO):
+    def __init__(self, level: int= logging.INFO, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.level = level
+        self.buffer = ''
+
+    async def flush_task(self):
+        while asyncio.get_event_loop().is_running():
+            await asyncio.sleep(1)
+            if self.buffer:
+                logging.getLogger().log(level=self.level, msg=self.buffer)
+                self.buffer = ''
+
+    def write(self, *args, **kwargs):
+        self.buffer += " ".join(args)
+
+
+
 if __name__ == '__main__':
     alice = Alice()
-    with redirect_stderr(sys.stdout):
-        with redirect_stdout(logging.getLogger()):
+    err = RedirectToLog(logging.ERROR)
+    out = RedirectToLog(logging.INFO)
+    asyncio.get_event_loop().create_task(err.flush_task())
+    asyncio.get_event_loop().create_task(out.flush_task())
+    with redirect_stderr(err):
+        with redirect_stdout(out):
             alice.logger.info("\n\n\n")
             alice.logger.info(f"Running python version {sys.version}")
             alice.logger.info("Initializing")
