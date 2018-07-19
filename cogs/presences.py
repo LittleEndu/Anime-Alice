@@ -26,3 +26,13 @@ class Presences:
                 f'prefix == mention',
             ))
             await self.bot.change_presence(activity=discord.Game(name=game_name))
+
+
+def setup(bot):
+    import importlib
+    for v in globals().values():
+        try:
+            importlib.reload(v)
+        except TypeError:
+            pass
+    bot.add_cog(Presences(bot))
