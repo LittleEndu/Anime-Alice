@@ -1,7 +1,8 @@
 {
   "token": "XXXXXXXXXXXXXXXXXXXXXXXX.xxxxxx.XXXXXXXXXXXXXXXXXXXXXXXXXXX",
   "auto_load": [
-    "core"
+    "anime",
+    "presences"
   ],
   "unsafe_to_expose": [
     "token",
