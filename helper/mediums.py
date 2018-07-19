@@ -49,10 +49,10 @@ class Anime(Medium):
         self.romaji_name = kwargs.get('romaji_name', name)
         self.aliases = kwargs.get('aliases', [])
         self.cover_url = kwargs.get('cover_url', 'https://puu.sh/vPxRa/6f563946ec.png')
-        self.episodes = kwargs.get('episodes', 'Unknown')
-        self.alice_score = kwargs.get('alice_score', 'N/A')
-        self.description = kwargs.get('description', 'N/A')
-        self.status = kwargs.get('status', 'N/A')
+        self.episodes = kwargs.get('episodes', 'Unknown') or 'Unknown'
+        self.alice_score = kwargs.get('alice_score', 'N/A') or 'N/A'
+        self.description = kwargs.get('description', 'N/A') or 'N/A'
+        self.status = kwargs.get('status', 'N/A') or 'N/A'
         self.start_date = kwargs.get('start_date')
         self.end_date = kwargs.get('end_date')
         self.kwargs = kwargs
@@ -159,7 +159,7 @@ query ($terms: String) {
             i['description'] = BS(i['description'], "html.parser").text
 
         if results:
-            index = await helper.Asker(ctx, *[f"\t{i['title']['romaji']}\n\t\t*{i['title']['english'] or ' '}*" for i in
+            index = await helper.Asker(ctx, *[f"  {i['title']['romaji']}\n\t*{i['title']['english'] or ' '}*" for i in
                                               results])
             wanted = results[index]
             await ctx.trigger_typing()
