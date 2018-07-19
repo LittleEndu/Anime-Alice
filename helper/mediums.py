@@ -159,8 +159,8 @@ query ($terms: String) {
             i['description'] = BS(i['description'], "html.parser").text
 
         if results:
-            under = f"{i['title']['english']}"
-            if under:
+            under = f"{i['title']['english'] or ' '}"
+            if under != ' ':
                 under = f"*{under}*"
             index = await helper.Asker(ctx, *[f"  {i['title']['romaji']}\n\t{under}" for i in
                                               results])
