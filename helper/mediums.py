@@ -159,7 +159,8 @@ query ($terms: String) {
             i['description'] = BS(i['description'], "html.parser").text
 
         if results:
-            index = await helper.Asker(ctx, *[f"\t\t{i['title']['romaji']}\n\t\t*{i['title']['english'] or ' '}*" for i in results])
+            index = await helper.Asker(ctx, *[f"\t{i['title']['romaji']}\n\t\t*{i['title']['english'] or ' '}*" for i in
+                                              results])
             wanted = results[index]
             await ctx.trigger_typing()
             anilist_scores = [0 for i in range(10)]  # InFuture: Add scores from other sites maybe

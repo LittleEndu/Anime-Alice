@@ -33,7 +33,9 @@ class Anime:
         elif medium is None:
             await ctx.send('No results...')
         else:
-            await ctx.send(embed=medium.to_embed())
+            embed = medium.to_embed()
+            self.bot.logger.debug(embed.to_dict())
+            await ctx.send(embed=embed)
 
 
 
