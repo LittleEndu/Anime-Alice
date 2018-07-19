@@ -159,7 +159,10 @@ query ($terms: String) {
             i['description'] = BS(i['description'], "html.parser").text
 
         if results:
-            index = await helper.Asker(ctx, *[f"  {i['title']['romaji']}\n\t*{i['title']['english'] or ' '}*" for i in
+            under = f"{i['title']['english']}"
+            if under:
+                under = f"*{under}*"
+            index = await helper.Asker(ctx, *[f"  {i['title']['romaji']}\n\t{under}" for i in
                                               results])
             wanted = results[index]
             await ctx.trigger_typing()
