@@ -26,6 +26,7 @@ class Presences:
                 f'prefix == mention',
             ))
             await self.bot.change_presence(activity=discord.Game(name=game_name))
+            await asyncio.sleep(600)
 
 
 def setup(bot):
