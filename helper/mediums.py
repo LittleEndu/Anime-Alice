@@ -49,9 +49,9 @@ class Anime(Medium):
         self.aliases = kwargs.get('aliases', [])
         self.cover_url = kwargs.get('cover_url', 'https://puu.sh/vPxRa/6f563946ec.png')
         self.episodes = kwargs.get('episodes', 'Unknown')
-        self.alice_score = kwargs.get('alice_score', None)
-        self.description = kwargs.get('description')
-        self.status = kwargs.get('status')
+        self.alice_score = kwargs.get('alice_score', 'N/A')
+        self.description = kwargs.get('description', 'N/A')
+        self.status = kwargs.get('status', 'N/A')
         self.start_date = kwargs.get('start_date')
         self.end_date = kwargs.get('end_date')
         self.kwargs = kwargs
@@ -158,7 +158,7 @@ query ($terms: String) {
             i['description'] = BS(i['description'], "html.parser").text
 
         if results:
-            index = await helper.Asker(ctx, *[f"\t{i['title']['romaji']}\n\t\t*{i['title']['english'] or ' '}*" for i in results])
+            index = await helper.Asker(ctx, *[f"\t\t{i['title']['romaji']}\n\t\t*{i['title']['english'] or ' '}*" for i in results])
             wanted = results[index]
             await ctx.trigger_typing()
             anilist_scores = [0 for i in range(10)]  # InFuture: Add scores from other sites maybe
