@@ -148,7 +148,6 @@ query ($terms: String) {
                 if response.status == 200:
                     jj = await response.json()
                     results = jj['data']['Page']['media']
-                    ctx.bot.logger.debug(jj)
                 else:
                     raise ResponseError(response.status, await response.text())
         results.sort(key=lambda k: k['popularity'], reverse=True)
@@ -158,7 +157,6 @@ query ($terms: String) {
                 continue
             i['description'] = BS(i['description'], "html.parser").text
 
-        ctx.bot.logger.debug(f'There were {len(results)} results, here they are:\n{results}')
         if results:
             index = await helper.Asker(ctx, *[f"\t{i['title']['romaji']}\n\t\t{i['title']['english']}" for i in results])
             wanted = results[index]
