@@ -59,3 +59,11 @@ class Database:
             INSERT INTO prefixes (guild_id, prefix)
             VALUES ($1, $2);
             """, *(guild.id, prefix))
+
+    async def remove_prefix(self, guild: discord.Guild, prefix: str):
+        async with self.pool.acquire() as connection:
+            assert isinstance(connection, asyncpg.Connection)
+            await connection.execute("""
+            DELETE FROM prefixes
+            WHERE guild_id = $1 AND prefix = $2;
+            """, *(guild.id, prefix))
