@@ -283,8 +283,9 @@ class Otaku:
     @commands.bot_has_permissions(embed_links=True)
     async def anime(self, ctx: commands.Context):
         """
-From bot description.
-**anime lookup**
+*From bot description.*
+
+**Anime lookup**
 * ``!anime`` - Shows the related anime to the last anime you looked up
 * ``!anime search <query>`` - Searches Anilist for anime. ```search``` can be replaced with ``?``
 * ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!`` or ``luckysearch``
