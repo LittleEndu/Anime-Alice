@@ -26,8 +26,10 @@ class Info:
             emb.add_field(name="**Joined {}**".format(member.guild.name)[:256],
                           value=member.joined_at.strftime('%Y-%m-%d %H:%M'))
             if member.game:
-                emb.add_field(name="**Status**", value="Playing **{}**".format(member.game.name))
-            emb.add_field(name="**Roles**", value=", ".join([r.name for r in member.roles]))
+                emb.add_field(name="**Status**", value="**{}**".format(member.activity.name))
+            roles = ", ".join([r.name for r in member.roles])
+            if len(roles) < 500:
+                emb.add_field(name="**Roles**", value=roles)
         except:
             pass
         emb.add_field(name="**Avatar url**", value="[Here]({})".format(member.avatar_url))
