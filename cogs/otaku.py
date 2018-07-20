@@ -279,6 +279,7 @@ class Otaku:
             self._last_medium[ctx.author.id] = new_medium
 
     @commands.group(aliases=['hentai'])
+    @commands.bot_has_permissions(embed_links=True)
     async def anime(self, ctx: commands.Context):
         if ctx.invoked_with == 'hentai' and not ctx.channel.nsfw:
             await ctx.send("Can't search hentai in here")
