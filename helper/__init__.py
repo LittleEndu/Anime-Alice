@@ -177,14 +177,15 @@ class Asker:
             await asker.delete()
             message_exists = False
             raise
+        else:
+            self.chosen = fut.result() - 1
+            return self.chosen
         finally:
             reaction_task.cancel()
             message_task.cancel()
-            if not message_exists:
-                return
-            await asker.delete()
-        self.chosen = fut.result() - 1
-        return self.chosen
+            if message_exists:
+                await asker.delete()
+
 
 
 class AppendOrSend:
