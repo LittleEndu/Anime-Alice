@@ -89,7 +89,10 @@ class Alice(commands.Bot):
             return
         if str(payload.emoji) == '\U0001f502':
             message = await self.get_channel(payload.channel_id).get_message(payload.message_id)
-            message.author = self.get_user(payload.user_id)
+            if payload.guild_id:
+                message.author = self.get_guild(payload.guild_id).get_member(payload.user_id)
+            else:
+                message.author = self.get_user(payload.user_id)
             ctx = await self.get_context(message)
             if ctx.command:
                 if ctx.command.name in ['debug', 'exec']:
