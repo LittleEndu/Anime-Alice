@@ -20,6 +20,7 @@ class Anime:
         medium = self._last_medium.get(ctx.author.id)
         if not medium:
             await ctx.send("You haven't used last medium yet")
+            return
         func = getattr(medium, parent_name)
         try:
             new_medium = await func(lucky=lucky)
@@ -70,6 +71,7 @@ class Anime:
         else:
             embed = medium.to_embed()
             await ctx.send(embed=embed)
+            self._last_medium[ctx.author.id] = medium
 
 
 def setup(bot):
