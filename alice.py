@@ -373,11 +373,15 @@ class RedirectToLog(io.StringIO):
         self.buffer = ''
 
     async def flush_task(self):
-        while asyncio.get_event_loop().is_running():
-            await asyncio.sleep(1)
+        try:
+            while asyncio.get_event_loop().is_running():
+                await asyncio.sleep(1)
+                if self.buffer:
+                    logging.getLogger().log(level=self.level, msg=self.buffer)
+                    self.buffer = ''
+        except asyncio.CancelledError:
             if self.buffer:
                 logging.getLogger().log(level=self.level, msg=self.buffer)
-                self.buffer = ''
 
     def write(self, *args, **kwargs):
         self.buffer += " ".join(args)

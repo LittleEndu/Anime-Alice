@@ -4,6 +4,7 @@ import asyncio
 import aiohttp
 import dateutil.parser
 import discord
+import time
 from bs4 import BeautifulSoup as BS
 from discord.ext import commands
 
@@ -25,6 +26,7 @@ class Otaku:
         def __init__(self, anilist_id, name):
             self.anilist_id = anilist_id
             self.name = name
+            self.instance_created_at = time.time()
 
         async def anime(self, lucky=False):
             return NotImplemented
@@ -242,6 +244,20 @@ class Otaku:
         for g in [self.anime]:
             for s in [find_command, lucky_command]:
                 g.add_command(s)
+        self.cleanup_task = self.bot.loop.create_task(self.cleanuper())
+
+    def __unload(self):
+        self.cleanup_task.cancel()
+
+    async def cleanuper(self):
+        try:
+            while True:
+                for k in list(self._last_medium.keys()):
+                    if self._last_medium[k].age < time.time() - 600:
+                        del self._last_medium
+                await asyncio.sleep(60)
+        except asyncio.CancelledError:
+            pass
 
     async def last_medium_caller(self, ctx: commands.Context, parent_name: str, lucky=False):
         medium = self._last_medium.get(ctx.author.id)
