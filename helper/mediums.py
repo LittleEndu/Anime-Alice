@@ -167,7 +167,7 @@ query ($terms: String) {
                 else:
                     under = ''
                 asking.append(f"  {i['title']['romaji']}\n\t{under}")
-            index = await helper.Asker(ctx, *asking)
+            index = await helper.Asker(ctx, *asking[:9])
             wanted = results[index]
             await ctx.trigger_typing()
             anilist_scores = [0 for i in range(10)]  # InFuture: Add scores from other sites maybe
