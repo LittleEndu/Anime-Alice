@@ -157,7 +157,7 @@ query ($terms: String) {
             if i['isAdult'] and not adult:
                 results.remove(i)
                 continue
-            i['description'] = BS(i['description'], "html.parser").text
+            i['description'] = BS(i['description'], "lxml").text
 
         if results:
             asking = []
