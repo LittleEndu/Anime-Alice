@@ -32,8 +32,6 @@ class HelpCommand:
         async with self.bot.helper.AppendOrSend(ctx.author) as appender:
             for i in sorted(self.bot.commands, key=lambda a: a.name):
                 assert isinstance(i, commands.Command)
-                if hasattr(i, 'no_help'):
-                    continue
                 new_line = "\n"  # Don't delete, used in nested fstring
                 help_string = i.brief or f'{i.help or ""}'.split(new_line)[0]
                 show = not i.hidden and await i.can_run(ctx)
