@@ -26,8 +26,6 @@ class Info:
             emb.add_field(name="**Joined {}**".format(member.guild.name)[:256],
                           value=member.joined_at.strftime('%Y-%m-%d %H:%M'))
             if member.activity:
-                name = member.activity.name
-                if
                 emb.add_field(name="**Status**",
                               value=f'{member.activity.type.name.capitalize()} {member.activity.name}')
             roles = ", ".join([r.name for r in member.roles])
