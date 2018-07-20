@@ -34,7 +34,9 @@ class HelpCommand:
                     continue
                 new_line = "\n" # This is actually used in fstring but is here so PyCharm sees it used
                 help_string = i.brief or f'{i.help or ""}'.split(new_line)[0]
-                show =  not i.hidden and await i.can_run(ctx)
+                can_run = await i.can_run(ctx)
+                self.bot.logger.debug(f"Checking command {i.name}, can_run={can_run}, hidden={i.hidden}")
+                show =  not i.hidden and can_run
                 appender.append(
                     f"**``{i.name}``**{f'{new_line}{help_string}' if help_string else ''}\n\n" if show else ""
                 )
