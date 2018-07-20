@@ -245,6 +245,7 @@ class Otaku:
             for s in [find_command, lucky_command]:
                 g.add_command(s)
         self.cleanup_task = self.bot.loop.create_task(self.cleanuper())
+        self.anime.__no_help = True
 
     def __unload(self):
         self.cleanup_task.cancel()

@@ -43,7 +43,7 @@ class Info:
     @commands.bot_has_permissions(embed_links=True)
     async def whois(self, ctx, member: discord.Member = None):
         """
-        Shows info on a given member
+        Displays information about a given member
         """
         await self.info_giver(ctx, member)
 

@@ -6,22 +6,38 @@ class HelpCommand:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
 
+    @commands.command(name='help', hidden=True)
+    async def _help(self, ctx, *, name=None):
+        if name is None:
+            try:
+                owner = ctx.guild.get_member(self.bot.owner_id)
+            except:
+                owner = self.bot.get_user(self.bot.owner_id)
+            await ctx.send(f"If you are reading this it means that I have failed to make my bot intuitive enough.\n"
+                           f"You should contact me ({owner.name}#{owner.discriminator}) so we could fix it\n"
+                           f"Or maybe you just wanted to list all commands. Use ``{ctx.prefix}commands`` for that\n"
+                           f"Or if you want help on a specific command, do ``{ctx.prefix}help <command name>``")
+        else:
+            command = self.bot.get_command(name)
+            await ctx.send(f"{', '.join([f'``{command.name}``']+[f'``{i}``' for i in command.aliases])}\n\n"
+                           f"{command.help}")
+
     @commands.command(name='commands')
     async def _commands(self, ctx):
         """
         Lists all visible commands
         """
-        to_send = ""
-        for i in sorted(self.bot.commands, key=lambda a: a.name):
-            help_string = i.brief or f'{i.help or ""}'.split("\n")[0]
-            new_line = "\n"
-            to_append = f"**``{i.name}``**{f'{new_line}{help_string}' if help_string else ''}\n\n" if not i.hidden else ""
-            if len(to_send + to_append) > 2000:
-                await ctx.author.send(to_send)
-                to_send = ""
-            to_send += to_append
-        if to_send:
-            await ctx.author.send(to_send)
+        async with self.bot.helper.AppendOrSend(ctx.author) as appender:
+            for i in sorted(self.bot.commands, key=lambda a: a.name):
+                assert isinstance(i, commands.Command)
+                if hasattr(i, '__no_help'):
+                    continue
+                new_line = "\n" # This is actually used in fstring but is here so PyCharm sees it used
+                help_string = i.brief or f'{i.help or ""}'.split(new_line)[0]
+                show = await i.can_run(ctx) and not i.hidden
+                appender.append(
+                    f"**``{i.name}``**{f'{new_line}{help_string}' if help_string else ''}\n\n" if show else ""
+                )
         if not await self.bot.helper.react_or_false(ctx, "\U0001f4eb"):
             await ctx.send("Sent you the commands")
 
