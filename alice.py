@@ -23,13 +23,14 @@ import helper
 
 
 class Alice(commands.Bot):
-    def __init__(self):
+    def __init__(self, config_name='config.json'):
         super().__init__(command_prefix=_prefix)
+        self._config_name = config_name
 
         # Get config and set other initial variables
-        if not os.path.isfile("config.json"):
-            shutil.copy('exampleconfig.json', 'config.json')
-        with open("config.json") as file_in:
+        if not os.path.isfile(config_name):
+            shutil.copy('exampleconfig.json', config_name)
+        with open(config_name) as file_in:
             config = json.load(file_in)
         self.config = config
         self.executor = concurrent.futures.ThreadPoolExecutor()
@@ -154,7 +155,7 @@ class Alice(commands.Bot):
         Reload the config
         """
         try:
-            with open("config.json") as file_in:
+            with open(self._config_name) as file_in:
                 config = json.load(file_in)
             self.config = config
             if not await helper.react_or_false(ctx):
@@ -383,11 +384,10 @@ class RedirectToLog(io.StringIO):
 
 
 if __name__ == '__main__':
-    alice = Alice()
     if len(sys.argv) == 2:
-        token = sys.argv[1]
+        alice = Alice(config_name=sys.argv[1])
     else:
-        token = alice.config.get('token', "")
+        alice = Alice()
     err = RedirectToLog(logging.ERROR)
     out = RedirectToLog(logging.INFO)
     asyncio.get_event_loop().create_task(err.flush_task())
@@ -397,7 +397,7 @@ if __name__ == '__main__':
             alice.logger.info("\n\n\n")
             alice.logger.info(f"Running python version {sys.version}")
             alice.logger.info("Initializing")
-            if token:
+            if alice.config.get('token',''):
                 for ex in alice.config.get('auto_load', []):
                     try:
                         alice.load_extension("cogs.{}".format(ex))
@@ -405,7 +405,7 @@ if __name__ == '__main__':
                     except Exception as e:
                         alice.logger.info('Failed to load extension {}\n{}: {}'.format(ex, type(e).__name__, e))
                 alice.logger.info("Logging in...\n")
-                alice.run(token)
+                alice.run(alice.config.get('token'))
             else:
                 alice.logger.info("Please add the token to the config file!")
                 asyncio.get_event_loop().run_until_complete(alice.close())
