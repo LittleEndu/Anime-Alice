@@ -1,6 +1,8 @@
 import asyncio
+
 import asyncpg
 import discord
+
 import alice
 
 
@@ -22,6 +24,9 @@ class Database:
                                               database=self.db_name,
                                               user=self.user_name,
                                               password=self.password)
+
+    async def close(self):
+        await self.pool.close()
 
     async def table_exists(self, table_name: str):
         async with self.pool.acquire() as connection:
@@ -93,3 +98,7 @@ def setup(bot: alice.Alice):
                             bot.config.get('DB_user'),
                             bot.config.get('DB_password'))
     bot.loop.run_until_complete(bot.database.start())
+
+
+def teardown(bot: alice.Alice):
+    bot.loop.run_until_complete(bot.database.close())

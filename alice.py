@@ -14,13 +14,14 @@ import textwrap
 import traceback
 from contextlib import redirect_stdout, redirect_stderr
 from logging.handlers import RotatingFileHandler
+import types
 
 import aiohttp
 import discord
 from discord.ext import commands
-from cogs.database import Database
 
-import helper
+from cogs.helper import Helper
+from cogs.database import Database
 
 
 class Alice(commands.Bot):
@@ -36,6 +37,7 @@ class Alice(commands.Bot):
         self.config = config
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.database: Database = None
+        self.helper: Helper = None
 
         # Setup logging
         if not os.path.isdir("logs"):
@@ -70,6 +72,9 @@ class Alice(commands.Bot):
         for i in [self.reload, self.load, self.unload, self.debug, self.loadconfig, self._latency, self._exec]:
             self.add_command(i)
         self._last_result = None
+
+    def auto_load(self):
+        return ['helper', 'database'] + self.config.get('auto_load', [])
 
     async def on_ready(self):
         self.logger.info('Logged in as')
@@ -109,14 +114,14 @@ class Alice(commands.Bot):
     async def on_command_error(self, ctx: commands.Context, err):
         if hasattr(ctx.command, "on_error"):
             return
-        await helper.handle_error(ctx, err)
+        await self.helper.handle_error(ctx, err)
 
     # region Commands
 
     @commands.command(aliases=['reloadall', 'loadall'], hidden=True)
     @commands.is_owner()
     async def reload(self, ctx):
-        for ext in set([i.replace("cogs.", "") for i in self.extensions.keys()] + self.config.get('auto_load', [])):
+        for ext in set([i.replace("cogs.", "") for i in self.extensions.keys()] + self.auto_load()):
             await self.load_cog(ctx, ext, True)
         await ctx.send("Reloaded already loaded cogs and cogs under auto_load")
 
@@ -138,7 +143,7 @@ class Alice(commands.Bot):
             self.logger.error("".join(traceback.format_exception(type(err), err.__cause__, err.__traceback__)))
             await ctx.send("\u26a0 Could not load `{}` -> `{}`".format(extension, err))
         else:
-            if not silent and not await helper.react_or_false(ctx):
+            if not silent and not await self.helper.react_or_false(ctx):
                 await ctx.send("Loaded `{}`.".format(extension))
 
     @commands.command(hidden=True, aliases=['reloadconfig', 'reloadjson', 'loadjson'])
@@ -151,7 +156,7 @@ class Alice(commands.Bot):
             with open(self._config_name) as file_in:
                 config = json.load(file_in)
             self.config = config
-            if not await helper.react_or_false(ctx):
+            if not await self.helper.react_or_false(ctx):
                 await ctx.send("Successfully loaded config")
         except Exception as err:
             await ctx.send("Could not reload config: `{}`".format(err))
@@ -175,7 +180,7 @@ class Alice(commands.Bot):
             self.logger.error("".join(traceback.format_exception(type(err), err.__cause__, err.__traceback__)))
             await ctx.send("Could not unload `{}` -> `{}`".format(extension, err))
         else:
-            if not await helper.react_or_false(ctx):
+            if not await self.helper.react_or_false(ctx):
                 await ctx.send("Unloaded `{}`.".format(extension))
 
     @commands.command(hidden=True)
@@ -239,7 +244,7 @@ class Alice(commands.Bot):
                 await ctx.re_runner.add_reaction('\U0001f502')
             except discord.Forbidden:
                 pass
-        await helper.react_or_false(ctx, ['\U0001f502'])
+        await self.helper.react_or_false(ctx, ['\U0001f502'])
 
     async def send_or_post_hastebin(self, ctx: commands.Context, content: str):
         try:
@@ -298,7 +303,7 @@ class Alice(commands.Bot):
             await self.send_or_post_hastebin(ctx, f'```py\n{value}{traceback.format_exc()}\n```')
         else:
             value = stdout.getvalue()
-            if not await helper.react_or_false(ctx):
+            if not await self.helper.react_or_false(ctx):
                 await ctx.send('\u2705')
             if hasattr(ctx, 're_runner'):
                 try:
@@ -319,7 +324,7 @@ class Alice(commands.Bot):
                     ret = str(ret).replace(sens, '\u2588' * 10)
                 ret = ret.replace("`", "\u02cb")
                 await self.send_or_post_hastebin(ctx, f'```py\n{value}{ret}\n```')
-        await helper.react_or_false(ctx, ['\U0001f502'])
+        await self.helper.react_or_false(ctx, ['\U0001f502'])
         if hasattr(ctx, 're_runner'):
             try:
                 await ctx.re_runner.add_reaction('\U0001f502')
@@ -349,7 +354,7 @@ class Alice(commands.Bot):
                 await ctx.reinvoke()
                 return
         else:
-            helper.handle_error(ctx, error)
+            self.helper.handle_error(ctx, error)
 
     # endregion
 
@@ -391,7 +396,7 @@ if __name__ == '__main__':
                 alice.logger.info(f"Running python version {sys.version}")
                 alice.logger.info("Initializing")
                 if alice.config.get('token', ''):
-                    for ex in alice.config.get('auto_load', []):
+                    for ex in alice.auto_load():
                         try:
                             alice.load_extension("cogs.{}".format(ex))
                             alice.logger.info("Successfully loaded {}".format(ex))

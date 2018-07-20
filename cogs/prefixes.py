@@ -1,10 +1,8 @@
-import asyncio
 import asyncpg
 import discord
 from discord.ext import commands
 
 import alice
-import helper
 
 
 class Prefixes:
@@ -59,7 +57,7 @@ class Prefixes:
         except asyncpg.UniqueViolationError:
             await ctx.send("That prefix already exists")
             return
-        if not await helper.react_or_false(ctx):
+        if not await self.bot.helper.react_or_false(ctx):
             await ctx.send("Successfully set the prefix.")
 
     @commands.command(aliases=['deleteprefix'])
@@ -69,22 +67,16 @@ class Prefixes:
             prefixes = await self.bot.get_prefix(ctx.message)
             mentions = commands.bot.when_mentioned(ctx.bot, ctx.message)
             prefixes = [i for i in prefixes if i not in mentions]
-            index = await helper.Asker(ctx, *prefixes)
+            index = await self.bot.helper.Asker(ctx, *prefixes)
             prefix = prefixes[index]
         if not (ctx.author.guild_permissions.administrator or self.bot.is_owner(ctx.author)):
             raise commands.CheckFailure("You can't change the prefix")
         await self.bot.database.remove_prefix(ctx.guild, prefix)
-        if not await helper.react_or_false(ctx, ("\U0001f6ae", "\u2705")):
+        if not await self.bot.helper.react_or_false(ctx, ("\U0001f6ae", "\u2705")):
             await ctx.send("Prefix successfully deleted.")
 
 
 
 
 def setup(bot):
-    import importlib
-    for v in globals().values():
-        try:
-            importlib.reload(v)
-        except TypeError:
-            pass
     bot.add_cog(Prefixes(bot))

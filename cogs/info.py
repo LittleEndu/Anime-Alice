@@ -79,10 +79,4 @@ class Info:
 
 
 def setup(bot):
-    import importlib
-    for v in globals().values():
-        try:
-            importlib.reload(v)
-        except TypeError:
-            pass
     bot.add_cog(Info(bot))

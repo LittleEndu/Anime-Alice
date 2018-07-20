@@ -30,10 +30,4 @@ class Presences:
 
 
 def setup(bot):
-    import importlib
-    for v in globals().values():
-        try:
-            importlib.reload(v)
-        except TypeError:
-            pass
     bot.add_cog(Presences(bot))
