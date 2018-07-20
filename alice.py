@@ -414,6 +414,3 @@ if __name__ == '__main__':
                 else:
                     alice.logger.info("Please add the token to the config file!")
                     asyncio.get_event_loop().run_until_complete(alice.close())
-    finally:
-        for task in tasks:
-            task.cancel()
