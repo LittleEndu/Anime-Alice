@@ -240,6 +240,11 @@ class Alice(commands.Bot):
                 result_class,
                 "| Command has been awaited" if has_been_awaited else "",
                 "| Result has been cut" if result_too_big else ""))
+        if hasattr(ctx, 'rerunner'):
+            try:
+                await ctx.re_runner.add_reaction('\U0001f502')
+            except discord.Forbidden:
+                pass
         await helper.react_or_false(ctx, ['\U0001f502'])
 
     async def send_or_post_hastebin(self, ctx: commands.Context, content: str):
