@@ -360,7 +360,10 @@ class Alice(commands.Bot):
 
 
 async def _prefix(bot: Alice, message: discord.Message):
-    return commands.when_mentioned_or(*await bot.database.get_prefixes(message))(bot, message)
+    if bot.database:
+        return commands.when_mentioned_or(*await bot.database.get_prefixes(message))(bot, message)
+    else:
+        return commands.when_mentioned(bot, message)
 
 
 class RedirectToLog(io.StringIO):
