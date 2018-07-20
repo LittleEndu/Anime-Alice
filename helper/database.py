@@ -1,3 +1,4 @@
+import asyncio
 import asyncpg
 import discord
 import alice
@@ -11,6 +12,10 @@ class Database:
         self.user_name = user_name
         self.password = password
         self.pool: asyncpg.pool.Pool = None
+
+    async def wait_for_start(self):
+        while not self.pool:
+            await asyncio.sleep(0)
 
     async def start(self):
         self.pool = await asyncpg.create_pool(host=self.db_host,
@@ -42,6 +47,18 @@ class Database:
             CREATE INDEX IF NOT EXISTS prefix_index ON prefixes (guild_id);
             """)
 
+    async def count_prefixes(self, guild: discord.Guild):
+        if not await self.table_exists('prefixes'):
+            return 0
+        async with self.pool.acquire() as connection:
+            assert isinstance(connection, asyncpg.Connection)
+            result = await connection.fetchrow(
+                """
+                SELECT count(1) FROM prefixes
+                WHERE guild_id = $1;
+                """, guild.id)
+            return result[0]
+
     async def get_prefixes(self, message: discord.Message):
         if not await self.table_exists('prefixes'):
             return []
@@ -52,7 +69,7 @@ class Database:
                      """, message.guild.id)
             return [i['prefix'] for i in result]
 
-    async def set_prefix(self, guild: discord.Guild, prefix: str):
+    async def add_prefix(self, guild: discord.Guild, prefix: str):
         async with self.pool.acquire() as connection:
             assert isinstance(connection, asyncpg.Connection)
             await connection.execute("""

@@ -2,7 +2,8 @@
   "token": "XXXXXXXXXXXXXXXXXXXXXXXX.xxxxxx.XXXXXXXXXXXXXXXXXXXXXXXXXXX",
   "auto_load": [
     "anime",
-    "presences"
+    "presences",
+    "prefixes"
   ],
   "unsafe_to_expose": [
     "token",
