@@ -55,6 +55,7 @@ class Anime(Medium):
         self.status = kwargs.get('status', 'N/A') or 'N/A'
         self.start_date = kwargs.get('start_date')
         self.end_date = kwargs.get('end_date')
+        self.is_nsfw = kwargs.get('is_nsfw')
         self.kwargs = kwargs
 
     @staticmethod
@@ -194,7 +195,8 @@ query ($terms: String) {
                          description=wanted['description'],
                          status=wanted['status'].replace("_", " ").capitalize(),
                          start_date=start_date,
-                         end_date=end_date)
+                         end_date=end_date,
+                         is_nsfw=wanted['isAdult'])
         return
 
     @staticmethod
