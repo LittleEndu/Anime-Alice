@@ -245,7 +245,7 @@ class Otaku:
             for s in [find_command, lucky_command]:
                 g.add_command(s)
         self.cleanup_task = self.bot.loop.create_task(self.cleanuper())
-        self.anime.__no_help = True
+        self.anime.no_help = True
 
     def __unload(self):
         self.cleanup_task.cancel()
@@ -282,6 +282,13 @@ class Otaku:
     @commands.group(aliases=['hentai'])
     @commands.bot_has_permissions(embed_links=True)
     async def anime(self, ctx: commands.Context):
+        """
+From bot description.
+**anime lookup**
+* ``!anime`` - Shows the related anime to the last anime you looked up
+* ``!anime search <query>`` - Searches Anilist for anime. ```search``` can be replaced with ``?``
+* ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!`` or ``luckysearch``
+        """
         if ctx.invoked_with == 'hentai' and not ctx.channel.nsfw:
             await ctx.send("Can't search hentai in here")
         if ctx.invoked_subcommand is None:
