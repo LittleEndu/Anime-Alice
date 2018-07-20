@@ -25,7 +25,7 @@ class Medium(metaclass=abc.ABCMeta):
         self.anilist_id = anilist_id
         self.name = name
 
-    async def anime(self, lucky=False):
+    async def anime(self, lucky=False) -> helper.mediums.Anime:
         return NotImplemented
 
     async def manga(self, lucky=False):
@@ -206,9 +206,9 @@ query ($terms: String) {
         to_return = Anime(anilist_id=id, name='name')
         return to_return
 
-    async def anime(self, lucky=False):
+    async def anime(self, lucky=False) -> helper.mediums.Anime:
         # TODO: Return related anime instead
-        return [self]
+        return self
 
     def to_embed(self):
         embed = discord.Embed(description="\n".join(self.aliases) if self.aliases else None)
