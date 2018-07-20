@@ -21,8 +21,10 @@ class HelpCommand:
         else:
             command = self.bot.get_command(name)
             no_help = "This command doesnt have help text :/"
-            await ctx.send(f"{', '.join([f'``{command.name}``']+[f'``{i}``' for i in command.aliases])}\n\n"
-                           f"{command.help if command.help else no_help}")
+            aliases = ""
+            if command.aliases:
+                aliases = f", [{', '.join([f'``{i}``' for i in command.aliases])}]"
+            await ctx.send(f"``{command.name}``{aliases}\n\n{command.help if command.help else no_help}")
 
     @commands.command(name='commands')
     async def _commands(self, ctx):
