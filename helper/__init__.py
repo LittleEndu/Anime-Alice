@@ -7,10 +7,9 @@ import async_timeout
 import discord
 from discord.ext import commands
 
-from . import database, mediums
-from .database import Database
+from . import mediums
 
-__all__ = ['database', 'mediums', 'Database']
+__all__ = ['mediums']
 
 
 # region discord stuff

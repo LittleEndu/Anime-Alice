@@ -84,3 +84,12 @@ class Database:
             DELETE FROM prefixes
             WHERE guild_id = $1 AND prefix = $2;
             """, *(guild.id, prefix))
+
+
+def setup(bot: alice.Alice):
+    bot.database = Database(bot,
+                            bot.config.get('DB_host'),
+                            bot.config.get('DB_name'),
+                            bot.config.get('DB_user'),
+                            bot.config.get('DB_password'))
+    bot.loop.run_until_complete(bot.database.start())

@@ -18,6 +18,7 @@ from logging.handlers import RotatingFileHandler
 import aiohttp
 import discord
 from discord.ext import commands
+from cogs.database import Database
 
 import helper
 
@@ -34,11 +35,7 @@ class Alice(commands.Bot):
             config = json.load(file_in)
         self.config = config
         self.executor = concurrent.futures.ThreadPoolExecutor()
-        self.database = helper.Database(self,
-                                        config.get('DB_host'),
-                                        config.get('DB_name'),
-                                        config.get('DB_user'),
-                                        config.get('DB_password'))
+        self.database: Database = None
 
         # Setup logging
         if not os.path.isdir("logs"):
@@ -73,10 +70,6 @@ class Alice(commands.Bot):
         for i in [self.reload, self.load, self.unload, self.debug, self.loadconfig, self._latency, self._exec]:
             self.add_command(i)
         self._last_result = None
-
-    async def start(self, *args, **kwargs):
-        await self.database.start()
-        await super().start(*args, **kwargs)
 
     async def on_ready(self):
         self.logger.info('Logged in as')
