@@ -64,6 +64,8 @@ class Prefixes:
     async def removeprefix(self, ctx, *, prefix: str= None):
         """Removes prefix for the bot from this server"""
         if prefix is None:
+            if not ctx.channel.permissions_for(ctx.me).embed_links:
+                raise commands.BotMissingPermissions([discord.Permissions.embed_links])
             prefixes = await self.bot.get_prefix(ctx.message)
             mentions = commands.bot.when_mentioned(ctx.bot, ctx.message)
             prefixes = [i for i in prefixes if i not in mentions]

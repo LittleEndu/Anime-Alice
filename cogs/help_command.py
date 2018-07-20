@@ -20,6 +20,9 @@ class HelpCommand:
                            f"Or if you want help on a specific command, do ``{ctx.prefix}help <command name>``.")
         else:
             command = self.bot.get_command(name)
+            if not command:
+                await ctx.send('Unable to find that command')
+                return 
             no_help = "This command doesnt have help text :/"
             aliases = ""
             if command.aliases:
