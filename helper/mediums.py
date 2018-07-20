@@ -35,7 +35,7 @@ class Medium(metaclass=abc.ABCMeta):
         return NotImplemented
 
     @staticmethod
-    async def via_search(ctx: commands.Context, query: str, adult=False):
+    async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
         return NotImplemented
 
     def to_embed(self):
@@ -140,7 +140,7 @@ query ($terms: String) {
 """ % anilist_id
 
     @staticmethod
-    async def via_search(ctx: commands.Context, query: str, adult=False):
+    async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
         results = []  # Because PyCharm :shrug:
         async with aiohttp.ClientSession() as session:
             async with session.post(url=ANILIST_QUERY_URL,
@@ -167,7 +167,10 @@ query ($terms: String) {
                 else:
                     under = ''
                 asking.append(f"  {i['title']['romaji']}\n\t{under}")
-            index = await helper.Asker(ctx, *asking[:9])
+            if lucky:
+                index = 0
+            else:
+                index = await helper.Asker(ctx, *asking[:9])
             wanted = results[index]
             await ctx.trigger_typing()
             anilist_scores = [0 for i in range(10)]  # InFuture: Add scores from other sites maybe
