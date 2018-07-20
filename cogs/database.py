@@ -7,7 +7,6 @@ if False:
     import alice
 
 
-
 class Database:
     def __init__(self, bot: 'alice.Alice', db_host: str, db_name: str, user_name: str, password: str):
         self.bot = bot
@@ -99,8 +98,8 @@ def setup(bot: 'alice.Alice'):
                             bot.config.get('DB_name'),
                             bot.config.get('DB_user'),
                             bot.config.get('DB_password'))
-    bot.loop.run_until_complete(bot.database.start())
+    asyncio.run_coroutine_threadsafe(bot.database.start(), loop=bot.loop)
 
 
 def teardown(bot: 'alice.Alice'):
-    bot.loop.run_until_complete(bot.database.close())
+    asyncio.run_coroutine_threadsafe(bot.database.close(), loop=bot.loop)

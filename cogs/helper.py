@@ -1,12 +1,10 @@
-import traceback
-
 import asyncio
 import math
+import traceback
 
 import async_timeout
 import discord
 from discord.ext import commands
-
 
 # region discord stuff
 if False:
@@ -42,7 +40,8 @@ class Helper:
                 return
             ctx.bot.logger.error("{}.{}".format(err.__class__.__module__, err.__class__.__name__))
             ctx.bot.logger.debug("".join(traceback.format_exception(type(err), err, err.__traceback__)))
-            ctx.bot.logger.debug("".join(traceback.format_exception(type(err), err.__cause__, err.__cause__.__traceback__)))
+            ctx.bot.logger.debug(
+                "".join(traceback.format_exception(type(err), err.__cause__, err.__cause__.__traceback__)))
 
     @staticmethod
     async def react_or_false(ctx, reactions=("\u2705",)):
@@ -68,7 +67,6 @@ class Helper:
         except:
             return None
 
-
     # endregion
 
     # region general stuff
@@ -89,9 +87,7 @@ class Helper:
 
         return (phat + z * z / (2 * n) - z * math.sqrt((phat * (1 - phat) + z * z / (4 * n)) / n)) / (1 + z * z / n)
 
-
     # endregion
-
 
     # region classes
 
@@ -186,7 +182,6 @@ class Helper:
                 if message_exists:
                     await asker.delete()
 
-
     class AppendOrSend:
         def __init__(self, channel: discord.abc.Messageable):
             self.data = ""
@@ -213,8 +208,10 @@ class Helper:
 
     # endregion
 
+
 def setup(bot: 'alice.Alice'):
     bot.helper = Helper()
+
 
 def teardown(bot: 'alice.Alice'):
     bot.helper = None
