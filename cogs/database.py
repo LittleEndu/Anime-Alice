@@ -3,11 +3,13 @@ import asyncio
 import asyncpg
 import discord
 
-import alice
+if False:
+    import alice
+
 
 
 class Database:
-    def __init__(self, bot: alice.Alice, db_host: str, db_name: str, user_name: str, password: str):
+    def __init__(self, bot: 'alice.Alice', db_host: str, db_name: str, user_name: str, password: str):
         self.bot = bot
         self.db_host = db_host
         self.db_name = db_name
@@ -91,7 +93,7 @@ class Database:
             """, *(guild.id, prefix))
 
 
-def setup(bot: alice.Alice):
+def setup(bot: 'alice.Alice'):
     bot.database = Database(bot,
                             bot.config.get('DB_host'),
                             bot.config.get('DB_name'),
@@ -100,5 +102,5 @@ def setup(bot: alice.Alice):
     bot.loop.run_until_complete(bot.database.start())
 
 
-def teardown(bot: alice.Alice):
+def teardown(bot: 'alice.Alice'):
     bot.loop.run_until_complete(bot.database.close())

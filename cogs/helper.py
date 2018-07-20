@@ -9,7 +9,8 @@ from discord.ext import commands
 
 
 # region discord stuff
-import alice
+if False:
+    import alice
 
 
 class Helper:
@@ -212,8 +213,8 @@ class Helper:
 
     # endregion
 
-def setup(bot: alice.Alice):
+def setup(bot: 'alice.Alice'):
     bot.helper = Helper()
 
-def teardown(bot: alice.Alice):
+def teardown(bot: 'alice.Alice'):
     bot.helper = None
