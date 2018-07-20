@@ -16,18 +16,42 @@ class Anime:
             for s in [find_command, lucky_command]:
                 g.add_command(s)
 
+    async def last_medium_caller(self, ctx: commands.Context, parent_name: str, lucky=False):
+        medium = self._last_medium.get(ctx.author.id)
+        if not medium:
+            await ctx.send("You haven't used last medium yet")
+        func = getattr(medium, parent_name)
+        try:
+            new_medium = await func(lucky=lucky)
+        except asyncio.TimeoutError:
+            return
+        if new_medium is NotImplemented:
+            await ctx.send("I'm sorry. I can't do that yet.")
+        elif new_medium is None:
+            await ctx.send('No results...')
+        else:
+            embed = new_medium.to_embed()
+            await ctx.send(embed=embed)
+            self._last_medium[ctx.author.id] = new_medium
+
     @commands.group(aliases=['hentai'])
     async def anime(self, ctx: commands.Context):
         if ctx.invoked_with == 'hentai' and not ctx.channel.nsfw:
             await ctx.send("Can't search hentai in here")
         if ctx.invoked_subcommand is None:
-            raise commands.CommandNotFound()
-        # TODO: Replace with calling last_medium's anime
+            await self.last_medium_caller(ctx, 'anime', False)
+            return
 
-    async def lucky(self, ctx: commands.Context, *, query: str):
+    async def lucky(self, ctx: commands.Context, *, query: str = None):
+        if query is None:
+            await self.last_medium_caller(ctx, ctx.command.parent.name, True)
+            return
         await self.find_helper(ctx, query, True)
 
-    async def find(self, ctx: commands.Context, *, query: str):
+    async def find(self, ctx: commands.Context, *, query: str = None):
+        if query is None:
+            await self.last_medium_caller(ctx, ctx.command.parent.name, False)
+            return
         await self.find_helper(ctx, query, False)
 
     async def find_helper(self, ctx, query, lucky):
@@ -45,7 +69,6 @@ class Anime:
             await ctx.send('No results...')
         else:
             embed = medium.to_embed()
-            self.bot.logger.debug(embed.to_dict())
             await ctx.send(embed=embed)
 
 
