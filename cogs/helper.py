@@ -203,7 +203,8 @@ class Helper:
                 self.data += arg
 
         async def flush(self):
-            await self.channel.send(self.data)
+            if self.data:
+                await self.channel.send(self.data)
             self.data = ""
 
     # endregion
