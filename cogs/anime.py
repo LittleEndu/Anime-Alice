@@ -11,7 +11,7 @@ class Anime:
         self.bot = bot
         self._last_medium = dict()  # TODO: Add a time limit or something
         find_command = commands.command(aliases=['?', 'search'])(self.find)
-        lucky_command = commands.command(aliases=['!', 'lucky', 'luckysearch'])(self.lucky())
+        lucky_command = commands.command(aliases=['!', 'lucky', 'luckysearch'])(self.lucky)
         for g in [self.anime]:
             for s in [find_command, lucky_command]:
                 g.add_command(s)
