@@ -48,6 +48,9 @@ class Prefixes:
         """Sets prefix for the bot in this server"""
         if not (ctx.author.guild_permissions.administrator or self.bot.is_owner(ctx.author)):
             raise commands.CheckFailure("You can't change the prefix")
+        if "\n" in prefix:
+            await ctx.send('Prefix cannot contain newlines')
+            return
         if await self.bot.database.count_prefixes(ctx.guild) > 4:
             await ctx.send("You already have enough prefixes")
             return
@@ -60,8 +63,14 @@ class Prefixes:
             await ctx.send("Successfully set the prefix.")
 
     @commands.command(aliases=['deleteprefix'])
-    async def removeprefix(self, ctx, prefix: str):
+    async def removeprefix(self, ctx, *, prefix: str= None):
         """Removes prefix for the bot from this server"""
+        if prefix is None:
+            prefixes = await self.bot.get_prefix(ctx.message)
+            mentions = commands.bot.when_mentioned(ctx.bot, ctx.message)
+            prefixes = [i for i in prefixes if i not in mentions]
+            index = await helper.Asker(ctx, *prefixes)
+            prefix = prefixes[index]
         if not (ctx.author.guild_permissions.administrator or self.bot.is_owner(ctx.author)):
             raise commands.CheckFailure("You can't change the prefix")
         await self.bot.database.remove_prefix(ctx.guild, prefix)
