@@ -366,7 +366,7 @@ async def _prefix(bot: Alice, message: discord.Message):
 
 
 class RedirectToLog(io.StringIO):
-    def __init__(self, level: int= logging.INFO, *args, **kwargs):
+    def __init__(self, level: int = logging.INFO, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.level = level
         self.buffer = ''
@@ -382,7 +382,6 @@ class RedirectToLog(io.StringIO):
         self.buffer += " ".join(args)
 
 
-
 if __name__ == '__main__':
     if len(sys.argv) == 2:
         alice = Alice(config_name=sys.argv[1])
@@ -390,16 +389,15 @@ if __name__ == '__main__':
         alice = Alice()
     err = RedirectToLog(logging.ERROR)
     out = RedirectToLog(logging.INFO)
-    tasks = []
-    tasks.append(asyncio.get_event_loop().create_task(err.flush_task()))
-    tasks.append(asyncio.get_event_loop().create_task(out.flush_task()))
+    tasks = [asyncio.get_event_loop().create_task(err.flush_task()),
+             asyncio.get_event_loop().create_task(out.flush_task())]
     try:
         with redirect_stderr(err):
             with redirect_stdout(out):
                 alice.logger.info("\n\n\n")
                 alice.logger.info(f"Running python version {sys.version}")
                 alice.logger.info("Initializing")
-                if alice.config.get('token',''):
+                if alice.config.get('token', ''):
                     for ex in alice.config.get('auto_load', []):
                         try:
                             alice.load_extension("cogs.{}".format(ex))
