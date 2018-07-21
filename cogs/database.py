@@ -86,10 +86,12 @@ class Database:
     async def remove_prefix(self, guild: discord.Guild, prefix: str):
         async with self.pool.acquire() as connection:
             assert isinstance(connection, asyncpg.Connection)
-            await connection.execute("""
+            result = await connection.fetchrow("""
             DELETE FROM prefixes
-            WHERE guild_id = $1 AND prefix = $2;
+            WHERE guild_id = $1 AND prefix = $2
+            RETURNING *;
             """, *(guild.id, prefix))
+            self.bot.logger.debug(f"Del prefix returned: {result}")
 
 
 def setup(bot: 'alice.Alice'):
