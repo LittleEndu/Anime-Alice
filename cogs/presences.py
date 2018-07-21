@@ -42,7 +42,7 @@ class Presences:
             pass
 
     @commands.command(hidden=True)
-    @commands.bot_has_permissions(add_reactions=True)
+    @commands.bot_has_permissions(add_reactions=True, external_emojis=True)
     @commands.is_owner()
     async def setstatus(self, ctx, emoji: str = None):
         """Sets the bots status"""
