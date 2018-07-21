@@ -45,6 +45,7 @@ class Presences:
     @commands.bot_has_permissions(add_reactions=True)
     @commands.is_owner()
     async def setstatus(self, ctx, emoji: str = None):
+        """Sets the bots status"""
         if not self.emojis:
             # await bot.wait_for_ready() except bot can't respond to commands without being ready...
             my_guild = discord.utils.get(self.bot.guilds, owner=self.bot.user)
