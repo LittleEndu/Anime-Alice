@@ -86,8 +86,9 @@ class Presences:
             emoji = 'invisible'
         status = discord.Status[emoji]
         current_activity = ctx.me.activity.name
+        reaction = discord.utils.get(self.emojis, name=emoji)
         await self.bot.change_presence(activity=discord.Game(name=current_activity), status=status)
-        if not await self.bot.helper.react_or_false(ctx):
+        if not await self.bot.helper.react_or_false(ctx, ('\u2705', reaction)):
             await ctx.send(f'Set my status to {status}')
 
 
