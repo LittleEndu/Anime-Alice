@@ -8,6 +8,8 @@ class Info:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
 
+    # region Whois
+
     async def info_giver(self, ctx, member: discord.Member = None):
         if member is None:
             if ctx.guild is not None:
@@ -70,13 +72,17 @@ class Info:
         await self.info_giver(ctx, ctx.guild.owner)
 
     @whois.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def you(self, ctx):
         await self.info_giver(ctx, None)
 
     @whois.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def me(self, ctx):
         await self.info_giver(ctx, ctx.author)
 
+    # endregion
+    
 
 def setup(bot):
     bot.add_cog(Info(bot))

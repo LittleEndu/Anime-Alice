@@ -184,7 +184,7 @@ class Alice(commands.Bot):
             if not await self.helper.react_or_false(ctx):
                 await ctx.send("Unloaded `{}`.".format(extension))
 
-    class This:
+    class Self:
         def __init__(self, bot):
             self.bot = bot
 
@@ -196,7 +196,7 @@ class Alice(commands.Bot):
         """
         self.logger.debug(f"Running debug command: {ctx.message.content}")
         env = {
-            'self': self.This(self),
+            'self': self.Self(self),
             'bot': self,
             'ctx': ctx,
             'channel': ctx.channel,
@@ -277,7 +277,7 @@ class Alice(commands.Bot):
 
         self.logger.debug(f"Running exec command: {ctx.message.content}")
         env = {
-            'self': self.This(self),
+            'self': self.Self(self),
             'bot': self,
             'ctx': ctx,
             'channel': ctx.channel,
