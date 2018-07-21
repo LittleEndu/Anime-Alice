@@ -121,6 +121,7 @@ class Alice(commands.Bot):
     @commands.command(aliases=['reloadall', 'loadall'], hidden=True)
     @commands.is_owner()
     async def reload(self, ctx):
+        """Reload all extensions"""
         for ext in set([i.replace("cogs.", "") for i in self.extensions.keys()] + self.auto_load()):
             await self.load_cog(ctx, ext, True)
         await ctx.send("Reloaded already loaded cogs and cogs under auto_load")

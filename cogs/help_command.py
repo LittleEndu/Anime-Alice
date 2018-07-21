@@ -9,6 +9,9 @@ class HelpCommand:
 
     @commands.command(name='help', hidden=True)
     async def _help(self, ctx, *, name=None):
+        """
+        Used to see help text on commands
+        """
         if name is None:
             try:
                 owner = ctx.guild.get_member(self.bot.owner_id)
@@ -22,7 +25,7 @@ class HelpCommand:
             command = self.bot.get_command(name)
             if not command:
                 await ctx.send('Unable to find that command')
-                return 
+                return
             no_help = "This command doesnt have help text :/"
             aliases = ""
             if command.aliases:
