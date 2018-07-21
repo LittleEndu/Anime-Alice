@@ -80,12 +80,12 @@ class Presences:
                 task.cancel()
                 if message_exists:
                     await msg.delete()
-                    
+
         emoji = ''.join([i for i in emoji if i.isalpha()])
         if emoji == 'offline':
             emoji = 'invisible'
         status = discord.Status[emoji]
-        current_activity = await ctx.me.activity.name
+        current_activity = ctx.me.activity.name
         await self.bot.change_presence(activity=discord.Game(name=current_activity), status=status)
         if not await self.bot.helper.react_or_false(ctx):
             await ctx.send(f'Set my status to {status}')
