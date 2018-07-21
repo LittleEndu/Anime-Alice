@@ -91,7 +91,7 @@ class Database:
             WHERE guild_id = $1 AND prefix = $2
             RETURNING *;
             """, *(guild.id, prefix))
-            self.bot.logger.debug(f"Del prefix returned: {result}")
+            return result
 
 
 def setup(bot: 'alice.Alice'):

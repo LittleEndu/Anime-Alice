@@ -1,4 +1,5 @@
 import asyncio
+import collections
 import math
 import traceback
 
@@ -6,12 +7,12 @@ import async_timeout
 import discord
 from discord.ext import commands
 
-# region discord stuff
 if False:
     import alice
 
 
 class Helper:
+    # region discord stuff
     @staticmethod
     async def handle_error(ctx, err):
         can_send = ctx.channel.permissions_for(ctx.me).send_messages
@@ -44,7 +45,7 @@ class Helper:
                 "".join(traceback.format_exception(type(err), err.__cause__, err.__cause__.__traceback__)))
 
     @staticmethod
-    async def react_or_false(ctx, reactions=("\u2705",)):
+    async def react_or_false(ctx, reactions: collections.Iterable = ("\u2705",)):
         if ctx.channel.permissions_for(ctx.me).add_reactions:
             aa = True
             for r in reactions:

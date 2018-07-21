@@ -61,8 +61,11 @@ class Prefixes:
             await ctx.send("Successfully set the prefix.")
 
     @commands.command(aliases=['deleteprefix'])
-    async def removeprefix(self, ctx, *, prefix: str= None):
+    async def removeprefix(self, ctx, *, prefix: str = None):
         """Removes prefix for the bot from this server"""
+        if not (ctx.author.guild_permissions.administrator or self.bot.is_owner(ctx.author)):
+            raise commands.CheckFailure("You can't change the prefix")
+
         if prefix is None:
             if not ctx.channel.permissions_for(ctx.me).embed_links:
                 raise commands.BotMissingPermissions([discord.Permissions.embed_links])
@@ -71,13 +74,15 @@ class Prefixes:
             prefixes = [i for i in prefixes if i not in mentions]
             index = await self.bot.helper.Asker(ctx, *prefixes)
             prefix = prefixes[index]
-        if not (ctx.author.guild_permissions.administrator or self.bot.is_owner(ctx.author)):
-            raise commands.CheckFailure("You can't change the prefix")
-        await self.bot.database.remove_prefix(ctx.guild, prefix)
-        if not await self.bot.helper.react_or_false(ctx, ("\U0001f6ae", "\u2705")):
-            await ctx.send("Prefix successfully deleted.")
 
-
+        prefix = await self.bot.database.remove_prefix(ctx.guild, prefix)
+        if prefix:
+            if not await self.bot.helper.react_or_false(ctx, ("\U0001f6ae", "\u2705")):
+                await ctx.send("Prefix successfully deleted.")
+        else:
+            if not await self.bot.helper.react_or_false(ctx,
+                                                        ("\u26a0",)):  # TODO: Use some other emoji if too confusing
+                await ctx.send("No such prefix")
 
 
 def setup(bot):
