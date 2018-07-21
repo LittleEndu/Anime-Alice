@@ -26,7 +26,11 @@ from cogs.database import Database
 
 class Alice(commands.Bot):
     def __init__(self, config_name='config.json'):
-        super().__init__(command_prefix=_prefix)
+        status = discord.Status.online
+        if os.path.isfile('status'):
+            with open('status') as in_file:
+                status = discord.Status[in_file.read()]
+        super().__init__(command_prefix=_prefix, status=status)
         self._config_name = config_name
 
         # Get config and set other initial variables
