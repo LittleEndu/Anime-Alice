@@ -82,7 +82,7 @@ class Info:
         await self.info_giver(ctx, ctx.author)
 
     # endregion
-    
+
 
 def setup(bot):
     bot.add_cog(Info(bot))
