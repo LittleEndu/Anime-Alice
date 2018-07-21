@@ -28,6 +28,9 @@ class Otaku:
             self.name = name
             self.instance_created_at = time.time()
 
+        async def this(self, lucky=False):
+            return self
+
         async def anime(self, lucky=False):
             return NotImplemented
 
@@ -241,8 +244,9 @@ class Otaku:
         self._last_medium = dict()  # TODO: Add a time limit or something
         find_command = commands.command(aliases=['?', 'search'])(self.find)
         lucky_command = commands.command(aliases=['!', 'luckysearch'])(self.lucky)
+        last_command = commands.command(aliases=['this'])(self.last)
         for g in [self.anime]:
-            for s in [find_command, lucky_command]:
+            for s in [find_command, lucky_command, last_command]:
                 g.add_command(s)
         self.cleanup_task = self.bot.loop.create_task(self.cleanuper())
 
@@ -294,6 +298,9 @@ class Otaku:
         if ctx.invoked_subcommand is None:
             await self.last_medium_caller(ctx, 'anime', False)
             return
+
+    async def last(self, ctx: commands.Context):
+        await self.last_medium_caller(ctx, 'this', False)
 
     async def lucky(self, ctx: commands.Context, *, query: str = None):
         if query is None:

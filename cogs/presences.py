@@ -28,6 +28,7 @@ class Presences:
                 ))
                 await self.bot.change_presence(activity=discord.Game(name=game_name))
                 await asyncio.sleep(600)
+            # TODO: add dbply report here
         except asyncio.CancelledError:
             pass
 
