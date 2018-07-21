@@ -93,7 +93,7 @@ class Helper:
     # region classes
 
     class Asker:
-        def __init__(self, ctx: commands.Context, *args, choices: tuple = tuple()):
+        def __init__(self, ctx: commands.Context, *args, choices: tuple = tuple(), react_with_choice=False):
             self.ctx = ctx
             self.choices = []
             for choice in args + choices:

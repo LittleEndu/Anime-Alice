@@ -1,6 +1,7 @@
 import asyncio
 import random
 
+import async_timeout
 import discord
 from discord.ext import commands
 
@@ -12,7 +13,7 @@ class Presences:
         self.bot = bot
         self.task = self.bot.loop.create_task(self.presence_updater())
         self.status = discord.Status.online
-        self.emotes = dict()
+        self.emojis = dict()
 
     def __unload(self):
         self.task.cancel()
@@ -36,18 +37,50 @@ class Presences:
             pass
 
     @commands.command(hidden=True)
+    @commands.bot_has_permissions(add_reactions=True)
     @commands.is_owner()
     async def setstatus(self, ctx, emoji: str = None):
-        if not self.emotes:
+        if not self.emojis:
             # await bot.wait_for_ready() except bot can't respond to commands without being ready...
             my_guild = discord.utils.get(self.bot.guilds, owner=self.bot.user)
-            self.emotes = [i for i in my_guild.emojis if hasattr(discord.Status, i.name)]
+            self.emojis = [i for i in my_guild.emojis if hasattr(discord.Status, i.name)]
         if emoji is None:
+            async def reaction_waiter(msg: discord.Message, choice_fut: asyncio.Future):
+                def reaction_check(r: discord.Reaction, u: discord.User):
+                    return all([
+                        u.id == ctx.author.id,
+                        r.message.id == msg.id,
+                        r.emoji in self.emojis])
+
+                reaction, user = await ctx.bot.wait_for('reaction_add', check=reaction_check)
+                try:
+                    choice_fut.set_result(reaction.emoji)
+                except asyncio.InvalidStateError:
+                    return
+
+            msg = await ctx.send('Please choose')
+            fut = asyncio.Future()
+            task = self.bot.loop.create_task(reaction_waiter(msg, fut))
+            for i in self.emojis:
+                if fut.done():
+                    break
+                await msg.add_reaction(i)
+            message_exists = True
             try:
-                index = await self.bot.helper.Asker(ctx, *[i.name for i in self.emotes])
+                async with async_timeout.timeout(60):
+                    while not fut.done():
+                        await asyncio.sleep(0)
             except asyncio.TimeoutError:
-                return
-            emoji = self.emotes[index]
+                await msg.delete()
+                message_exists = False
+                raise
+            else:
+                emoji = fut.result().name
+            finally:
+                task.cancel()
+                if message_exists:
+                    await msg.delete()
+                    
         emoji = ''.join([i for i in emoji if i.isalpha()])
         if emoji == 'offline':
             emoji = 'invisible'
