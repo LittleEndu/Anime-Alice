@@ -20,24 +20,30 @@ class ResponseError(Exception):
 
     pass
 
+class NSFWBreach(Exception):
+    pass
+
 
 class Otaku:
     class Medium(metaclass=abc.ABCMeta):
-        def __init__(self, anilist_id, name):
+        def __init__(self, anilist_id, name, is_nsfw=False):
             self.anilist_id = anilist_id
             self.name = name
+            self.is_nsfw = is_nsfw
             self.instance_created_at = time.time()
 
-        async def this(self, lucky=False):
+        async def this(self, adult=False, lucky=False):
+            if not adult and self.is_nsfw:
+                raise NSFWBreach
             return self
 
-        async def anime(self, lucky=False):
+        async def anime(self, adult=False, lucky=False):
             return NotImplemented
 
-        async def manga(self, lucky=False):
+        async def manga(self, adult=False, lucky=False):
             return NotImplemented
 
-        async def characters(self, lucky=False):
+        async def characters(self, adult=False, lucky=False):
             return NotImplemented
 
         @staticmethod
@@ -49,7 +55,7 @@ class Otaku:
 
     class Anime(Medium):
         def __init__(self, anilist_id, name, **kwargs):
-            super().__init__(anilist_id, name)
+            super().__init__(anilist_id, name, kwargs.get('is_nsfw', False))
             self.url = kwargs.get('url')
             self.romaji_name = kwargs.get('romaji_name', name)
             self.aliases = kwargs.get('aliases', [])
@@ -60,7 +66,6 @@ class Otaku:
             self.status = kwargs.get('status', 'N/A') or 'N/A'
             self.start_date = kwargs.get('start_date')
             self.end_date = kwargs.get('end_date')
-            self.is_nsfw = kwargs.get('is_nsfw')
             self.kwargs = kwargs
 
         @staticmethod
@@ -211,8 +216,10 @@ class Otaku:
             to_return = Otaku.Anime(anilist_id=id, name='name')
             return to_return
 
-        async def anime(self, lucky=False):
+        async def anime(self, adult=False, lucky=False):
             # TODO: Return related anime instead
+            if not adult and self.is_nsfw:
+                raise NSFWBreach
             return self
 
         def to_embed(self):
@@ -263,7 +270,7 @@ class Otaku:
         except asyncio.CancelledError:
             pass
 
-    async def last_medium_caller(self, ctx: commands.Context, parent_name: str, lucky=False):
+    async def last_medium_caller(self, ctx: commands.Context, parent_name: str, adult=False, lucky=False):
         medium = self._last_medium.get(ctx.author.id)
         if not medium:
             await ctx.send("You haven't used last medium yet")
@@ -272,6 +279,9 @@ class Otaku:
         try:
             new_medium = await func(lucky=lucky)
         except asyncio.TimeoutError:
+            return
+        except NSFWBreach:
+            await ctx.send("Can't show that anime here. It's NSFW")
             return
         if new_medium is NotImplemented:
             await ctx.send("I'm sorry. I can't do that yet.")
