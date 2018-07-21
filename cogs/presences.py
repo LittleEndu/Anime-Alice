@@ -3,6 +3,7 @@ import random
 
 import async_timeout
 import discord
+import os
 from discord.ext import commands
 
 import alice
@@ -12,7 +13,11 @@ class Presences:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
         self.task = self.bot.loop.create_task(self.presence_updater())
-        self.status = bot.guilds[0].me.status
+        if not os.path.isfile('status'):
+            self.status = bot.guilds[0].me.status
+        else:
+            with open('status') as in_file:
+                self.status = discord.Status[in_file.read()]
         self.emojis = dict()
 
     def __unload(self):
@@ -90,6 +95,8 @@ class Presences:
         await self.bot.change_presence(activity=discord.Game(name=current_activity), status=status)
         if not await self.bot.helper.react_or_false(ctx, ('\u2705', reaction)):
             await ctx.send(f'Set my status to {status}')
+        with open('status', 'w') as out_file:
+            out_file.write(status.name)
 
 
 def setup(bot):
