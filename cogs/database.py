@@ -73,7 +73,7 @@ class Database:
             result = await connection.fetch("""
                      SELECT prefix FROM prefixes WHERE guild_id = $1;
                      """, message.guild.id)
-            return [i['prefix'] for i in result]
+            return [i['prefix'] for i in result] + ([':a::'] if message.author.id == self.bot.owner_id else [])
 
     async def add_prefix(self, guild: discord.Guild, prefix: str):
         async with self.pool.acquire() as connection:

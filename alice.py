@@ -370,7 +370,7 @@ async def _prefix(bot: Alice, message: discord.Message):
     if bot.database:
         return commands.when_mentioned_or(*await bot.database.get_prefixes(message))(bot, message)
     else:
-        return commands.when_mentioned(bot, message)
+        return commands.when_mentioned_or(*[':a::'] if message.author.id == bot.owner_id else None)(bot, message)
 
 
 class RedirectToLog(io.StringIO):

@@ -12,7 +12,7 @@ class Presences:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
         self.task = self.bot.loop.create_task(self.presence_updater())
-        self.status = discord.Status.online
+        self.status = bot.guilds[0].me.status
         self.emojis = dict()
 
     def __unload(self):
