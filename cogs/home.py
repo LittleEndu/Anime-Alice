@@ -1,5 +1,7 @@
 import aiohttp.web
 import asyncio
+
+import datetime
 import discord
 
 import alice
@@ -31,15 +33,23 @@ def setup(bot):
     @s_routes.post("/api/webhooks/dblVote")
     async def vote_handler(request: aiohttp.web.Request):
         bot: alice.Alice = request.app.bot
-        bot.logger.debug('POST REQUEST')
-        bot.logger.debug(f'Headers: {request.headers}')
         if request.headers.get('Authorization') != bot.config.get('vote_webhook_auth'):
             return aiohttp.web.Response(text='Unauthorized', status=401)
         else:
-            webhook: discord.Webhook = await bot.get_webhook_info(bot.config.get('vote_webhook_id'))
             jj = await request.json()
-            await webhook.send(f"Received vote: {jj}")
-            bot.logger.debug(f"Received vote: {jj}")
+            webhook: discord.Webhook = await bot.get_webhook_info(bot.config.get('vote_webhook_id'))
+            user = bot.get_user(jj['user'])
+            if not user:
+                user = await bot.get_user_info(jj['user'])
+            emb = discord.Embed(description=f"Thank you for voting for me{', '+user.mention if user else ''}.")
+            # TODO: Add votes to database over here.
+            emb.set_author(name=user.name if user else 'Unknown User',
+                           icon_url=user.avatar_url if user else bot.user.default_avatar_url)
+            if jj['type'] == 'test':
+                emb.set_footer(text="This was a test vote")
+            else:
+                emb.set_footer(text=datetime.datetime.now().strftime('%y-%m-%d %H:%M'))
+            await webhook.send(embed=emb)
             return aiohttp.web.Response(text="Success")
 
     bot.add_cog(Home(bot, s_routes))
