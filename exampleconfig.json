@@ -8,8 +8,10 @@
   "unsafe_to_expose": [
     "token",
     "DB_host",
-    "DB_password"
+    "DB_password",
+    "dbl_token"
   ],
+  "dbl_token": "",
   "DB_host": "localhost",
   "DB_name": "",
   "DB_user": "",

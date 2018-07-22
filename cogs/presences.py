@@ -1,9 +1,10 @@
 import asyncio
+import os
 import random
 
 import async_timeout
+import dbl
 import discord
-import os
 from discord.ext import commands
 
 import alice
@@ -18,7 +19,10 @@ class Presences:
         else:
             with open('status') as in_file:
                 self.status = discord.Status[in_file.read()]
-        self.emojis = dict()
+        self.dbl_client = None
+        if self.bot.config.get('dbl_token'):
+            self.dbl_client = dbl.Client(self.bot, self.bot.config.get('dbl_token'))
+        self.emojis = list()
 
     def __unload(self):
         self.task.cancel()
@@ -36,8 +40,9 @@ class Presences:
                     f'prefix == mention',
                 ))
                 await self.bot.change_presence(activity=discord.Game(name=game_name), status=self.status)
+                if self.dbl_client:
+                    self.dbl_client.post_server_count()
                 await asyncio.sleep(600)
-            # TODO: add dbply report here
         except asyncio.CancelledError:
             pass
 
