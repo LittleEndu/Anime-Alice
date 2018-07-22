@@ -130,6 +130,19 @@ class Alice(commands.Bot):
             await self.load_cog(ctx, ext, True)
         await ctx.send("Reloaded already loaded cogs and cogs under auto_load")
 
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def forceload(self, ctx, *, extension: str):
+        """Uses importlib.reload to import a cog"""
+        if f'cogs.{extension}' in self.extensions:
+            await ctx.send('Already loaded!')
+        lib = importlib.import_module(f'cogs.{extension}')
+        lib = importlib.reload(lib)
+        lib.setup(self)
+        self.extensions[f'cogs.{extension}'] = lib
+        if not await self.helper.react_or_false(ctx):
+            await ctx.send('Successfully loaded the cog')
+
     async def load_cog(self, ctx, extension, silent=False):
         self.logger.info("Loading " + extension)
         try:

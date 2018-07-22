@@ -31,6 +31,7 @@ def setup(bot):
             webhook: discord.Webhook = await bot.get_webhook_info(bot.config.get('vote_webhook_id'))
             jj = await request.json()
             await webhook.send(f"Recieved vote: {jj}")
+            bot.logger.debug(f"Recieved vote: {jj}")
             return aiohttp.web.Response(text="Success")
 
     bot.add_cog(Home(bot, s_routes))
