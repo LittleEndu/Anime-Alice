@@ -41,7 +41,7 @@ def setup(bot):
             return aiohttp.web.Response(text='Unauthorized', status=401)
         else:
             jj = await request.json()
-            webhook: discord.Webhook = await bot.get_webhook_info(bot.config.get('vote_webhook_id'))
+            channel: discord.TextChannel = await bot.get_channel(bot.config.get('vote_channel_id'))
             jj['user'] = int(jj['user'])
             user = bot.get_user(jj['user'])
             if not user:
@@ -54,7 +54,7 @@ def setup(bot):
                 emb.set_footer(text="This was a test vote")
             else:
                 emb.set_footer(text=datetime.datetime.now().strftime('%y-%m-%d %H:%M'))
-            await webhook.send(embed=emb, avatar_url=bot.user.avatar_url)
+            await channel.send(embed=emb)
             return aiohttp.web.Response(text="Success")
 
     bot.add_cog(Home(bot, s_routes))
