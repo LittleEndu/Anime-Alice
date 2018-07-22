@@ -41,7 +41,7 @@ def setup(bot):
             return aiohttp.web.Response(text='Unauthorized', status=401)
         else:
             jj = await request.json()
-            channel: discord.TextChannel = await bot.get_channel(bot.config.get('vote_channel_id'))
+            channel: discord.TextChannel = bot.get_channel(bot.config.get('vote_channel_id'))
             jj['user'] = int(jj['user'])
             user = bot.get_user(jj['user'])
             if not user:
