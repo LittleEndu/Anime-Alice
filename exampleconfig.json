@@ -17,6 +17,6 @@
   "DB_name": "",
   "DB_user": "",
   "DB_password": "",
-  "vote_webhook_id": 1,
+  "vote_channel_id": 1,
   "vote_webhook_auth": "generated_token"
 }
