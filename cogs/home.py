@@ -1,5 +1,5 @@
 import aiohttp.web
-import asyncio.base_events
+import asyncio
 import discord
 
 import alice
@@ -11,12 +11,18 @@ class Home:
         self.app = aiohttp.web.Application(loop=self.bot.loop)
         self.app.bot = bot
         self.app.add_routes(routes)
-        self.server = self.bot.loop.create_server(self.app._make_handler(loop=self.app.loop),
-                                                  host='0.0.0.0',
-                                                  port=80)
+        coro = self.bot.loop.create_server(self.app._make_handler(loop=self.app.loop),
+                                           host='0.0.0.0',
+                                           port=80)
+        self.server_fut = asyncio.run_coroutine_threadsafe(coro, self.bot.loop)
 
     def __unload(self):
-        self.server.close()
+        asyncio.run_coroutine_threadsafe(self.unloader(), self.bot.loop)
+
+    async def unloader(self):
+        while not self.server_fut.done():
+            await asyncio.sleep(0)
+        self.server_fut.result().close()
 
 
 def setup(bot):
