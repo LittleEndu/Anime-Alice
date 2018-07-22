@@ -42,6 +42,7 @@ def setup(bot):
         else:
             jj = await request.json()
             webhook: discord.Webhook = await bot.get_webhook_info(bot.config.get('vote_webhook_id'))
+            jj['user'] = int(jj['user'])
             user = bot.get_user(jj['user'])
             if not user:
                 user = await bot.get_user_info(jj['user'])
