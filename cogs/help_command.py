@@ -59,6 +59,7 @@ class HelpCommand:
         # Server: http://discord.gg/HheVh3A
         emb = discord.Embed(title=f"Heyo. I'm {ctx.me.display_name}",
                             colour=discord.Colour(0xe29b9b),
+                            url='https://discordbots.org/bot/354974625593032704',
                             description=f"""
 I'm just another Discord bot.
 I was made by LittleEndu.
