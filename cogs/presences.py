@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import random
+import concurrent.futures
 
 import async_timeout
 import dbl
@@ -32,8 +33,7 @@ class Presences:
     async def presence_updater(self):
         try:
             # Initial wait
-            while not self.bot.is_ready():
-                await asyncio.sleep(0)
+            await self.bot.wait_until_ready()
             # Loop while running
             while self.bot.loop.is_running():
                 try:
@@ -50,10 +50,10 @@ class Presences:
                             self.dbl_logger.error(f"Failed to post guild count to dbl: {repr(e)}")
                     await asyncio.sleep(600)
                 except Exception as err:
-                    if isinstance(err, asyncio.CancelledError):
+                    if isinstance(err, concurrent.futures.CancelledError):
                         raise
                     self.bot.logger.error(f"Error while updating presence: {repr(err)}")
-        except asyncio.CancelledError:
+        except concurrent.futures.CancelledError:
             pass
 
     @commands.command(hidden=True)
