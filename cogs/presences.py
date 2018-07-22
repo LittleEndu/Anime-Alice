@@ -50,6 +50,8 @@ class Presences:
                             self.dbl_logger.error(f"Failed to post guild count to dbl: {repr(e)}")
                     await asyncio.sleep(600)
                 except Exception as err:
+                    if isinstance(err, asyncio.CancelledError):
+                        raise
                     self.bot.logger.error(f"Error while updating presence: {repr(err)}")
         except asyncio.CancelledError:
             pass
