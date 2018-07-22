@@ -26,7 +26,7 @@ class Home:
             await asyncio.sleep(0)
         self.server_fut.result().close()
 
-
+discord.PermissionOverwrite.from_pair()
 def setup(bot):
     s_routes = aiohttp.web.RouteTableDef()
 
@@ -49,7 +49,7 @@ def setup(bot):
                 emb.set_footer(text="This was a test vote")
             else:
                 emb.set_footer(text=datetime.datetime.now().strftime('%y-%m-%d %H:%M'))
-            await webhook.send(embed=emb)
+            await webhook.send(embed=emb, avatar_url=bot.user.avatar_url)
             return aiohttp.web.Response(text="Success")
 
     bot.add_cog(Home(bot, s_routes))
