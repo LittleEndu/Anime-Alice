@@ -25,9 +25,11 @@ class Database:
                                               database=self.db_name,
                                               user=self.user_name,
                                               password=self.password)
+        self.bot.database = self
 
     async def close(self):
         await self.pool.close()
+        self.bot.database = None
 
     async def table_exists(self, table_name: str):
         async with self.pool.acquire() as connection:
@@ -131,12 +133,12 @@ class Database:
 
 
 def setup(bot: 'alice.Alice'):
-    bot.database = Database(bot,
-                            bot.config.get('DB_host'),
-                            bot.config.get('DB_name'),
-                            bot.config.get('DB_user'),
-                            bot.config.get('DB_password'))
-    asyncio.run_coroutine_threadsafe(bot.database.start(), loop=bot.loop)
+    database = Database(bot,
+                        bot.config.get('DB_host'),
+                        bot.config.get('DB_name'),
+                        bot.config.get('DB_user'),
+                        bot.config.get('DB_password'))
+    asyncio.run_coroutine_threadsafe(database.start(), loop=bot.loop)
 
 
 def teardown(bot: 'alice.Alice'):
