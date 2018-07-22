@@ -10,7 +10,9 @@ class Home:
         self.app = aiohttp.web.Application(loop=self.bot.loop)
         self.app.bot = bot
         self.app.add_routes(routes)
-        self.server = self.bot.loop.create_server(self.app._make_handler(loop=self.app.loop), host='0.0.0.0')
+        self.server = self.bot.loop.create_server(self.app._make_handler(loop=self.app.loop),
+                                                  host='0.0.0.0',
+                                                  port=80)
 
     def __unload(self):
         self.server.close()
