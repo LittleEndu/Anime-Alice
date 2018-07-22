@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import random
 
@@ -20,6 +21,7 @@ class Presences:
             with open('status') as in_file:
                 self.status = discord.Status[in_file.read()]
         self.dbl_client = None
+        self.dbl_logger = logging.getLogger('alice.dbl')
         if self.bot.config.get('dbl_token'):
             self.dbl_client = dbl.Client(self.bot, self.bot.config.get('dbl_token'))
         self.emojis = list()
@@ -34,15 +36,21 @@ class Presences:
                 await asyncio.sleep(0)
             # Loop while running
             while self.bot.loop.is_running():
-                while not self.bot.is_ready():
-                    await asyncio.sleep(0)
-                game_name = random.choice((
-                    f'prefix == mention',
-                ))
-                await self.bot.change_presence(activity=discord.Game(name=game_name), status=self.status)
-                if self.dbl_client:
-                    await self.dbl_client.post_server_count()
-                await asyncio.sleep(600)
+                try:
+                    while not self.bot.is_ready():
+                        await asyncio.sleep(0)
+                    game_name = random.choice((
+                        f'prefix == mention',
+                    ))
+                    await self.bot.change_presence(activity=discord.Game(name=game_name), status=self.status)
+                    if self.dbl_client:
+                        try:
+                            await self.dbl_client.post_server_count()
+                        except Exception as e:
+                            self.dbl_logger.error(f"Failed to post guild count to dbl: {repr(e)}")
+                    await asyncio.sleep(600)
+                except Exception as err:
+                    self.bot.logger.error(f"Error while updating presence: {repr(err)}")
         except asyncio.CancelledError:
             pass
 
