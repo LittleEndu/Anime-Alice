@@ -20,6 +20,7 @@ class ResponseError(Exception):
 
     pass
 
+
 class NSFWBreach(Exception):
     pass
 
@@ -194,7 +195,7 @@ class Otaku:
                                     self.start_date,
                                     " to {}".format(self.end_date) if self.end_date else ""
                                 ))
-            embed.add_field(name='\u200b', value=f"[Anilist]({self.url})")
+            embed.add_field(name='\u200b', value=f"[Anilist]({self.url})", inline=False)
 
             return embed
 
