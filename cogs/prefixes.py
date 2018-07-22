@@ -14,6 +14,11 @@ class Prefixes:
         await self.bot.database.wait_for_start()
         await self.bot.database.create_prefixes_table()
 
+    async def __local_check(self, *args):
+        if self.bot.database is None:
+            raise commands.CheckFailure("Database is unloaded")
+        return True
+
     @commands.command(aliases=['prefix'])
     @commands.bot_has_permissions(embed_links=True)
     async def prefixes(self, ctx):
@@ -86,4 +91,5 @@ class Prefixes:
 
 
 def setup(bot):
+    assert bot.database
     bot.add_cog(Prefixes(bot))

@@ -39,11 +39,12 @@ def setup(bot):
         bot: alice.Alice = request.app.bot
         if request.headers.get('Authorization') != bot.config.get('vote_webhook_auth'):
             return aiohttp.web.Response(text='Unauthorized', status=401)
+        elif bot.database is None:
+            return aiohttp.web.Response(text=":shrug:")
         else:
             jj = await request.json()
             channel: discord.TextChannel = bot.get_channel(bot.config.get('vote_channel_id'))
-            jj['user'] = int(jj['user'])
-            user = bot.get_user(jj['user'])
+            user = bot.get_user(int(jj['user']))
             if not user:
                 user = await bot.get_user_info(jj['user'])
             emb = discord.Embed(description=f"Thank you for voting for me{', '+user.mention if user else ''}.")

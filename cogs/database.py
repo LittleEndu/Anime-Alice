@@ -28,8 +28,8 @@ class Database:
         self.bot.database = self
 
     async def close(self):
-        await self.pool.close()
         self.bot.database = None
+        await self.pool.close()
 
     async def table_exists(self, table_name: str):
         async with self.pool.acquire() as connection:
