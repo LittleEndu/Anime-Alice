@@ -26,7 +26,6 @@ class Home:
             await asyncio.sleep(0)
         self.server_fut.result().close()
 
-discord.PermissionOverwrite.from_pair()
 def setup(bot):
     s_routes = aiohttp.web.RouteTableDef()
 
