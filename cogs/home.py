@@ -42,6 +42,7 @@ def setup(bot):
                 jj = {'multipart':'so no data'}
                 async for part in  await request.multipart():
                     bot.logger.debug(part)
+                bot.logger.debug([i for i in dir(part)])
             await webhook.send(f"Received vote: {jj}")
             bot.logger.debug(f"Received vote: {jj}")
             return aiohttp.web.Response(text="Success")
