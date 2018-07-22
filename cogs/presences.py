@@ -41,7 +41,7 @@ class Presences:
                 ))
                 await self.bot.change_presence(activity=discord.Game(name=game_name), status=self.status)
                 if self.dbl_client:
-                    self.dbl_client.post_server_count()
+                    await self.dbl_client.post_server_count()
                 await asyncio.sleep(600)
         except asyncio.CancelledError:
             pass
