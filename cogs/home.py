@@ -3,11 +3,9 @@ import discord
 
 import alice
 
-routes: aiohttp.web.RouteTableDef = None
-
 
 class Home:
-    def __init__(self, bot: alice.Alice):
+    def __init__(self, bot: alice.Alice, routes):
         self.bot = bot
         self.app = aiohttp.web.Application(loop=self.bot.loop)
         self.app.bot = bot
@@ -19,9 +17,9 @@ class Home:
 
 
 def setup(bot):
-    routes = aiohttp.web.RouteTableDef()
+    s_routes = aiohttp.web.RouteTableDef()
 
-    @routes.post("/api/webhooks/dblVote")
+    @s_routes.post("/api/webhooks/dblVote")
     async def vote_handler(request):
         assert isinstance(request, aiohttp.web.Request)
         bot: alice.Alice = request.app.bot
@@ -33,4 +31,4 @@ def setup(bot):
             await webhook.send(f"Recieved vote: {jj}")
             return aiohttp.web.Response(text="Success")
 
-    bot.add_cog(Home(bot))
+    bot.add_cog(Home(bot, s_routes))
