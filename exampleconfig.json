@@ -9,11 +9,14 @@
     "token",
     "DB_host",
     "DB_password",
-    "dbl_token"
+    "dbl_token",
+    "vote_webhook_auth"
   ],
   "dbl_token": "",
   "DB_host": "localhost",
   "DB_name": "",
   "DB_user": "",
-  "DB_password": ""
+  "DB_password": "",
+  "vote_webhook_id": 1,
+  "vote_webhook_auth": "generated_token"
 }
