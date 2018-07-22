@@ -57,9 +57,8 @@ class Database:
             await connection.execute("""
             INSERT INTO votes(user_id, vote_count)
             VALUES ($1, 1)
-            ON CONFLICT (id) DO UPDATE
+            ON CONFLICT (user_id) DO UPDATE
             SET vote_count = votes.vote_count + 1;
-            );
             """, user_id)
 
     async def get_vote(self, user: discord.User):
