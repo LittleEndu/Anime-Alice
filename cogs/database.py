@@ -61,7 +61,7 @@ class Database:
             SET vote_count = votes.vote_count + 1;
             """, user_id)
 
-    async def get_vote(self, user: discord.User):
+    async def get_vote_count(self, user: discord.User):
         async with self.pool.acquire() as connection:
             assert isinstance(connection, asyncpg.Connection)
             result = await connection.fetchrow("""
