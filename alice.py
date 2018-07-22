@@ -53,7 +53,7 @@ class Alice(commands.Bot):
         fh = RotatingFileHandler("logs/alice.log", maxBytes=1000000, backupCount=1, encoding='UTF-8')
         fh.setLevel(logging.INFO)
         fh.setFormatter(formatter)
-        dh = RotatingFileHandler("logs/debug.log", maxBytes=1000000, backupCount=1, encoding='UTF-8')
+        dh = RotatingFileHandler("logs/debug.log", maxBytes=5000000, backupCount=1, encoding='UTF-8')
         dh.setLevel(1)
         dh.setFormatter(formatter)
         th = RotatingFileHandler("logs/trace.log", maxBytes=1000000, backupCount=1, encoding='UTF-8')
