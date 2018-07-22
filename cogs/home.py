@@ -32,6 +32,7 @@ def setup(bot):
     async def vote_handler(request: aiohttp.web.Request):
         bot: alice.Alice = request.app.bot
         bot.logger.debug('POST REQUEST')
+        bot.logger.debug(f'Headers: {request.headers}')
         if request.headers.get('Authorization') != bot.config.get('vote_webhook_auth'):
             return aiohttp.web.Response(text='Unauthorized', status=401)
         else:
