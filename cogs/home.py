@@ -53,7 +53,7 @@ def setup(bot):
             if jj['type'] == 'test':
                 emb.set_footer(text="This was a test vote")
             else:
-                emb.set_footer(text=datetime.datetime.now().strftime('%y-%m-%d %H:%M'))
+                emb.set_footer(text=datetime.datetime.now().strftime('%Y-%m-%d %H:%M'))
             await channel.send(embed=emb)
             return aiohttp.web.Response(text="Success")
 
