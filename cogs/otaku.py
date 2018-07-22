@@ -32,10 +32,8 @@ class Otaku:
             self.is_nsfw = is_nsfw
             self.instance_created_at = time.time()
 
-        async def this(self, adult=False, lucky=False):
-            if not adult and self.is_nsfw:
-                raise NSFWBreach
-            return self
+        async def related(self, adult=False, lucky=False):
+            return NotImplemented
 
         async def anime(self, adult=False, lucky=False):
             return NotImplemented
@@ -114,43 +112,6 @@ class Otaku:
     """
 
         @staticmethod
-        def id_query(anilist_id: int):
-            return """
-    {
-      Page (page:1){
-        pageInfo{
-          total
-        }
-        media (id: "%s", type: ANIME){
-          id
-          idMal
-          description
-          episodes
-          title {
-            romaji
-            english
-            native
-          }
-          popularity
-          status
-          isAdult
-          stats {
-            scoreDistribution {
-              score,
-              amount
-            }
-          }
-          startDate {year, month, day}
-          endDate {year, month, day}
-          coverImage {
-            large
-          }
-        }
-      }
-    }
-    """ % anilist_id
-
-        @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
             results = []  # Because PyCharm :shrug:
             async with aiohttp.ClientSession() as session:
@@ -209,15 +170,7 @@ class Otaku:
                                    is_nsfw=wanted['isAdult'])
             return
 
-        @staticmethod
-        async def via_id(ctx: commands.Context, anilist_id: int):
-            # TODO: Implement
-
-            to_return = Otaku.Anime(anilist_id=id, name='name')
-            return to_return
-
         async def anime(self, adult=False, lucky=False):
-            # TODO: Return related anime instead
             if not adult and self.is_nsfw:
                 raise NSFWBreach
             return self
@@ -248,12 +201,11 @@ class Otaku:
 
     def __init__(self, bot: alice.Alice):
         self.bot = bot
-        self._last_medium = dict()  # TODO: Add a time limit or something
+        self._last_medium = dict()
         find_command = commands.command(aliases=['?', 'search'])(self.find)
         lucky_command = commands.command(aliases=['!', 'luckysearch'])(self.lucky)
-        last_command = commands.command(aliases=['this'])(self.last)
         for g in [self.anime]:
-            for s in [find_command, lucky_command, last_command]:
+            for s in [find_command, lucky_command]:
                 g.add_command(s)
         self.cleanup_task = self.bot.loop.create_task(self.cleanuper())
 
@@ -270,10 +222,10 @@ class Otaku:
         except asyncio.CancelledError:
             pass
 
-    async def last_medium_caller(self, ctx: commands.Context, parent_name: str, adult=False, lucky=False):
+    async def last_medium_caller(self, ctx: commands.Context, parent_name: str, lucky=False):
         medium = self._last_medium.get(ctx.author.id)
         if not medium:
-            await ctx.send("You haven't used last medium yet")
+            await ctx.send("You haven't used any search commands yet")
             return
         func = getattr(medium, parent_name)
         try:
@@ -281,7 +233,7 @@ class Otaku:
         except asyncio.TimeoutError:
             return
         except NSFWBreach:
-            await ctx.send("Can't show that anime here. It's NSFW")
+            await ctx.send(f"Can't show that {parent_name} here. It's NSFW")
             return
         if new_medium is NotImplemented:
             await ctx.send("I'm sorry. I can't do that yet.")
@@ -308,9 +260,6 @@ class Otaku:
         if ctx.invoked_subcommand is None:
             await self.last_medium_caller(ctx, 'anime', False)
             return
-
-    async def last(self, ctx: commands.Context):
-        await self.last_medium_caller(ctx, 'this', False)
 
     async def lucky(self, ctx: commands.Context, *, query: str = None):
         if query is None:
