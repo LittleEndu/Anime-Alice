@@ -34,8 +34,9 @@ class Presences:
         try:
             # Initial wait
             await self.bot.wait_until_ready()
-            while not self.bot.user.id:
-                await asyncio.sleep(0)
+            if self.dbl_client:
+                while not self.dbl_client.bot_id:
+                    await asyncio.sleep(0)
             # Loop while running
             while self.bot.loop.is_running():
                 try:
@@ -51,7 +52,8 @@ class Presences:
                         except Exception as e:
                             self.dbl_logger.error(f"Failed to post guild count to dbl: {repr(e)}")
                             self.dbl_logger.info(
-                                f"Guild count would have been {len(self.bot.guilds)} for id:{self.bot.user.id}"
+                                f"Guild count would have been {self.dbl_client.guild_count()} "
+                                f"for id:{self.dbl_client.bot_id}"
                             )
                     await asyncio.sleep(600)
                 except Exception as err:
