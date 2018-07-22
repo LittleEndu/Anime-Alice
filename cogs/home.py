@@ -17,6 +17,11 @@ class Home:
                                            host='0.0.0.0',
                                            port=80)
         self.server_fut = asyncio.run_coroutine_threadsafe(coro, self.bot.loop)
+        self.bot.loop.create_task(self.db_init())
+
+    async def db_init(self):
+        await self.bot.database.wait_for_start()
+        await self.bot.database.create_votes_table()
 
     def __unload(self):
         asyncio.run_coroutine_threadsafe(self.unloader(), self.bot.loop)

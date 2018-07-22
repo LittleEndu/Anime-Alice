@@ -39,6 +39,41 @@ class Database:
                      """, table_name)
             return result
 
+    # region votes
+
+    async def create_votes_table(self):
+        async with self.pool.acquire() as connection:
+            assert isinstance(connection, asyncpg.Connection)
+            await connection.execute("""
+            CREATE TABLE IF NOT EXISTS votes(
+                user_id BIGINT PRIMARY KEY,
+                vote_count INT
+            );
+            """)
+
+    async def add_vote(self, user_id: int):
+        async with self.pool.acquire() as connection:
+            assert isinstance(connection, asyncpg.Connection)
+            await connection.execute("""
+            INSERT INTO votes(user_id, vote_count)
+            VALUES ($1, 1)
+            ON CONFLICT (id) DO UPDATE
+            SET vote_count = votes.vote_count + 1;
+            );
+            """, user_id)
+
+    async def get_vote(self, user: discord.User):
+        async with self.pool.acquire() as connection:
+            assert isinstance(connection, asyncpg.Connection)
+            result = await connection.fetchrow("""
+                     SELECT vote_count FROM votes WHERE user_id = $1;
+                     """, user.id)
+            return result['vote_count']
+
+    # endregion
+
+    # region Prefixes
+
     async def create_prefixes_table(self):
         async with self.pool.acquire() as connection:
             assert isinstance(connection, asyncpg.Connection)
@@ -92,6 +127,8 @@ class Database:
             RETURNING *;
             """, *(guild.id, prefix))
             return result
+
+    # endregion
 
 
 def setup(bot: 'alice.Alice'):
