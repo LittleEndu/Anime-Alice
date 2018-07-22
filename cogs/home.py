@@ -36,13 +36,7 @@ def setup(bot):
             return aiohttp.web.Response(text='Unauthorized', status=401)
         else:
             webhook: discord.Webhook = await bot.get_webhook_info(bot.config.get('vote_webhook_id'))
-            if request.content_type == 'application/json':
-                jj = await request.json()
-            else:
-                jj = {'multipart':'so no data'}
-                async for part in  await request.multipart():
-                    bot.logger.debug(part)
-                bot.logger.debug([i for i in dir(part)])
+            jj = await request.json()
             await webhook.send(f"Received vote: {jj}")
             bot.logger.debug(f"Received vote: {jj}")
             return aiohttp.web.Response(text="Success")
