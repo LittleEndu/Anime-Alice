@@ -25,9 +25,10 @@ class NSFWBreach(Exception):
 
 
 class Otaku:
+    # region Helpers
     class Medium(metaclass=abc.ABCMeta):
-        def __init__(self, anilist_id, name, is_nsfw=False):
-            self.anilist_id = anilist_id
+        def __init__(self, some_id, name, is_nsfw=False):
+            self.id = some_id
             self.name = name
             self.is_nsfw = is_nsfw
             self.instance_created_at = time.time()
@@ -68,7 +69,7 @@ class Otaku:
             self.kwargs = kwargs
 
         @staticmethod
-        def search_query():
+        def old_search_query():
             return """
     query ($terms: String) {
       Page(page: 1) {
@@ -113,8 +114,68 @@ class Otaku:
     """
 
         @staticmethod
+        def search_query():
+            return """
+query ($terms: String) {
+  Page(page: 1) {
+    media(search: $terms, type: ANIME) {
+      id
+      isAdult
+      title {
+        romaji
+        english
+      }
+      popularity
+    }
+  }
+}
+            """
+
+        @staticmethod
+        def populate_query():
+            return """
+query ($id: Int) {
+  Page(page: 1) {
+    media(id: $id, type: ANIME) {
+      id
+      description
+      episodes
+      title {
+        romaji
+        english
+        native
+      }
+      status
+      stats {
+        scoreDistribution {
+          score
+          amount
+        }
+      }
+      startDate {
+        year
+        month
+        day
+      }
+      endDate {
+        year
+        month
+        day
+      }
+      coverImage {
+        large
+      }
+    }
+  }
+}"""
+
+        @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
+            # Searches Anilist for that query
+            # Returns Anime()
+
             results = []  # Because PyCharm :shrug:
+            # Query anilist for initial results
             async with aiohttp.ClientSession() as session:
                 async with session.post(url=ANILIST_QUERY_URL,
                                         json={'query': Otaku.Anime.search_query(),
@@ -124,27 +185,42 @@ class Otaku:
                         results = jj['data']['Page']['media']
                     else:
                         raise ResponseError(response.status, await response.text())
+            # Sort based on what is most popular. popularity is the highest on the most popular anime
             results.sort(key=lambda k: k['popularity'], reverse=True)
             for i in results[:]:
                 if i['isAdult'] and not adult:
                     results.remove(i)
-                    continue
-                i['description'] = BS(i['description'], "lxml").text
 
             if results:
-                asking = []
-                for i in results:
-                    under = i['title']['english']
-                    if under is not None:
-                        under = f"*{under}*"
-                    else:
-                        under = ''
-                    asking.append(f"  {i['title']['romaji']}\n\t{under}")
+
                 if lucky:
-                    index = 0
+                    index = 0  # Lucky search always returns most popular
                 else:
+                    asking = []
+                    for i in results:
+                        under = i['title']['english']
+                        if under is not None:
+                            under = f"*{under}*"
+                        else:
+                            under = ''
+                        asking.append(f"  {i['title']['romaji']}\n\t{under}")
+                    # Ask the user what anime they meant
                     index = await ctx.bot.helper.Asker(ctx, *asking[:9])
                 wanted = results[index]
+                # Query Anilist for all information about that anime
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(url=ANILIST_QUERY_URL,
+                                            json={'query': Otaku.Anime.populate_query(),
+                                                  'variables': {'id': wanted['id']}}) as response:
+                        if response.status == 200:
+                            jj = await response.json()
+                            wanted = {**wanted, **jj['data']['Page']['media'][0]}
+                            ctx.bot.logger.debug(wanted)
+                        else:
+                            raise ResponseError(response.status, await response.text())
+                # Escape html that's in description
+                # lxml seems to be the only thing that works
+                wanted['description'] = BS(wanted['description'], "lxml").text
                 await ctx.trigger_typing()
                 anilist_scores = [0 for i in range(10)]  # InFuture: Add scores from other sites maybe
                 for score in wanted['stats']['scoreDistribution']:
@@ -200,6 +276,10 @@ class Otaku:
             return embed
         # end class
 
+    # This is where the actual cog starts
+    # Anything else before are just helpers
+    # endregion
+
     mediums = {'anime': Anime}
 
     def __init__(self, bot: alice.Alice):
@@ -253,10 +333,9 @@ class Otaku:
         """
 *From bot description.*
 
-**Anime lookup**
-* ``!anime`` - Shows the related anime to the last anime you looked up
 * ``!anime search <query>`` - Searches Anilist for anime. ``search`` can be replaced with ``?``
-* ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!`` or ``luckysearch``
+* ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
+    * ``!anime`` - Shows the last anime you looked up
         """
         if ctx.invoked_with == 'hentai' and not ctx.channel.nsfw:
             await ctx.send("Can't search hentai in here")
