@@ -25,6 +25,60 @@ class NSFWBreach(Exception):
 
 
 class Otaku:
+    @staticmethod
+    async def get_anilist_results(graphql: dict, adult=False):
+        results = []
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url=ANILIST_QUERY_URL,
+                                    json=graphql) as response:
+                if response.status == 200:
+                    jj = await response.json()
+                    results = jj['data']['Page']['media']
+                else:
+                    raise ResponseError(response.status, await response.text())
+        for i in results[:]:
+            if i['isAdult'] and not adult:
+                results.remove(i)
+        results.sort(key=lambda k: k['popularity'], reverse=True)
+        return results
+
+    @staticmethod
+    async def get_more_anilist_info(graphql: dict, previous_info: dict, score_func=lambda l: sum(l) / float(len(l))):
+        result = dict()
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url=ANILIST_QUERY_URL,
+                                    json=graphql) as response:
+                if response.status == 200:
+                    jj = await response.json()
+                    result = {**previous_info, **jj['data']['Page']['media'][0]}
+                else:
+                    raise ResponseError(response.status, await response.text())
+        try:
+            # Escape html that's in description
+            # lxml seems to be the only thing that works
+            result['description'] = BS(result['description'], "lxml").text
+        except:
+            pass
+        try:
+            anilist_scores = [0 for i in range(10)]
+            for score in result['stats']['scoreDistribution']:
+                anilist_scores[score['score'] // 10 - 1] = score['amount']
+            result['alice_score'] = score_func(anilist_scores)
+        except:
+            pass
+        start_date = None
+        end_date = None
+        try:
+            if all([result['startDate'][i] for i in result['startDate']]):
+                start_date = str(dateutil.parser.parse("{year}-{month}-{day}".format(**result['startDate'])).date())
+            if all([result['endDate'][i] for i in result['endDate']]):
+                end_date = str(dateutil.parser.parse("{year}-{month}-{day}".format(**result['endDate'])).date())
+        except:
+            pass
+        result['formatted_start_date'] = start_date
+        result['formatted_end_date'] = end_date
+        return result
+
     # region Helpers
     class Medium(metaclass=abc.ABCMeta):
         def __init__(self, some_id, name, is_nsfw=False):
@@ -69,53 +123,8 @@ class Otaku:
             self.kwargs = kwargs
 
         @staticmethod
-        def old_search_query():
-            return """
-    query ($terms: String) {
-      Page(page: 1) {
-        pageInfo {
-          total
-        }
-        media(search: $terms, type: ANIME) {
-          id
-          idMal
-          description
-          episodes
-          title {
-            romaji
-            english
-            native
-          }
-          popularity
-          status
-          isAdult
-          stats {
-            scoreDistribution {
-              score
-              amount
-            }
-          }
-          startDate {
-            year
-            month
-            day
-          }
-          endDate {
-            year
-            month
-            day
-          }
-          coverImage {
-            large
-          }
-        }
-      }
-    }
-    """
-
-        @staticmethod
-        def search_query():
-            return """
+        def search_query(query):
+            return {'query': """
 query ($terms: String) {
   Page(page: 1) {
     media(search: $terms, type: ANIME) {
@@ -128,12 +137,12 @@ query ($terms: String) {
       popularity
     }
   }
-}
-            """
+}""",
+                    'variables': {'terms': query}}
 
         @staticmethod
-        def populate_query():
-            return """
+        def populate_query(anilist_id: int):
+            return {'query': """
 query ($id: Int) {
   Page(page: 1) {
     media(id: $id, type: ANIME) {
@@ -167,32 +176,16 @@ query ($id: Int) {
       }
     }
   }
-}"""
+}""",
+                    'variables': {'id': anilist_id}}
 
         @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
             # Searches Anilist for that query
             # Returns Anime()
 
-            results = []  # Because PyCharm :shrug:
-            # Query anilist for initial results
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url=ANILIST_QUERY_URL,
-                                        json={'query': Otaku.Anime.search_query(),
-                                              'variables': {'terms': query}}) as response:
-                    if response.status == 200:
-                        jj = await response.json()
-                        results = jj['data']['Page']['media']
-                    else:
-                        raise ResponseError(response.status, await response.text())
-            # Sort based on what is most popular. popularity is the highest on the most popular anime
-            results.sort(key=lambda k: k['popularity'], reverse=True)
-            for i in results[:]:
-                if i['isAdult'] and not adult:
-                    results.remove(i)
-
+            results = await Otaku.get_anilist_results(Otaku.Anime.search_query(query), adult)
             if results:
-
                 if lucky:
                     index = 0  # Lucky search always returns most popular
                 else:
@@ -206,32 +199,14 @@ query ($id: Int) {
                         asking.append(f"  {i['title']['romaji']}\n\t{under}")
                     # Ask the user what anime they meant
                     index = await ctx.bot.helper.Asker(ctx, *asking[:9])
+
                 wanted = results[index]
+
                 # Query Anilist for all information about that anime
-                async with aiohttp.ClientSession() as session:
-                    async with session.post(url=ANILIST_QUERY_URL,
-                                            json={'query': Otaku.Anime.populate_query(),
-                                                  'variables': {'id': wanted['id']}}) as response:
-                        if response.status == 200:
-                            jj = await response.json()
-                            wanted = {**wanted, **jj['data']['Page']['media'][0]}
-                            ctx.bot.logger.debug(wanted)
-                        else:
-                            raise ResponseError(response.status, await response.text())
-                # Escape html that's in description
-                # lxml seems to be the only thing that works
-                wanted['description'] = BS(wanted['description'], "lxml").text
                 await ctx.trigger_typing()
-                anilist_scores = [0 for i in range(10)]  # InFuture: Add scores from other sites maybe
-                for score in wanted['stats']['scoreDistribution']:
-                    anilist_scores[score['score'] // 10 - 1] = score['amount']
-                wanted['alice_score'] = ctx.bot.helper.ci_score(anilist_scores)
-                start_date = None
-                end_date = None
-                if all([wanted['startDate'][i] for i in wanted['startDate']]):
-                    start_date = str(dateutil.parser.parse("{year}-{month}-{day}".format(**wanted['startDate'])).date())
-                if all([wanted['endDate'][i] for i in wanted['endDate']]):
-                    end_date = str(dateutil.parser.parse("{year}-{month}-{day}".format(**wanted['endDate'])).date())
+                wanted = await Otaku.get_more_anilist_info(Otaku.Anime.populate_query(wanted['id']),
+                                                           wanted,
+                                                           ctx.bot.helper.ci_score)
 
                 return Otaku.Anime(anilist_id=wanted['id'],
                                    name=wanted['title']['romaji'],
@@ -242,8 +217,8 @@ query ($id: Int) {
                                    alice_score=wanted['alice_score'],
                                    description=wanted['description'],
                                    status=wanted['status'].replace("_", " ").capitalize(),
-                                   start_date=start_date,
-                                   end_date=end_date,
+                                   start_date=wanted['formatted_start_date'],
+                                   end_date=wanted['formatted_start_date'],
                                    is_nsfw=wanted['isAdult'])
             return
 
