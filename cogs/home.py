@@ -37,6 +37,7 @@ class Home:
             name = member.display_name
             while name and name < '0':
                 name = name[1:]
+                self.bot.logger.debug('In while loop')
             if name != member.display_name:
                 if name:
                     await member.edit(nick=name)
