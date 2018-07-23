@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 import alice
+import re
 
 
 class Info:
@@ -82,6 +83,38 @@ class Info:
         await self.info_giver(ctx, ctx.author)
 
     # endregion
+
+    @commands.command(aliases=['emoteinfo'])
+    async def emojiinfo(self, ctx: commands.Context, request: str):
+        if not re.match('<a?:.+:\d+>', request):
+            await ctx.send("I'm afraid that isn't an emoji")
+        else:
+            emoji_id = int(''.join([i for i in request if i.isdigit()]))
+            emoji = discord.utils.get(self.bot.emojis, id=emoji_id)
+            if not emoji or ctx.author not in emoji.guild.members:
+                await ctx.send("We are not both in the server where that emoji is from")
+            else:
+                await ctx.send(f"That emoji is from {emoji.guild.name}")
+
+    @commands.command(aliases=['mutualguilds'])
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def mutualservers(self, ctx):
+        async with self.bot.helper.AppendOrSend(ctx) as appender:
+            await appender.append('We are both in these servers:\n')
+            for guild in self.bot.guilds:
+                if ctx.author in guild.members:
+                    safe_name = guild.name.replace("`", "\u02cb")
+                    await appender.append_join(f"``{safe_name}``")
+
+
+    @mutualservers.error
+    async def servers_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            if await self.bot.is_owner(ctx.author):
+                await ctx.reinvoke()
+                return
+        else:
+            await self.bot.helper.handle_error(ctx, error)
 
 
 def setup(bot):

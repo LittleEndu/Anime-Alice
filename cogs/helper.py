@@ -186,6 +186,7 @@ class Helper:
     class AppendOrSend:
         def __init__(self, channel: discord.abc.Messageable):
             self.data = ""
+            self.joining_data = ""
             self.channel = channel
 
         async def __aenter__(self):
@@ -194,19 +195,37 @@ class Helper:
         async def __aexit__(self, exc_type, exc_val, exc_tb):
             await self.flush()
 
+        def _get_all(self):
+            return self.data + self.joining_data
+
         async def append(self, arg: str):
+            if self.joining_data:
+                self.data = self._get_all()
+                self.joining_data = ""
             if not isinstance(arg, str):
                 arg = str(arg)
-            if len(self.data) + len(arg) > 2000:
-                await self.channel.send(self.data)
+            if len(self._get_all()) + len(arg) > 2000:
+                await self.flush()
                 self.data = arg
             else:
                 self.data += arg
 
+        async def append_join(self, arg: str, join_str: str = ", "):
+            if not isinstance(arg, str):
+                arg = str(arg)
+            if len(self._get_all()) + len(join_str + arg) > 2000:
+                await self.flush()
+                self.joining_data = arg
+            else:
+                if self.joining_data:
+                    self.joining_data += join_str
+                self.joining_data += arg
+
         async def flush(self):
-            if self.data:
-                await self.channel.send(self.data)
+            if self._get_all():
+                await self.channel.send(self._get_all())
             self.data = ""
+            self.joining_data = ""
 
     # endregion
 
