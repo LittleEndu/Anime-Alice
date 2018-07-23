@@ -102,7 +102,8 @@ class Info:
         appender = self.bot.helper.AppendOrSend(ctx)
         if discord.Member and not self.bot.is_owner(ctx.author):
             await ctx.send("I won't show you servers some other person is in")
-        else:
+            return
+        elif discord.Member:
             appender = self.bot.helper.AppendOrSend(ctx.author)
             await self.bot.helper.react_or_false(ctx, "\U0001f4eb")
         async with appender:
