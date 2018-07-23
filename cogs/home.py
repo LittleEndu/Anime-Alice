@@ -45,13 +45,14 @@ def setup(bot):
             return aiohttp.web.Response(text=":shrug:")
         else:
             jj = await request.json()
+            jj['user'] = int(jj['user'])
             bot.logger.debug(f"Request to dblVote webhook: {jj}")
             channel: discord.TextChannel = bot.get_channel(bot.config.get('vote_channel_id'))
-            user = bot.get_user(int(jj['user']))
+            user = bot.get_user(jj['user'])
             if not user:
                 user = await bot.get_user_info(jj['user'])
             emb = discord.Embed(description=f"Thank you for voting for me{', '+user.mention if user else ''}.")
-            await bot.database.add_vote(int(jj['user']))
+            await bot.database.add_vote(jj['user'])
             emb.set_author(name=user.name if user else 'Unknown User',
                            icon_url=user.avatar_url if user else bot.user.default_avatar_url)
             if jj['type'] == 'test':
