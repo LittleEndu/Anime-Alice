@@ -100,16 +100,19 @@ class Info:
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def mutualservers(self, ctx, member: discord.Member = None):
         appender = self.bot.helper.AppendOrSend(ctx)
-        if discord.Member and not self.bot.is_owner(ctx.author):
+        if member and not self.bot.is_owner(ctx.author):
             await ctx.send("I won't show you servers some other person is in")
             return
-        elif discord.Member:
+        elif member:
             appender = self.bot.helper.AppendOrSend(ctx.author)
             await self.bot.helper.react_or_false(ctx, "\U0001f4eb")
         async with appender:
             await appender.append('We are both in these servers:\n')
             for guild in self.bot.guilds:
-                if ctx.author in guild.members:
+                if member:
+                    if member in guild.members:
+                        await appender.append_join(self.bot.helper.safety_escape_monospace(guild.name))
+                elif ctx.author in guild.members:
                     await appender.append_join(self.bot.helper.safety_escape_monospace(guild.name))
 
     @mutualservers.error
