@@ -34,8 +34,14 @@ class Home:
 
     async def punish_hoisters(self, member: discord.Member):
         if member.guild == self.my_guild:
-            if member.display_name < '0':
-                await member.edit(nick="\u2744")
+            name = member.display_name
+            while name < '0':
+                name = name[1:]
+            if name != member.display_name:
+                if name:
+                    await member.edit(nick=name)
+                else:
+                    await member.edit(nick="\u2744")
 
     # region events
     async def on_member_update(self, before: discord.Member, after: discord.Member):
