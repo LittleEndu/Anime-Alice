@@ -68,6 +68,11 @@ class Helper:
         except:
             return None
 
+    @staticmethod
+    def safety_escape_monospace(string:str):
+        safe = string.replace('`','\u02cb')
+        return f"``{safe}``"
+
     # endregion
 
     # region general stuff

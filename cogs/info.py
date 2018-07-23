@@ -94,7 +94,7 @@ class Info:
             if not emoji or ctx.author not in emoji.guild.members:
                 await ctx.send("We are not both in the server where that emoji is from")
             else:
-                await ctx.send(f"That emoji is from {emoji.guild.name}")
+                await ctx.send(f"That emoji is from {self.bot.helper.safety_escape_monospace(emoji.guild.name)}")
 
     @commands.command(aliases=['mutualguilds'])
     @commands.cooldown(1, 60, commands.BucketType.user)
@@ -103,8 +103,7 @@ class Info:
             await appender.append('We are both in these servers:\n')
             for guild in self.bot.guilds:
                 if ctx.author in guild.members:
-                    safe_name = guild.name.replace("`", "\u02cb")
-                    await appender.append_join(f"``{safe_name}``")
+                    await appender.append_join(self.bot.helper.safety_escape_monospace(guild.name))
 
 
     @mutualservers.error
