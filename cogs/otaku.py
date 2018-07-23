@@ -17,8 +17,7 @@ ANILIST_QUERY_URL = 'https://graphql.anilist.co'
 class ResponseError(Exception):
     def __init__(self, status, *args, **kwargs):
         self.status = status
-
-    pass
+    # end class
 
 
 class NSFWBreach(Exception):
@@ -51,6 +50,7 @@ class Otaku:
 
         def to_embed(self):
             return NotImplemented
+        # end class
 
     class Anime(Medium):
         def __init__(self, anilist_id, name, **kwargs):
@@ -198,6 +198,7 @@ class Otaku:
             embed.add_field(name='\u200b', value=f"[Anilist]({self.url})", inline=False)
 
             return embed
+        # end class
 
     mediums = {'anime': Anime}
 
@@ -292,6 +293,7 @@ class Otaku:
             embed = medium.to_embed()
             await ctx.send(embed=embed)
             self._last_medium[ctx.author.id] = medium
+    # end class
 
 
 def setup(bot):

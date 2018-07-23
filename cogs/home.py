@@ -10,6 +10,7 @@ import alice
 class Home:
     def __init__(self, bot: alice.Alice, routes):
         self.bot = bot
+        self.my_guild = discord.utils.get(self.bot.guilds, owner=self.bot.user)
         self.app = aiohttp.web.Application(loop=self.bot.loop)
         self.app.bot = bot
         self.app.add_routes(routes)
@@ -30,6 +31,21 @@ class Home:
         while not self.server_fut.done():
             await asyncio.sleep(0)
         self.server_fut.result().close()
+
+    async def punish_hoisters(self, member: discord.Member):
+        if member.guild == self.my_guild:
+            if member.display_name < '0':
+                await member.edit(nick="\u2744")
+
+    # region events
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        await self.punish_hoisters(after)
+
+    async def on_member_join(self, member: discord.Member):
+        await self.punish_hoisters(member)
+    # endregion
+    # end class
+
 
 def setup(bot):
     s_routes = aiohttp.web.RouteTableDef()

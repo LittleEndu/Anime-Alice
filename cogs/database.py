@@ -130,6 +130,7 @@ class Database:
             return result
 
     # endregion
+    # end class
 
 
 def setup(bot: 'alice.Alice'):
