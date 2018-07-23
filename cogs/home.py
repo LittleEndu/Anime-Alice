@@ -37,12 +37,15 @@ def setup(bot):
     @s_routes.post("/api/webhooks/dblVote")
     async def vote_handler(request: aiohttp.web.Request):
         bot: alice.Alice = request.app.bot
+
         if request.headers.get('Authorization') != bot.config.get('vote_webhook_auth'):
+            bot.logger.debug("Unauthorized request to dblVote webhook")
             return aiohttp.web.Response(text='Unauthorized', status=401)
         elif bot.database is None:
             return aiohttp.web.Response(text=":shrug:")
         else:
             jj = await request.json()
+            bot.logger.debug(f"Request to dblVote webhook: {jj}")
             channel: discord.TextChannel = bot.get_channel(bot.config.get('vote_channel_id'))
             user = bot.get_user(int(jj['user']))
             if not user:
