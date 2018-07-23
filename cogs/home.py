@@ -35,7 +35,7 @@ class Home:
     async def punish_hoisters(self, member: discord.Member):
         if member.guild == self.my_guild:
             name = member.display_name
-            while name < '0':
+            while name and name < '0':
                 name = name[1:]
             if name != member.display_name:
                 if name:
