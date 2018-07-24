@@ -463,8 +463,10 @@ query ($id: Int) {
 
     @commands.command(name='search', aliases=['find', '?'])
     @commands.bot_has_permissions(embed_links=True)
-    async def _search(self, ctx, medium_name: str, *, query:str):
+    async def _search(self, ctx, medium_name: str, *, query:str=None):
         """Alias for when you type search before the medium you want to search for"""
+        if query is None:
+            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
         medium_name = medium_name.lower()
         if not medium_name in Otaku.mediums:
             raise commands.UserInputError(f'{medium_name.capitalize()} is not something I can search for')
@@ -472,8 +474,10 @@ query ($id: Int) {
 
     @commands.command(name='lucky', aliases=['luckysearch','!'])
     @commands.bot_has_permissions(embed_links=True)
-    async def _lucky(self, ctx, medium_name: str, *, query: str):
+    async def _lucky(self, ctx, medium_name: str, *, query: str= None):
         """Alias for when you type lucky before the medium you want to lucky search"""
+        if query is None:
+            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
         medium_name = medium_name.lower()
         if not medium_name in Otaku.mediums:
             raise commands.UserInputError(f'{medium_name.capitalize()} is not something I can search for')
@@ -519,14 +523,12 @@ query ($id: Int) {
 
     async def lucky(self, ctx: commands.Context, *, query: str = None):
         if query is None:
-            await self.last_medium_caller(ctx, ctx.command.parent.name, True)
-            return
+            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
         await self.find_helper(ctx, ctx.command.parent.name, query, True)
 
     async def find(self, ctx: commands.Context, *, query: str = None):
         if query is None:
-            await self.last_medium_caller(ctx, ctx.command.parent.name, False)
-            return
+            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
         await self.find_helper(ctx, ctx.command.parent.name, query, False)
 
     async def find_helper(self, ctx, medium_name, query, lucky):

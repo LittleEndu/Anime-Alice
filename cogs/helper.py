@@ -107,6 +107,41 @@ class Helper:
 
     # region classes
 
+    class AdditionalInfo:
+        def __init__(self, ctx: commands.Context, *args, questions: tuple = tuple(), ):
+            self.ctx = ctx
+            self.questions = []
+            for i in args + questions:
+                self.questions.append(str(i))
+
+        def __await__(self):
+            return self.ask_for_more_info().__await__()
+
+        async def ask_for_more_info(self):
+            async def message_waiter(answer_fut: asyncio.Future):
+                def message_check(message: discord.Message):
+                    return message.author.id == self.ctx.author.id and message.channel.id == self.ctx.channel.id
+
+                msg = await self.ctx.bot.wait_for('message', check=message_check)
+                answer_fut.set_result(msg.content)
+
+            answers = []
+            for question in self.questions:
+                await self.ctx.send(question)
+                answer = asyncio.Future()
+                task = self.ctx.bot.loop.create_task(message_waiter(answer))
+                try:
+                    async with async_timeout.timeout(60):
+                        while not answer.done():
+                            await asyncio.sleep(0)
+                except asyncio.TimeoutError:
+                    raise
+                else:
+                    answers.append(answer.result())
+                finally:
+                    task.cancel()
+            return answers
+
     class Asker:
         def __init__(self, ctx: commands.Context, *args, choices: tuple = tuple(), react_with_choice=False):
             self.ctx = ctx
