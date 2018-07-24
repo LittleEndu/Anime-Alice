@@ -11,27 +11,27 @@ Discord bot for linking anime and other otaku stuff
 ### Commands
 Assuming you have ``!`` as your prefix
 
-<> is required, () is optional
+<> is required, () is optional, ? will be asked if not provided
 
 **Anime lookup**
-* ``!anime search <query>`` - Searches Anilist for anime. ``search`` can be replaced with ``?``
-* ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
+* ``!anime search <?query>`` - Searches Anilist for anime. ``search`` can be replaced with ``?``
+* ``!anime lucky <?query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
     * ``!anime`` - Shows the last anime you looked up
     * ``!manga`` - *Currently doesn't work*
     
 **Manga lookup**
-* ``!manga search <query>`` - Searches Anilist for manga. ``search`` can be replaced with ``?``
-* ``!manga lucky <query>`` - Searches Anilist for manga. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
+* ``!manga search <?query>`` - Searches Anilist for manga. ``search`` can be replaced with ``?``
+* ``!manga lucky <?query>`` - Searches Anilist for manga. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
     * ``!anime`` - *Currently doesn't work*
     * ``!manga`` - Shows the last manga you looked up
     
 **Lookup aliases**
-* ``!search <medium name> <query>`` - Uses the above lookups to perform a search
-* ``!lucky <medium name> <query>`` - Uses the above lookups to perform a lucky search
+* ``!search <medium name> <?query>`` - Uses the above lookups to perform a search
+* ``!lucky <medium name> <?query>`` - Uses the above lookups to perform a lucky search
 
 **Prefixes**
-* ``!setprefix <prefix>`` - sets the guild wide prefix. *You need to be administrator on the guild*
-* ``!removeprefix (prefix)`` - removes a prefix. If none is specified, it asks what prefix to remove. *You need to be administrator on the guild*
+* ``!setprefix <prefix>`` - Sets the guild wide prefix. *You need to be administrator on the guild*
+* ``!removeprefix <?prefix>`` - Removes a prefix. *You need to be administrator on the guild*
 * ``!prefixes`` - Lists current prefixes
 
 **Informational**
