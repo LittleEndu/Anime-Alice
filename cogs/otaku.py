@@ -459,6 +459,24 @@ query ($id: Int) {
             await ctx.send(embed=embed)
             self._last_medium[ctx.author.id] = new_medium
 
+    @commands.command(name='search', aliases=['find', '?'])
+    @commands.bot_has_permissions(embed_links=True)
+    async def _search(self, ctx, medium_name: str, *, query:str):
+        """Alias for when you type search before the medium you want to search for"""
+        medium_name = medium_name.lower()
+        if not medium_name in Otaku.mediums:
+            raise commands.UserInputError(f'{medium_name.capitalize()} is not something I can search for')
+        await self.find_helper(ctx, medium_name, query, False)
+
+    @commands.command(name='lucky', aliases=['luckysearch','!'])
+    @commands.bot_has_permissions(embed_links=True)
+    async def _lucky(self, ctx, medium_name: str, *, query: str):
+        """Alias for when you type lucky before the medium you want to lucky search"""
+        medium_name = medium_name.lower()
+        if not medium_name in Otaku.mediums:
+            raise commands.UserInputError(f'{medium_name.capitalize()} is not something I can search for')
+        await self.find_helper(ctx, medium_name, query, True)
+
     @commands.group(aliases=['hentai'], brief="Used for anime lookup. Use ``help anime`` command for more info")
     @commands.bot_has_permissions(embed_links=True)
     async def anime(self, ctx: commands.Context):
