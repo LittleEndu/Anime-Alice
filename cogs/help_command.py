@@ -52,8 +52,9 @@ class HelpCommand:
                     await appender.append(
                         f"**``{prefix}{i.name}`` - **{f'{help_string}' if help_string else ''}\n"
                     )
-        if not await self.bot.helper.react_or_false(ctx, "\U0001f4eb"):
-            await ctx.send("Sent you the commands")
+        if ctx.guild:
+            if not await self.bot.helper.react_or_false(ctx, "\U0001f4eb"):
+                await ctx.send("Sent you the commands")
 
     @commands.command(aliases=['about'])
     @commands.bot_has_permissions(embed_links=True)
