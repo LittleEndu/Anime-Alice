@@ -70,9 +70,11 @@ My aim is to assist you in anything that's related to anime.
 I take my info from [AniList](https://anilist.co/).
                                 """)
         emb.set_thumbnail(url=ctx.me.avatar_url)
+
         emb.add_field(name="Bot invite",
                       value="[Here](https://discordapp.com/oauth2/authorize"
                             "?client_id=354974625593032704&scope=bot&permissions=378944)")
+
         my_guild = discord.utils.get(self.bot.guilds, owner=self.bot.user)
         guild_invite = None
         for i in my_guild.text_channels:
@@ -83,6 +85,9 @@ I take my info from [AniList](https://anilist.co/).
             guild_invite = await my_guild.text_channels[0].create_invite()
         emb.add_field(name="My server invite",
                       value=f"[{my_guild.name}]({guild_invite.url})")
+
+        emb.add_field(name="discordbots.org entry",
+                      value=f"[Alice](https://discordbots.org/bot/354974625593032704)")
         emb.set_footer(text=f"{len(self.bot.guilds)} servers, {len(self.bot.commands)} commands")
         await ctx.send(embed=emb)
 
