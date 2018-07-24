@@ -64,8 +64,7 @@ class HelpCommand:
         """
         # Bot: https://discordapp.com/oauth2/authorize?client_id=354974625593032704&scope=bot&permissions=378944
         # Server: http://discord.gg/HheVh3A
-        emb = discord.Embed(title=f"{ctx.me.display_name}",
-                            colour=discord.Colour(0xe29b9b),
+        emb = discord.Embed(colour=discord.Colour(0xe29b9b),
                             url='https://discordbots.org/bot/354974625593032704',
                             description=f"""
 Heyo. I'm Alice.
