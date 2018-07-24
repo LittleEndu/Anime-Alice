@@ -38,14 +38,20 @@ class HelpCommand:
         Lists all visible commands
         """
         async with self.bot.helper.AppendOrSend(ctx.author) as appender:
-            for i in sorted(self.bot.commands, key=lambda a: a.name):
+            last_cog = ""
+            for i in sorted(self.bot.commands, key=lambda a: a.cog_name + a.name):
                 assert isinstance(i, commands.Command)
-                new_line = "\n"  # Don't delete, used in nested fstring
-                help_string = i.brief or f'{i.help or ""}'.split(new_line)[0]
                 show = not i.hidden and await i.can_run(ctx)
-                await appender.append(
-                    f"**``{i.name}``**{f'{new_line}{help_string}' if help_string else ''}\n\n" if show else ""
-                )
+                if show:
+                    if i.cog_name != last_cog:
+                        last_cog = i.cog_name
+                        await appender.append(f"\n```\U0001f916{last_cog}\U0001f916```")
+                    new_line = "\n"  # Don't delete, used in nested fstring
+                    help_string = i.brief or f'{i.help or ""}'.split(new_line)[0]
+                    prefix = ctx.prefix if len(ctx.prefix)<5 else ""
+                    await appender.append(
+                        f"**``{prefix}{i.name}`` - **{f'{help_string}' if help_string else ''}\n"
+                    )
         if not await self.bot.helper.react_or_false(ctx, "\U0001f4eb"):
             await ctx.send("Sent you the commands")
 
