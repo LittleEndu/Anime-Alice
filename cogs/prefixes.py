@@ -91,5 +91,4 @@ class Prefixes:
 
 
 def setup(bot):
-    assert bot.database
     bot.add_cog(Prefixes(bot))
