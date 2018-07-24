@@ -93,8 +93,8 @@ I take my info from [AniList](https://anilist.co/).
             stuff = f"{len(set(otaku.mediums.values()))} things to search for"
         else:
             stuff = "Searching disabled"
-        emb.set_footer(text=f"{len(self.bot.guilds)} servers,"
-                            f"{len(self.bot.commands)} commands,"
+        emb.set_footer(text=f"{len(self.bot.guilds)} servers, "
+                            f"{len(self.bot.commands)} commands, "
                             f"{stuff}")
         await ctx.send(embed=emb)
 
