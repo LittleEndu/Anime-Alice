@@ -1,3 +1,4 @@
+import asyncio
 import asyncpg
 import discord
 from discord.ext import commands
@@ -11,6 +12,8 @@ class Prefixes:
         self.bot.loop.create_task(self.db_init())
 
     async def db_init(self):
+        while not self.bot.database:
+            await asyncio.sleep(0)
         await self.bot.database.wait_for_start()
         await self.bot.database.create_prefixes_table()
 
