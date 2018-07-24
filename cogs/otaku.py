@@ -1,11 +1,10 @@
 import abc
 import asyncio
-import copy
+import time
 
 import aiohttp
 import dateutil.parser
 import discord
-import time
 from bs4 import BeautifulSoup as BS
 from discord.ext import commands
 
@@ -416,7 +415,7 @@ query ($id: Int) {
     def __init__(self, bot: alice.Alice):
         self.bot = bot
         self._last_medium = dict()
-        find_command = Otaku.CommandCopyHelper(self.find, ['?','search'])
+        find_command = Otaku.CommandCopyHelper(self.find, ['?', 'search'])
         lucky_command = Otaku.CommandCopyHelper(self.lucky, ['!', 'luckysearch'])
         for g in [self.anime, self.manga]:
             for s in [find_command, lucky_command]:
