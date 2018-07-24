@@ -88,7 +88,14 @@ I take my info from [AniList](https://anilist.co/).
 
         emb.add_field(name="discordbots.org entry",
                       value=f"[Alice](https://discordbots.org/bot/354974625593032704)")
-        emb.set_footer(text=f"{len(self.bot.guilds)} servers, {len(self.bot.commands)} commands")
+        otaku = self.bot.get_cog('Otaku')
+        if otaku:
+            stuff = f"{len(set(otaku.mediums.values()))} things to search for"
+        else:
+            stuff = "Searching disabled"
+        emb.set_footer(text=f"{len(self.bot.guilds)} servers,"
+                            f"{len(self.bot.commands)} commands,"
+                            f"{stuff}")
         await ctx.send(embed=emb)
 
 
