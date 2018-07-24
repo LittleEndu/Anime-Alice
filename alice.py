@@ -55,9 +55,9 @@ class Alice(commands.Bot):
         dh = RotatingFileHandler("logs/debug.log", maxBytes=5000000, backupCount=1, encoding='UTF-8')
         dh.setLevel(1)
         dh.setFormatter(formatter)
-        th = RotatingFileHandler("logs/trace.log", maxBytes=1000000, backupCount=1, encoding='UTF-8')
-        th.setLevel(1)
-        th.setFormatter(formatter)
+        self.trace_handler = RotatingFileHandler("logs/trace.log", maxBytes=1000000, backupCount=1, encoding='UTF-8')
+        self.trace_handler.setLevel(1)
+        self.trace_handler.setFormatter(formatter)
         sh = logging.StreamHandler()
         sh.setLevel(logging.INFO)
         sh.setFormatter(formatter)
@@ -67,7 +67,7 @@ class Alice(commands.Bot):
         root_logger.addHandler(dh)
         root_logger.setLevel(1)
 
-        self.logger.addHandler(th)
+        self.logger.addHandler(self.trace_handler)
         self.logger.setLevel(1)
 
         # Remove default help and add other commands

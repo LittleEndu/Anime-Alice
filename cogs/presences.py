@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import concurrent.futures
+from logging.handlers import RotatingFileHandler
 
 import async_timeout
 import dbl
@@ -15,6 +16,13 @@ import alice
 class Presences:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
+        gh = RotatingFileHandler("logs/guilds.log", maxBytes=5000000, backupCount=1, encoding='UTF-8')
+        gh.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s [%(name)s] %(message)s'))
+        gh.setLevel(1)
+        self.guilds_logger = logging.getLogger('alice.guilds')
+        self.guilds_logger.addHandler(self.bot.trace_handler)
+        self.guilds_logger.addHandler(gh)
+
         self.task = self.bot.loop.create_task(self.presence_updater())
         if not os.path.isfile('status'):
             self.status = bot.guilds[0].me.status
@@ -29,6 +37,18 @@ class Presences:
 
     def __unload(self):
         self.task.cancel()
+
+    async def on_guild_join(self, guild: discord.Guild):
+        self.guilds_logger.debug(f"Joined new guild:\n"
+                                 f"name={guild.name}\n"
+                                 f"id={guild.id}\n"
+                                 f"bot/members={sum(i.bot for i in guild.members)/len(guild.members)}\n"
+                                 f"total members={len(guild.members)}")
+        if sum(i.bot for i in guild.members)/len(guild.members) > 0.9:
+            self.guilds_logger.info(f'Joined guild {guild.id} seems to be full of bots')
+
+    async def on_guild_remove(self, guild: discord.Guild):
+        self.guilds_logger.debug(f"Guild {guild.id} was removed")
 
     async def presence_updater(self):
         try:
