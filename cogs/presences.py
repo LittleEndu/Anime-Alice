@@ -42,9 +42,11 @@ class Presences:
         self.guilds_logger.debug(f"Joined new guild:\n"
                                  f"name={guild.name}\n"
                                  f"id={guild.id}\n"
+                                 f"channels={len(guild.channels)}"
                                  f"bot/members={sum(i.bot for i in guild.members)/len(guild.members)}\n"
                                  f"total members={len(guild.members)}")
-        if sum(i.bot for i in guild.members)/len(guild.members) > 0.9:
+        if any((sum(i.bot for i in guild.members) / len(guild.members) > 0.8,
+                len(guild.members) - sum(i.bot for i in guild.members) < 3)):
             self.guilds_logger.info(f'Joined guild {guild.id} seems to be full of bots')
 
     async def on_guild_remove(self, guild: discord.Guild):
