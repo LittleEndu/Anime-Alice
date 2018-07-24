@@ -40,9 +40,8 @@ class Presences:
         self.task.cancel()
 
     async def on_guild_join(self, guild: discord.Guild):
-        self.guilds_logger.debug(f"Joined new guild:\n"
+        self.guilds_logger.debug(f"Joined new guild {guild.id}:\n"
                                  f"name={guild.name}\n"
-                                 f"id={guild.id}\n"
                                  f"channels={len(guild.channels)}\n"
                                  f"bot/members={sum(i.bot for i in guild.members)/len(guild.members)}\n"
                                  f"total bot/humans/members="
