@@ -242,7 +242,8 @@ query ($id: Int) {
             embed.add_field(name="Status", value=self.status)
             if self.start_date:
                 embed.add_field(name=f"Airing date{'s' if self.end_date else ''}",
-                                value="From {}{}".format(
+                                value="{}{}{}".format(
+                                    "From " if not self.end_date else "",
                                     self.start_date,
                                     " to {}".format(self.end_date) if self.end_date else ""
                                 ))
@@ -389,7 +390,8 @@ query ($id: Int) {
             embed.add_field(name="Status", value=self.status)
             if self.start_date:
                 embed.add_field(name=f"Releasing date{'s' if self.end_date else ''}",
-                                value="From {}{}".format(
+                                value="{}{}{}".format(
+                                    "From " if not self.end_date else "",
                                     self.start_date,
                                     " to {}".format(self.end_date) if self.end_date else ""
                                 ))
