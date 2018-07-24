@@ -57,10 +57,11 @@ class HelpCommand:
         """
         # Bot: https://discordapp.com/oauth2/authorize?client_id=354974625593032704&scope=bot&permissions=378944
         # Server: http://discord.gg/HheVh3A
-        emb = discord.Embed(title=f"Heyo. I'm {ctx.me.display_name}",
+        emb = discord.Embed(title=f"{ctx.me.display_name}",
                             colour=discord.Colour(0xe29b9b),
                             url='https://discordbots.org/bot/354974625593032704',
                             description=f"""
+Heyo. I'm Alice.
 I'm just another Discord bot.
 I was made by LittleEndu.
 I'm coded in discord.py (version {discord.__version__})
@@ -82,6 +83,7 @@ I take my info from [AniList](https://anilist.co/).
             guild_invite = await my_guild.text_channels[0].create_invite()
         emb.add_field(name="My server invite",
                       value=f"[{my_guild.name}]({guild_invite.url})")
+        emb.set_footer(text=f"{len(self.bot.guilds)} servers, {len(self.bot.commands)} commands")
         await ctx.send(embed=emb)
 
 
