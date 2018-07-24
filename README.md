@@ -25,6 +25,8 @@ Assuming you have ``!`` as your prefix
 
 **Informational**
 * ``!latecy`` - Reports bot latency. This command has several aliases like ``!hello`` and ``!ping``
+* ``!emojiinfo <:custom_emoji:>`` - Shows from what server some emoji is.
+* ``!mutualservers`` - Shows what servers the user and Alice share.
 * ``!whois <member>`` - Displays information about the given member.
   * ``!whois botowner`` - Display information about LittleEndu#0001.
   * ``!whois serverowner`` - Displays information about the server owner.

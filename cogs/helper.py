@@ -70,12 +70,12 @@ class Helper:
 
     @staticmethod
     def safety_escape_monospace(string: str):
-        safe = str(string).replace('`', '\u02cb')
+        safe = str(string).replace('`', '\u02cb').replace('*', '\u2217')
         return f"``{safe}``"
 
     @staticmethod
     def saftey_escape_regular(string: str):
-        return str(string).replace('`', '\u02cb')
+        return str(string).replace('`', '\u02cb').replace('*', '\u2217')
 
     # endregion
 

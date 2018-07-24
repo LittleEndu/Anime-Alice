@@ -14,14 +14,13 @@ import textwrap
 import traceback
 from contextlib import redirect_stdout, redirect_stderr
 from logging.handlers import RotatingFileHandler
-import types
 
 import aiohttp
 import discord
 from discord.ext import commands
 
-from cogs.helper import Helper
 from cogs.database import Database
+from cogs.helper import Helper
 
 
 class Alice(commands.Bot):
@@ -73,7 +72,9 @@ class Alice(commands.Bot):
 
         # Remove default help and add other commands
         self.remove_command("help")
-        for i in [self.reload, self.load, self.unload, self.debug, self.loadconfig, self._latency, self._exec]:
+        for i in [self.reload, self.load, self.unload,
+                  self.debug, self.loadconfig, self._latency,
+                  self._exec, self.forceload]:
             self.add_command(i)
         self._last_result = None
 

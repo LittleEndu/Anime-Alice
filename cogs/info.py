@@ -1,8 +1,9 @@
+import re
+
 import discord
 from discord.ext import commands
 
 import alice
-import re
 
 
 class Info:
@@ -86,8 +87,9 @@ class Info:
 
     @commands.command(aliases=['emoteinfo'])
     async def emojiinfo(self, ctx: commands.Context, request: str):
+        """Shows where the given emoji is from"""
         if not re.match('<a?:.+:\d+>', request):
-            await ctx.send("I'm afraid that isn't an emoji")
+            await ctx.send("I'm afraid that isn't a custom emoji")
         else:
             emoji_id = int(''.join([i for i in request if i.isdigit()]))
             emoji = discord.utils.get(self.bot.emojis, id=emoji_id)
@@ -99,6 +101,7 @@ class Info:
     @commands.command(aliases=['mutualguilds'])
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def mutualservers(self, ctx, member: discord.Member = None):
+        """Shows the servers both the bot and the user are in"""
         appender = self.bot.helper.AppendOrSend(ctx)
         if member and not self.bot.is_owner(ctx.author):
             await ctx.send("I won't show you servers some other person is in")
