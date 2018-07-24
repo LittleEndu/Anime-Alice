@@ -59,6 +59,12 @@ class Helper:
 
     @staticmethod
     def number_to_reaction(number: int):
+        if not isinstance(number, int):
+            return "\u26a0"
+        if number == 10:
+            return '\U0001f51f'
+        if 9 < number < 0:
+            return "\u26a0"
         return f"{number}\u20E3"
 
     @staticmethod
@@ -66,7 +72,7 @@ class Helper:
         try:
             return int(reaction[0])
         except:
-            return None
+            return -1
 
     @staticmethod
     def safety_escape_monospace(string: str):
@@ -133,12 +139,27 @@ class Helper:
                 self.chosen = 0
                 return self.chosen
 
+            async def stop_waiter(msg: discord.Message, choice_fut: asyncio.Future):
+                def stop_check(r: discord.Reaction, u: discord.User):
+                    return all([
+                        u.id == self.ctx.author.id,
+                        r.message.id == msg.id,
+                        r.emoji == '\u274c'
+                    ])
+
+                reaction, user = await self.ctx.bot.wait_for('reaction_add', check=stop_check)
+                try:
+                    choice_fut.set_result(None)
+                except asyncio.InvalidStateError:
+                    return
+
             async def reaction_waiter(msg: discord.Message, choice_fut: asyncio.Future):
                 def reaction_check(r: discord.Reaction, u: discord.User):
                     return all([
                         u.id == self.ctx.author.id,
                         r.message.id == msg.id,
-                        0 < Helper.reaction_to_number(r.emoji) <= len(self.choices)])
+                        0 < Helper.reaction_to_number(r.emoji) <= len(self.choices)
+                    ])
 
                 reaction, user = await self.ctx.bot.wait_for('reaction_add', check=reaction_check)
                 try:
@@ -169,6 +190,8 @@ class Helper:
             fut = asyncio.Future()
             reaction_task = self.ctx.bot.loop.create_task(reaction_waiter(asker, fut))
             message_task = self.ctx.bot.loop.create_task(message_waiter(fut))
+            stop_task = self.ctx.bot.loop.create_task(stop_waiter(asker, fut))
+            await asker.add_reaction('\u274c')
             if self.ctx.channel.permissions_for(self.ctx.me).add_reactions:
                 for em in map(Helper.number_to_reaction, range(1, len(self.choices) + 1)):
                     if fut.done():
@@ -184,11 +207,15 @@ class Helper:
                 message_exists = False
                 raise
             else:
-                self.chosen = fut.result() - 1
-                return self.chosen
+                if not fut.result():
+                    raise asyncio.TimeoutError
+                else:
+                    self.chosen = fut.result() - 1
+                    return self.chosen
             finally:
                 reaction_task.cancel()
                 message_task.cancel()
+                stop_task.cancel()
                 if message_exists:
                     await asker.delete()
 

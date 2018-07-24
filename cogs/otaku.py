@@ -52,7 +52,7 @@ class Otaku:
                                     json=graphql) as response:
                 if response.status == 200:
                     jj = await response.json()
-                    result = {**previous_info, **jj['data']['Page']['media'][0]}
+                    result = {**previous_info, **jj['data']['Media']}
                 else:
                     raise ResponseError(response.status, await response.text())
         try:
@@ -150,39 +150,38 @@ query ($terms: String) {
         def populate_query(anilist_id: int):
             return {'query': """
 query ($id: Int) {
-  Page(page: 1) {
-    media(id: $id, type: ANIME) {
-      id
-      description
-      episodes
-      title {
-        romaji
-        english
-        native
-      }
-      status
-      stats {
-        scoreDistribution {
-          score
-          amount
-        }
-      }
-      startDate {
-        year
-        month
-        day
-      }
-      endDate {
-        year
-        month
-        day
-      }
-      coverImage {
-        large
+  Media(id: $id, type: ANIME) {
+    id
+    description
+    episodes
+    title {
+      romaji
+      english
+      native
+    }
+    status
+    stats {
+      scoreDistribution {
+        score
+        amount
       }
     }
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    coverImage {
+      large
+    }
   }
-}""",
+}
+""",
                     'variables': {'id': anilist_id}}
 
         @staticmethod
@@ -278,13 +277,14 @@ query ($id: Int) {
             return {'query': """
 query ($terms: String) {
   Page(page: 1) {
-    media(search: $terms, format: MANGA) {
+    media(search: $terms, format_in: [MANGA, ONE_SHOT]) {
       id
       isAdult
       title {
         romaji
         english
       }
+      format
       popularity
     }
   }
@@ -295,39 +295,38 @@ query ($terms: String) {
         def populate_query(anilist_id):
             return {'query': """
 query ($id: Int) {
-  Page(page: 1) {
-    media(id: $id, format: MANGA) {
-      id
-      description
-      chapters
-      title {
-        romaji
-        english
-        native
-      }
-      status
-      stats {
-        scoreDistribution {
-          score
-          amount
-        }
-      }
-      startDate {
-        year
-        month
-        day
-      }
-      endDate {
-        year
-        month
-        day
-      }
-      coverImage {
-        large
+  Media(id: $id, format_in: [MANGA, ONE_SHOT]) {
+    id
+    description
+    chapters
+    title {
+      romaji
+      english
+      native
+    }
+    status
+    stats {
+      scoreDistribution {
+        score
+        amount
       }
     }
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    coverImage {
+      large
+    }
   }
-}""",
+}
+""",
                     'variables': {'id': anilist_id}}
 
         @staticmethod
@@ -347,6 +346,8 @@ query ($id: Int) {
                             under = f"*{under}*"
                         else:
                             under = ''
+                        if i['format'] == 'ONE_SHOT':
+                            under += " __One shot__"
                         asking.append(f"  {i['title']['romaji']}\n\t{under}")
                     # Ask the user what anime they meant
                     index = await ctx.bot.helper.Asker(ctx, *asking[:9])
@@ -410,7 +411,7 @@ query ($id: Int) {
     # Anything else before are just helpers
     # endregion
 
-    mediums = {'anime': Anime, 'manga': Manga}
+    mediums = {'anime': Anime, 'hentai': Anime, 'manga': Manga}
 
     def __init__(self, bot: alice.Alice):
         self.bot = bot
@@ -500,16 +501,15 @@ query ($id: Int) {
         if query is None:
             await self.last_medium_caller(ctx, ctx.command.parent.name, True)
             return
-        await self.find_helper(ctx, query, True)
+        await self.find_helper(ctx, ctx.command.parent.name, query, True)
 
     async def find(self, ctx: commands.Context, *, query: str = None):
         if query is None:
             await self.last_medium_caller(ctx, ctx.command.parent.name, False)
             return
-        await self.find_helper(ctx, query, False)
+        await self.find_helper(ctx, ctx.command.parent.name, query, False)
 
-    async def find_helper(self, ctx, query, lucky):
-        medium_name = ctx.command.parent.name
+    async def find_helper(self, ctx, medium_name, query, lucky):
         cls = Otaku.mediums.get(medium_name)
         assert issubclass(cls, Otaku.Medium)
         await ctx.trigger_typing()
