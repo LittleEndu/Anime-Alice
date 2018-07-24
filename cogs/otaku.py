@@ -414,6 +414,8 @@ query ($id: Int) {
     # endregion
 
     mediums = {'anime': Anime, 'hentai': Anime, 'manga': Manga}
+    for key in list(mediums.keys()):
+        mediums[f'{key}s'] = mediums[key]
 
     def __init__(self, bot: alice.Alice):
         self.bot = bot
@@ -483,7 +485,7 @@ query ($id: Int) {
         medium_name = medium_name.lower()
         await self.find_helper(ctx, medium_name, query, True)
 
-    @commands.group(aliases=['hentai'], brief="Used for anime lookup. Use ``help anime`` command for more info")
+    @commands.group(aliases=['hentai', 'hentais', 'animes'], brief="Used for anime lookup. Use ``help anime`` command for more info")
     @commands.bot_has_permissions(embed_links=True)
     async def anime(self, ctx: commands.Context):
         """
@@ -494,7 +496,7 @@ query ($id: Int) {
     * ``!anime`` - Shows the last anime you looked up
     * ``!manga`` - *Currently doesn't work*
         """
-        if ctx.invoked_with == 'hentai' and not ctx.channel.nsfw:
+        if ctx.invoked_with.startswith('hentai') and not ctx.channel.nsfw:
             await ctx.send("Can't search hentai in here")
         if ctx.invoked_subcommand is None:
             if ctx.message.content != f"{ctx.prefix}{ctx.invoked_with}":
@@ -503,7 +505,7 @@ query ($id: Int) {
             await self.last_medium_caller(ctx, 'anime', False)
             return
 
-    @commands.group(brief="Used for manga lookup. Use ``help manga`` command for more info")
+    @commands.group(aliases=['mangas'], brief="Used for manga lookup. Use ``help manga`` command for more info")
     @commands.bot_has_permissions(embed_links=True)
     async def manga(self, ctx: commands.Context):
         """
