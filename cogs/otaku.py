@@ -1,5 +1,6 @@
 import abc
 import asyncio
+import copy
 
 import aiohttp
 import dateutil.parser
@@ -11,6 +12,7 @@ from discord.ext import commands
 import alice
 
 ANILIST_ANIME_LINK = "https://anilist.co/anime/%s"
+ANILIST_MANGA_LINK = ANILIST_NOVEL_LINK = "https://anilist.co/manga/%s"
 ANILIST_QUERY_URL = 'https://graphql.anilist.co'
 
 
@@ -122,6 +124,11 @@ class Otaku:
             self.end_date = kwargs.get('end_date')
             self.kwargs = kwargs
 
+        async def anime(self, adult=False, lucky=False):
+            if not adult and self.is_nsfw:
+                raise NSFWBreach
+            return self
+
         @staticmethod
         def search_query(query):
             return {'query': """
@@ -218,14 +225,9 @@ query ($id: Int) {
                                    description=wanted['description'],
                                    status=wanted['status'].replace("_", " ").capitalize(),
                                    start_date=wanted['formatted_start_date'],
-                                   end_date=wanted['formatted_start_date'],
+                                   end_date=wanted['formatted_end_date'],
                                    is_nsfw=wanted['isAdult'])
             return
-
-        async def anime(self, adult=False, lucky=False):
-            if not adult and self.is_nsfw:
-                raise NSFWBreach
-            return self
 
         def to_embed(self):
             embed = discord.Embed(description="\n".join(self.aliases) if self.aliases else None)
@@ -247,24 +249,178 @@ query ($id: Int) {
                                     " to {}".format(self.end_date) if self.end_date else ""
                                 ))
             embed.add_field(name='\u200b', value=f"[Anilist]({self.url})", inline=False)
+            embed.set_footer(text='Anime')
 
             return embed
         # end class
+
+    class Manga(Medium):
+        def __init__(self, anilist_id, name, **kwargs):
+            super().__init__(anilist_id, name, kwargs.get('is_nsfw', False))
+            self.url = kwargs.get('url')
+            self.romaji_name = kwargs.get('romaji_name', name)
+            self.aliases = kwargs.get('aliases', [])
+            self.cover_url = kwargs.get('cover_url', 'https://puu.sh/vPxRa/6f563946ec.png')
+            self.chapters = kwargs.get('chapters', 'Unknown') or 'Unknown'
+            self.alice_score = kwargs.get('alice_score', 'N/A') or 'N/A'
+            self.description = kwargs.get('description', 'N/A') or 'N/A'
+            self.status = kwargs.get('status', 'N/A') or 'N/A'
+            self.start_date = kwargs.get('start_date')
+            self.end_date = kwargs.get('end_date')
+            self.kwargs = kwargs
+
+        async def manga(self, adult=False, lucky=False):
+            if not adult and self.is_nsfw:
+                raise NSFWBreach
+            return self
+
+        @staticmethod
+        def search_query(query):
+            return {'query': """
+query ($terms: String) {
+  Page(page: 1) {
+    media(search: $terms, format: MANGA) {
+      id
+      isAdult
+      title {
+        romaji
+        english
+      }
+      popularity
+    }
+  }
+}""",
+                    'variables': {'terms': query}}
+
+        @staticmethod
+        def populate_query(anilist_id):
+            return {'query': """
+query ($id: Int) {
+  Page(page: 1) {
+    media(id: $id, format: MANGA) {
+      id
+      description
+      chapters
+      title {
+        romaji
+        english
+        native
+      }
+      status
+      stats {
+        scoreDistribution {
+          score
+          amount
+        }
+      }
+      startDate {
+        year
+        month
+        day
+      }
+      endDate {
+        year
+        month
+        day
+      }
+      coverImage {
+        large
+      }
+    }
+  }
+}""",
+                    'variables': {'id': anilist_id}}
+
+        @staticmethod
+        async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
+            # Searches Anilist for that query
+            # Returns Manga()
+
+            results = await Otaku.get_anilist_results(Otaku.Manga.search_query(query), adult)
+            if results:
+                if lucky:
+                    index = 0  # Lucky search always returns most popular
+                else:
+                    asking = []
+                    for i in results:
+                        under = i['title']['english']
+                        if under is not None:
+                            under = f"*{under}*"
+                        else:
+                            under = ''
+                        asking.append(f"  {i['title']['romaji']}\n\t{under}")
+                    # Ask the user what anime they meant
+                    index = await ctx.bot.helper.Asker(ctx, *asking[:9])
+
+                wanted = results[index]
+
+                # Query Anilist for all information about that anime
+                await ctx.trigger_typing()
+                wanted = await Otaku.get_more_anilist_info(Otaku.Manga.populate_query(wanted['id']),
+                                                           wanted,
+                                                           ctx.bot.helper.ci_score)
+
+                return Otaku.Manga(anilist_id=wanted['id'],
+                                   name=wanted['title']['romaji'],
+                                   url=ANILIST_MANGA_LINK % wanted['id'],
+                                   aliases=[i for i in [wanted['title']['english'], wanted['title']['native']] if i],
+                                   cover_url=wanted['coverImage']['large'],
+                                   chapters=wanted['chapters'],
+                                   alice_score=wanted['alice_score'],
+                                   description=wanted['description'],
+                                   status=wanted['status'].replace("_", " ").capitalize(),
+                                   start_date=wanted['formatted_start_date'],
+                                   end_date=wanted['formatted_end_date'],
+                                   is_nsfw=wanted['isAdult'])
+            return
+
+        def to_embed(self):
+            embed = discord.Embed(description="\n".join(self.aliases) if self.aliases else None)
+            embed.set_author(name=self.romaji_name, url=self.url)
+            embed.set_thumbnail(url=self.cover_url)
+            embed.add_field(name="Chapters", value=self.chapters)
+            embed.add_field(name="Score", value=str(self.alice_score)[:4] if self.alice_score else "N/A")
+            text = self.description
+            if len(text) > 300:
+                text = " ".join(text[:300].split()[:-1])
+                embed.add_field(name="Synopsis", value=text + " ...", inline=False)
+            else:
+                embed.add_field(name="Synopsis", value=text, inline=False)
+            embed.add_field(name="Status", value=self.status)
+            if self.start_date:
+                embed.add_field(name=f"Airing date{'s' if self.end_date else ''}",
+                                value="{}{}".format(
+                                    self.start_date,
+                                    " to {}".format(self.end_date) if self.end_date else ""
+                                ))
+            embed.add_field(name='\u200b', value=f"[Anilist]({self.url})", inline=False)
+            embed.set_footer(text='Manga')
+
+            return embed
+        # end class
+
+    class CommandCopyHelper:
+        def __init__(self, callback, aliases):
+            self.callback = callback
+            self.aliases = aliases
+
+        def new_command(self):
+            return commands.command(aliases=self.aliases)(self.callback)
 
     # This is where the actual cog starts
     # Anything else before are just helpers
     # endregion
 
-    mediums = {'anime': Anime}
+    mediums = {'anime': Anime, 'manga': Manga}
 
     def __init__(self, bot: alice.Alice):
         self.bot = bot
         self._last_medium = dict()
-        find_command = commands.command(aliases=['?', 'search'])(self.find)
-        lucky_command = commands.command(aliases=['!', 'luckysearch'])(self.lucky)
-        for g in [self.anime]:
+        find_command = Otaku.CommandCopyHelper(self.find, ['?','search'])
+        lucky_command = Otaku.CommandCopyHelper(self.lucky, ['!', 'luckysearch'])
+        for g in [self.anime, self.manga]:
             for s in [find_command, lucky_command]:
-                g.add_command(s)
+                g.add_command(s.new_command())
         self.cleanup_task = self.bot.loop.create_task(self.cleanuper())
 
     def __unload(self):
@@ -294,7 +450,8 @@ query ($id: Int) {
             await ctx.send(f"Can't show that {parent_name} here. It's NSFW")
             return
         if new_medium is NotImplemented:
-            await ctx.send("I'm sorry. I can't do that yet.")
+            await ctx.send(f"I'm sorry. I can't do that yet.\n"
+                           f"{medium.__class__.__name__} doesn't implement ``{ctx.prefix}{parent_name}`` yet.")
         elif new_medium is None:
             await ctx.send('No results...')
         else:
@@ -302,7 +459,7 @@ query ($id: Int) {
             await ctx.send(embed=embed)
             self._last_medium[ctx.author.id] = new_medium
 
-    @commands.group(aliases=['hentai'], brief="Used for anime lookup. Use help command for more info")
+    @commands.group(aliases=['hentai'], brief="Used for anime lookup. Use ``help anime`` command for more info")
     @commands.bot_has_permissions(embed_links=True)
     async def anime(self, ctx: commands.Context):
         """
@@ -315,7 +472,20 @@ query ($id: Int) {
         if ctx.invoked_with == 'hentai' and not ctx.channel.nsfw:
             await ctx.send("Can't search hentai in here")
         if ctx.invoked_subcommand is None:
+            if ctx.message.content != f"{ctx.prefix}{ctx.invoked_with}":
+                await ctx.send("This is not how you use this command")
+                return
             await self.last_medium_caller(ctx, 'anime', False)
+            return
+
+    @commands.group(brief="Used for manga lookup. Use ``help manga`` command for more info")
+    @commands.bot_has_permissions(embed_links=True)
+    async def manga(self, ctx: commands.Context):
+        if ctx.invoked_subcommand is None:
+            if ctx.message.content != f"{ctx.prefix}{ctx.invoked_with}":
+                await ctx.send("This is not how you use this command")
+                return
+            await self.last_medium_caller(ctx, 'manga', False)
             return
 
     async def lucky(self, ctx: commands.Context, *, query: str = None):
