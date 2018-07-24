@@ -26,7 +26,7 @@ Assuming you have ``!`` as your prefix
     * ``!manga`` - Shows the last manga you looked up
     
 **Lookup aliases**
-* ``!search <medium name> <query>`` - Uses the above lookups to perform a lucky search
+* ``!search <medium name> <query>`` - Uses the above lookups to perform a search
 * ``!lucky <medium name> <query>`` - Uses the above lookups to perform a lucky search
 
 **Prefixes**
