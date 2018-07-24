@@ -20,8 +20,8 @@ Assuming you have ``!`` as your prefix
     * ``!manga`` - *Currently doesn't work*
     
 **Manga lookup**
-* ``!manga search <query>``
-* ``!manga lucky <query>``
+* ``!manga search <query>`` - Searches Anilist for manga. ``search`` can be replaced with ``?``
+* ``!manga lucky <query>`` - Searches Anilist for manga. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
     * ``!anime`` - *Currently doesn't work*
     * ``!manga`` - Shows the last manga you looked up
 
