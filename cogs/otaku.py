@@ -26,6 +26,7 @@ class NSFWBreach(Exception):
 
 
 class Otaku:
+    # region Helpers
     @staticmethod
     async def get_anilist_results(graphql: dict, adult=False):
         results = []
@@ -80,7 +81,6 @@ class Otaku:
         result['formatted_end_date'] = end_date
         return result
 
-    # region Helpers
     class Medium(metaclass=abc.ABCMeta):
         def __init__(self, some_id, name, is_nsfw=False):
             self.id = some_id
@@ -462,11 +462,12 @@ query ($id: Int) {
     @commands.bot_has_permissions(embed_links=True)
     async def anime(self, ctx: commands.Context):
         """
-*From bot description.*
+*From bot's description.*
 
 * ``!anime search <query>`` - Searches Anilist for anime. ``search`` can be replaced with ``?``
 * ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
     * ``!anime`` - Shows the last anime you looked up
+    * ``!manga`` - *Currently doesn't work*
         """
         if ctx.invoked_with == 'hentai' and not ctx.channel.nsfw:
             await ctx.send("Can't search hentai in here")
@@ -480,6 +481,14 @@ query ($id: Int) {
     @commands.group(brief="Used for manga lookup. Use ``help manga`` command for more info")
     @commands.bot_has_permissions(embed_links=True)
     async def manga(self, ctx: commands.Context):
+        """
+*From bot's description.*
+
+* ``!manga search <query>`` - Searches Anilist for manga. ``search`` can be replaced with ``?``
+* ``!manga lucky <query>`` - Searches Anilist for manga. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
+    * ``!anime`` - *Currently doesn't work*
+    * ``!manga`` - Shows the last manga you looked up
+                """
         if ctx.invoked_subcommand is None:
             if ctx.message.content != f"{ctx.prefix}{ctx.invoked_with}":
                 await ctx.send("This is not how you use this command")

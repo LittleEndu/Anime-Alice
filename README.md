@@ -17,6 +17,13 @@ Assuming you have ``!`` as your prefix
 * ``!anime search <query>`` - Searches Anilist for anime. ``search`` can be replaced with ``?``
 * ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
     * ``!anime`` - Shows the last anime you looked up
+    * ``!manga`` - *Currently doesn't work*
+    
+**Manga lookup**
+* ``!manga search <query>``
+* ``!manga lucky <query>``
+    * ``!anime`` - *Currently doesn't work*
+    * ``!manga`` - Shows the last manga you looked up
 
 **Prefixes**
 * ``!setprefix <prefix>`` - sets the guild wide prefix. *You need to be administrator on the guild*
