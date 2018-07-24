@@ -42,7 +42,7 @@ class Presences:
         self.guilds_logger.debug(f"Joined new guild:\n"
                                  f"name={guild.name}\n"
                                  f"id={guild.id}\n"
-                                 f"channels={len(guild.channels)}"
+                                 f"channels={len(guild.channels)}\n"
                                  f"bot/members={sum(i.bot for i in guild.members)/len(guild.members)}\n"
                                  f"total members={len(guild.members)}")
         if any((sum(i.bot for i in guild.members) / len(guild.members) > 0.8,
