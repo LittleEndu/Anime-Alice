@@ -45,7 +45,7 @@ class HelpCommand:
                 if show:
                     if i.cog_name != last_cog:
                         last_cog = i.cog_name
-                        await appender.append(f"\n```\U0001f916{last_cog}\U0001f916```")
+                        await appender.append(f"\n```\U0001f916 {last_cog} \U0001f916```")
                     new_line = "\n"  # Don't delete, used in nested fstring
                     help_string = i.brief or f'{i.help or ""}'.split(new_line)[0]
                     prefix = ctx.prefix if len(ctx.prefix)<5 else ""
