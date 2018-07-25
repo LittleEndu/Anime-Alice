@@ -219,7 +219,9 @@ class Helper:
 
             emb = discord.Embed(
                 title="Please choose",
-                description="\n".join([f"**{i+1}**: {self.choices[i]}" for i in range(len(self.choices))]).strip()
+                description="\n".join([
+                    f"**{Helper.number_to_reaction(i+1)}**: {self.choices[i]}" for i in range(len(self.choices))
+                ]).strip()
             )
             asker = await self.ctx.send(embed=emb)
             fut = asyncio.Future()

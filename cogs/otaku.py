@@ -10,8 +10,6 @@ from discord.ext import commands
 
 import alice
 
-ANILIST_ANIME_LINK = "https://anilist.co/anime/%s"
-ANILIST_MANGA_LINK = ANILIST_NOVEL_LINK = "https://anilist.co/manga/%s"
 ANILIST_QUERY_URL = 'https://graphql.anilist.co'
 
 
@@ -28,31 +26,38 @@ class NSFWBreach(Exception):
 class Otaku:
     # region Helpers
     @staticmethod
-    async def get_anilist_results(graphql: dict, adult=False):
+    async def get_anilist_results(graphql: dict, adult=False, result_type='media'):
         results = []
         async with aiohttp.ClientSession() as session:
             async with session.post(url=ANILIST_QUERY_URL,
                                     json=graphql) as response:
                 if response.status == 200:
                     jj = await response.json()
-                    results = jj['data']['Page']['media']
+                    results = jj['data']['Page'][result_type]
                 else:
                     raise ResponseError(response.status, await response.text())
-        for i in results[:]:
-            if i['isAdult'] and not adult:
-                results.remove(i)
-        results.sort(key=lambda k: k['popularity'], reverse=True)
+        try:
+            for i in results[:]:
+                if i['isAdult'] and not adult:
+                    results.remove(i)
+        except:
+            pass
+        try:
+            results.sort(key=lambda k: k['popularity'], reverse=True)
+        except:
+            pass
         return results
 
     @staticmethod
-    async def get_more_anilist_info(graphql: dict, previous_info: dict, score_func=lambda l: sum(l) / float(len(l))):
+    async def get_more_anilist_info(graphql: dict, previous_info: dict,
+                                    score_func=lambda l: sum(l) / float(len(l)), result_type='Media'):
         result = dict()
         async with aiohttp.ClientSession() as session:
             async with session.post(url=ANILIST_QUERY_URL,
                                     json=graphql) as response:
                 if response.status == 200:
                     jj = await response.json()
-                    result = {**previous_info, **jj['data']['Media']}
+                    result = {**previous_info, **jj['data'][result_type]}
                 else:
                     raise ResponseError(response.status, await response.text())
         try:
@@ -81,6 +86,20 @@ class Otaku:
         result['formatted_end_date'] = end_date
         return result
 
+    @staticmethod
+    def clean_descriptions(description: str):
+        while description.find("~!") != -1:
+            start = description.find('~!')
+            end = description.find('!~')
+            spoiler = description[start:end + 2]
+            description = description.replace(spoiler, "")
+        while description.find('\n') < 30:
+            if description.find("\n") == -1:
+                break
+            end = description.find("\n")
+            description = description[end + 1:]
+        return description
+
     class Medium(metaclass=abc.ABCMeta):
         def __init__(self, some_id, name, is_nsfw=False):
             self.id = some_id
@@ -97,7 +116,7 @@ class Otaku:
         async def manga(self, adult=False, lucky=False):
             return NotImplemented
 
-        async def characters(self, adult=False, lucky=False):
+        async def character(self, adult=False, lucky=False):
             return NotImplemented
 
         @staticmethod
@@ -152,6 +171,7 @@ query ($terms: String) {
 query ($id: Int) {
   Media(id: $id, type: ANIME) {
     id
+    siteUrl
     description
     episodes
     title {
@@ -201,7 +221,7 @@ query ($id: Int) {
                             under = f"*{under}*"
                         else:
                             under = ''
-                        asking.append(f"  {i['title']['romaji']}\n\t{under}")
+                        asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
                     # Ask the user what anime they meant
                     index = await ctx.bot.helper.Asker(ctx, *asking[:9])
 
@@ -215,7 +235,7 @@ query ($id: Int) {
 
                 return Otaku.Anime(anilist_id=wanted['id'],
                                    name=wanted['title']['romaji'],
-                                   url=ANILIST_ANIME_LINK % wanted['id'],
+                                   url=wanted['siteUrl'],
                                    aliases=[i for i in [wanted['title']['english'], wanted['title']['native']] if i],
                                    cover_url=wanted['coverImage']['large'],
                                    episodes=wanted['episodes'],
@@ -298,6 +318,7 @@ query ($terms: String) {
 query ($id: Int) {
   Media(id: $id, format_in: [MANGA, ONE_SHOT]) {
     id
+    siteUrl
     description
     chapters
     title {
@@ -349,7 +370,7 @@ query ($id: Int) {
                             under = ''
                         if i['format'] == 'ONE_SHOT':
                             under += " __One shot__"
-                        asking.append(f"  {i['title']['romaji']}\n\t{under}")
+                        asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
                     # Ask the user what anime they meant
                     index = await ctx.bot.helper.Asker(ctx, *asking[:9])
 
@@ -363,7 +384,7 @@ query ($id: Int) {
 
                 return Otaku.Manga(anilist_id=wanted['id'],
                                    name=wanted['title']['romaji'],
-                                   url=ANILIST_MANGA_LINK % wanted['id'],
+                                   url=wanted['siteUrl'],
                                    aliases=[i for i in [wanted['title']['english'], wanted['title']['native']] if i],
                                    cover_url=wanted['coverImage']['large'],
                                    chapters=wanted['chapters'],
@@ -401,6 +422,138 @@ query ($id: Int) {
             return embed
         # end class
 
+    class Character(Medium):
+        def __init__(self, anilist_id, name, adult, **kwargs):
+            super().__init__(anilist_id,
+                             name=name,
+                             is_nsfw=adult)
+            self.url = kwargs.get('url')
+            self.native_name = kwargs.get('native_name')
+            self.alternative_names = kwargs.get('alternative_names')
+            self.description = kwargs.get('description')
+            self.cover_url = kwargs.get('cover_url', 'https://puu.sh/vPxRa/6f563946ec.png')
+
+        async def character(self, adult=False, lucky=False):
+            if not adult and self.is_nsfw:
+                raise NSFWBreach
+            return self
+
+        @staticmethod
+        def search_query(query: str):
+            return {'query': """
+query ($terms: String) {
+  Page(page: 1, perPage: 500) {
+    characters(search: $terms) {
+      id
+      name {
+        first
+        last
+        native
+      }
+      media {
+        nodes {
+          id
+          isAdult
+          title {
+            romaji
+          }
+          popularity
+        }
+      }
+    }
+  }
+}""",
+                    'variables': {'terms': query}}
+
+        @staticmethod
+        def populate_query(anilist_id: int):
+            return {'query': """
+query ($id: Int) {
+  Character(id: $id) {
+    description
+    name {
+      native
+      alternative
+    }
+    siteUrl
+    image {
+      large
+    }
+  }
+}
+
+""",
+                    'variables': {'id': anilist_id}}
+
+        @staticmethod
+        async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
+            # Searches Anilist for that query
+            # Returns Character()
+
+            results = await Otaku.get_anilist_results(Otaku.Character.search_query(query),
+                                                      adult,
+                                                      result_type='characters')
+            if results:
+                for i in results:
+                    medias = sorted(i['media']['nodes'], key=lambda a: a['popularity'], reverse=True)
+                    i['media']['nodes'] = medias
+                    if not medias:
+                        i['popularity'] = 0
+                        continue
+                    i['popularity'] = medias[0]['popularity']
+                results.sort(key=lambda a: a['popularity'], reverse=True)
+
+                asking = []
+                for i in results[:]:
+                    medias = i['media']['nodes']
+                    ctx.bot.logger.debug(medias)
+                    i['isAdult'] = False
+                    if not medias or medias[0]['isAdult']:
+                        if not medias or not adult:
+                            results.remove(i)  # Remove non-existings (and hentai)
+                            continue
+                        elif medias:
+                            i['isAdult'] = True  # Set hentai to true if we searching for it
+                    under = f"*From {medias[0]['title']['romaji']}*"
+                    i['full_name'] = ", ".join(j for j in [
+                        i['name']['last'],
+                        i['name']['first']
+                    ] if j)
+                    asking.append(f"  **{i['full_name']}**\n\t{under}")
+
+                index = 0  # Lucky search always returns most popular
+                if not lucky:
+                    # Ask the user what anime they meant
+                    index = await ctx.bot.helper.Asker(ctx, *asking[:9])
+
+                wanted = results[index]
+                await ctx.trigger_typing()
+                wanted = await Otaku.get_more_anilist_info(Otaku.Character.populate_query(wanted['id']), wanted,
+                                                           result_type='Character')
+                wanted['description'] = Otaku.clean_descriptions(wanted['description'])
+                return Otaku.Character(anilist_id=wanted['id'],
+                                       name=wanted['full_name'],
+                                       native_name=wanted['name']['native'],
+                                       alternative_names=wanted['name']['alternative'],
+                                       adult=wanted['isAdult'],
+                                       description=wanted['description'],
+                                       url=wanted['siteUrl'],
+                                       cover_url=wanted['image']['large'])
+
+        def to_embed(self):
+            embed = discord.Embed(description=f"{', '.join(self.alternative_names)}\n{self.native_name}")
+            embed.set_author(name=self.name, url=self.url)
+            embed.set_thumbnail(url=self.cover_url)
+            text = self.description
+            if len(text) > 300:
+                text = " ".join(text[:300].split()[:-1])
+                embed.add_field(name="Description", value=text + " ...", inline=False)
+            else:
+                embed.add_field(name="Description", value=text, inline=False)
+            embed.add_field(name='\u200b', value=f"[Anilist]({self.url})", inline=False)
+            embed.set_footer(text='Character')
+            return embed
+
     class CommandCopyHelper:
         def __init__(self, callback, aliases):
             self.callback = callback
@@ -413,7 +566,7 @@ query ($id: Int) {
     # Anything else before are just helpers
     # endregion
 
-    mediums = {'anime': Anime, 'hentai': Anime, 'manga': Manga}
+    mediums = {'anime': Anime, 'hentai': Anime, 'manga': Manga, 'character': Character}
     for key in list(mediums.keys()):
         mediums[f'{key}s'] = mediums[key]
 
@@ -422,7 +575,7 @@ query ($id: Int) {
         self._last_medium = dict()
         find_command = Otaku.CommandCopyHelper(self.find, ['?', 'search'])
         lucky_command = Otaku.CommandCopyHelper(self.lucky, ['!', 'luckysearch'])
-        for g in [self.anime, self.manga]:
+        for g in [self.anime, self.manga, self.character]:
             for s in [find_command, lucky_command]:
                 g.add_command(s.new_command())
         self.cleanup_task = self.bot.loop.create_task(self.cleanuper())
@@ -465,7 +618,7 @@ query ($id: Int) {
 
     @commands.command(name='search', aliases=['find', '?'])
     @commands.bot_has_permissions(embed_links=True)
-    async def _search(self, ctx, medium_name: str, *, query:str=None):
+    async def _search(self, ctx, medium_name: str, *, query: str = None):
         """Alias for when you type search before the medium you want to search for"""
         if not medium_name in Otaku.mediums:
             raise commands.UserInputError(f'{medium_name.capitalize()} is not something I can search for')
@@ -474,9 +627,9 @@ query ($id: Int) {
         medium_name = medium_name.lower()
         await self.find_helper(ctx, medium_name, query, False)
 
-    @commands.command(name='lucky', aliases=['luckysearch','!'])
+    @commands.command(name='lucky', aliases=['luckysearch', '!'])
     @commands.bot_has_permissions(embed_links=True)
-    async def _lucky(self, ctx, medium_name: str, *, query: str= None):
+    async def _lucky(self, ctx, medium_name: str, *, query: str = None):
         """Alias for when you type lucky before the medium you want to lucky search"""
         if not medium_name in Otaku.mediums:
             raise commands.UserInputError(f'{medium_name.capitalize()} is not something I can search for')
@@ -485,7 +638,8 @@ query ($id: Int) {
         medium_name = medium_name.lower()
         await self.find_helper(ctx, medium_name, query, True)
 
-    @commands.group(aliases=['hentai', 'hentais', 'animes'], brief="Used for anime lookup. Use ``help anime`` command for more info")
+    @commands.group(aliases=['hentai', 'hentais', 'animes'],
+                    brief="Used for anime lookup. Use ``help anime`` command for more info")
     @commands.bot_has_permissions(embed_links=True)
     async def anime(self, ctx: commands.Context):
         """
@@ -495,7 +649,8 @@ query ($id: Int) {
 * ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
     * ``!anime`` - Shows the last anime you looked up
     * ``!manga`` - *Currently doesn't work*
-        """
+    * ``!character`` - *Currently doesn't work*
+    """
         if ctx.invoked_with.startswith('hentai') and not ctx.channel.nsfw:
             await ctx.send("Can't search hentai in here")
         if ctx.invoked_subcommand is None:
@@ -505,22 +660,40 @@ query ($id: Int) {
             await self.last_medium_caller(ctx, 'anime', False)
             return
 
-    @commands.group(aliases=['mangas'], brief="Used for manga lookup. Use ``help manga`` command for more info")
+    @commands.group(aliases=['mangas'],
+                    brief="Used for manga lookup. Use ``help manga`` command for more info")
     @commands.bot_has_permissions(embed_links=True)
     async def manga(self, ctx: commands.Context):
         """
-*From bot's description.*
-
 * ``!manga search <query>`` - Searches Anilist for manga. ``search`` can be replaced with ``?``
 * ``!manga lucky <query>`` - Searches Anilist for manga. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
     * ``!anime`` - *Currently doesn't work*
     * ``!manga`` - Shows the last manga you looked up
-                """
+    * ``!character`` - *Currently doesn't work*
+    """
         if ctx.invoked_subcommand is None:
             if ctx.message.content != f"{ctx.prefix}{ctx.invoked_with}":
                 await ctx.send("This is not how you use this command")
                 return
             await self.last_medium_caller(ctx, 'manga', False)
+            return
+
+    @commands.group(aliases=['characters'],
+                    brief="Used for character lookup. Use ``help character`` command for more info")
+    @commands.bot_has_permissions(embed_links=True)
+    async def character(self, ctx: commands.Context):
+        """
+* ``!character search <query>`` - Searches Anilist for characters. ``search`` can be replaced with ``?``
+* ``!character lucky <query>`` - Searches Anilist for characters. Automatically picks the character with most popular anime/manga. ``lucky`` can be replaced with ``!``
+    * ``!anime`` - *Currently doesn't work*
+    * ``!manga`` - *Currently doesn't work*
+    * ``!character`` - Shows the last result
+    """
+        if ctx.invoked_subcommand is None:
+            if ctx.message.content != f"{ctx.prefix}{ctx.invoked_with}":
+                await ctx.send("This is not how you use this command")
+                return
+            await self.last_medium_caller(ctx, 'character', False)
             return
 
     async def lucky(self, ctx: commands.Context, *, query: str = None):

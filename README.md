@@ -13,21 +13,34 @@ Assuming you have ``!`` as your prefix
 
 <> is required, () is optional, ? will be asked if not provided
 
-**Anime lookup**
-* ``!anime search <?query>`` - Searches Anilist for anime. ``search`` can be replaced with ``?``
-* ``!anime lucky <?query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
-    * ``!anime`` - Shows the last anime you looked up
-    * ``!manga`` - *Currently doesn't work*
-    
-**Manga lookup**
-* ``!manga search <?query>`` - Searches Anilist for manga. ``search`` can be replaced with ``?``
-* ``!manga lucky <?query>`` - Searches Anilist for manga. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
-    * ``!anime`` - *Currently doesn't work*
-    * ``!manga`` - Shows the last manga you looked up
-    
-**Lookup aliases**
-* ``!search <medium name> <?query>`` - Uses the above lookups to perform a search
-* ``!lucky <medium name> <?query>`` - Uses the above lookups to perform a lucky search
+
+**Anime commands**
+
+Allowed result types are Anime, Manga, and Character.
+
+They will all search the ``<query>`` and return the desired result
+
+``search`` has ``?`` and ``find`` as its aliases,
+
+``lucky`` has ``!`` and ``luckysearch`` as its aliases
+* ``!<result type> search <?query>``
+* ``!<result type> lucky <?query>``
+* ``!search <result type> <?query>``
+* ``!luckysearch <result type> <?query>``
+
+These extra commands are available based on what was your last result:
+* Anime
+  * ``!anime`` - Will show the last result
+  * ``!manga`` - *Currently doesn't work*
+  * ``!character`` - *Currently doesn't work*
+* Manga
+  * ``!anime`` - *Currently doesn't work*
+  * ``!manga`` - Will show the last result
+  * ``!character`` - *Currently doesn't work*
+* Character
+  * ``!anime`` - *Currently doesn't work*
+  * ``!manga`` - *Currently doesn't work*
+  * ``!character`` - Will show the last result
 
 **Prefixes**
 * ``!setprefix <prefix>`` - Sets the guild wide prefix. *You need to be administrator on the guild*
