@@ -14,7 +14,7 @@ Assuming you have ``!`` as your prefix
 <> is required, () is optional, ? will be asked if not provided
 
 
-####Anime commands
+#### Anime commands
 
 Allowed result types are ``Anime``, ``Manga``, and ``Character``.
 
@@ -37,12 +37,12 @@ These extra commands are available based on what was your last result:
   * ``!manga`` - *Currently doesn't work*
   * ``!character`` - Will show the last result
 
-####Prefix commands
+#### Prefix commands
 * ``!setprefix <prefix>`` - Sets the guild wide prefix. *You need to be administrator on the guild*
 * ``!removeprefix <?prefix>`` - Removes a prefix. *You need to be administrator on the guild*
 * ``!prefixes`` - Lists current prefixes
 
-####Informational commands
+#### Informational commands
 * ``!latecy`` - Reports bot latency. This command has several aliases like ``!hello`` and ``!ping``
 * ``!emojiinfo <:custom_emoji:>`` - Shows from what server some emoji is.
 * ``!mutualservers`` - Shows what servers the user and Alice share.
