@@ -94,6 +94,9 @@ I take my info from [AniList](https://anilist.co/).
 
         emb.add_field(name="discordbots.org entry",
                       value=f"[Alice](https://discordbots.org/bot/354974625593032704)")
+        emb.add_field(name="Github repo",
+                      value="[LittleEndu/Anime-Alice](https://github.com/LittleEndu/Anime-Alice)")
+
         otaku = self.bot.get_cog('Otaku')
         if otaku:
             stuff = f"{len(set(otaku.mediums.values()))} things to search for"
