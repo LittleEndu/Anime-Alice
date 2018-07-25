@@ -643,8 +643,6 @@ query ($id: Int) {
     @commands.bot_has_permissions(embed_links=True)
     async def anime(self, ctx: commands.Context):
         """
-*From bot's description.*
-
 * ``!anime search <query>`` - Searches Anilist for anime. ``search`` can be replaced with ``?``
 * ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
     * ``!anime`` - Shows the last anime you looked up
