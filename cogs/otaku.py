@@ -696,11 +696,13 @@ query ($id: Int) {
             await self.last_medium_caller(ctx, 'character', False)
             return
 
+    # medium.command()
     async def lucky(self, ctx: commands.Context, *, query: str = None):
         if query is None:
             query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
         await self.find_helper(ctx, ctx.command.parent.name, query, True)
 
+    # medium.command()
     async def find(self, ctx: commands.Context, *, query: str = None):
         if query is None:
             query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]

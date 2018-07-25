@@ -8,21 +8,16 @@
 
 Discord bot for linking anime and other otaku stuff
 
-### Commands
+## Commands
 Assuming you have ``!`` as your prefix
 
 <> is required, () is optional, ? will be asked if not provided
 
 
-**Anime commands**
+####Anime commands
 
-Allowed result types are Anime, Manga, and Character.
+Allowed result types are ``Anime``, ``Manga``, and ``Character``.
 
-They will all search the ``<query>`` and return the desired result
-
-``search`` has ``?`` and ``find`` as its aliases,
-
-``lucky`` has ``!`` and ``luckysearch`` as its aliases
 * ``!<result type> search <?query>``
 * ``!<result type> lucky <?query>``
 * ``!search <result type> <?query>``
@@ -42,12 +37,12 @@ These extra commands are available based on what was your last result:
   * ``!manga`` - *Currently doesn't work*
   * ``!character`` - Will show the last result
 
-**Prefixes**
+####Prefix commands
 * ``!setprefix <prefix>`` - Sets the guild wide prefix. *You need to be administrator on the guild*
 * ``!removeprefix <?prefix>`` - Removes a prefix. *You need to be administrator on the guild*
 * ``!prefixes`` - Lists current prefixes
 
-**Informational**
+####Informational commands
 * ``!latecy`` - Reports bot latency. This command has several aliases like ``!hello`` and ``!ping``
 * ``!emojiinfo <:custom_emoji:>`` - Shows from what server some emoji is.
 * ``!mutualservers`` - Shows what servers the user and Alice share.
@@ -57,7 +52,7 @@ These extra commands are available based on what was your last result:
   * ``!whois me`` - Displays information about the user.
   * ``!whois you`` - Displays information about Alice#7756.
   
- ### Permissions
+ ## Permissions
  Alice uses these permissions. Last permissions are optional.
  
  * *Read Messages* - To hear users
