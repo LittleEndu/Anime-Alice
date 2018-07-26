@@ -233,19 +233,22 @@ query ($id: Int) {
                                                            wanted,
                                                            ctx.bot.helper.ci_score)
 
-                return Otaku.Anime(anilist_id=wanted['id'],
-                                   name=wanted['title']['romaji'],
-                                   url=wanted['siteUrl'],
-                                   aliases=[i for i in [wanted['title']['english'], wanted['title']['native']] if i],
-                                   cover_url=wanted['coverImage']['large'],
-                                   episodes=wanted['episodes'],
-                                   alice_score=wanted['alice_score'],
-                                   description=wanted['description'],
-                                   status=wanted['status'].replace("_", " ").capitalize(),
-                                   start_date=wanted['formatted_start_date'],
-                                   end_date=wanted['formatted_end_date'],
-                                   is_nsfw=wanted['isAdult'])
-            return
+                return Otaku.Anime.from_results(wanted)
+
+        @staticmethod
+        def from_results(result):
+            return Otaku.Anime(anilist_id=result['id'],
+                               name=result['title']['romaji'],
+                               url=result['siteUrl'],
+                               aliases=[i for i in [result['title']['english'], result['title']['native']] if i],
+                               cover_url=result['coverImage']['large'],
+                               episodes=result['episodes'],
+                               alice_score=result['alice_score'],
+                               description=result['description'],
+                               status=result['status'].replace("_", " ").capitalize(),
+                               start_date=result['formatted_start_date'],
+                               end_date=result['formatted_end_date'],
+                               is_nsfw=result['isAdult'])
 
         def to_embed(self):
             embed = discord.Embed(description="\n".join(self.aliases) if self.aliases else None)
@@ -382,19 +385,22 @@ query ($id: Int) {
                                                            wanted,
                                                            ctx.bot.helper.ci_score)
 
-                return Otaku.Manga(anilist_id=wanted['id'],
-                                   name=wanted['title']['romaji'],
-                                   url=wanted['siteUrl'],
-                                   aliases=[i for i in [wanted['title']['english'], wanted['title']['native']] if i],
-                                   cover_url=wanted['coverImage']['large'],
-                                   chapters=wanted['chapters'],
-                                   alice_score=wanted['alice_score'],
-                                   description=wanted['description'],
-                                   status=wanted['status'].replace("_", " ").capitalize(),
-                                   start_date=wanted['formatted_start_date'],
-                                   end_date=wanted['formatted_end_date'],
-                                   is_nsfw=wanted['isAdult'])
-            return
+                return Otaku.Manga.from_results(wanted)
+
+        @staticmethod
+        def from_results(result):
+            return Otaku.Manga(anilist_id=result['id'],
+                               name=result['title']['romaji'],
+                               url=result['siteUrl'],
+                               aliases=[i for i in [result['title']['english'], result['title']['native']] if i],
+                               cover_url=result['coverImage']['large'],
+                               chapters=result['chapters'],
+                               alice_score=result['alice_score'],
+                               description=result['description'],
+                               status=result['status'].replace("_", " ").capitalize(),
+                               start_date=result['formatted_start_date'],
+                               end_date=result['formatted_end_date'],
+                               is_nsfw=result['isAdult'])
 
         def to_embed(self):
             embed = discord.Embed(description="\n".join(self.aliases) if self.aliases else None)
@@ -531,14 +537,18 @@ query ($id: Int) {
                 wanted = await Otaku.get_more_anilist_info(Otaku.Character.populate_query(wanted['id']), wanted,
                                                            result_type='Character')
                 wanted['description'] = Otaku.clean_descriptions(wanted['description'])
-                return Otaku.Character(anilist_id=wanted['id'],
-                                       name=wanted['full_name'],
-                                       native_name=wanted['name']['native'],
-                                       alternative_names=wanted['name']['alternative'],
-                                       adult=wanted['isAdult'],
-                                       description=wanted['description'],
-                                       url=wanted['siteUrl'],
-                                       cover_url=wanted['image']['large'])
+                return Otaku.Character.from_results(wanted)
+
+        @staticmethod
+        def from_results(result):
+            return Otaku.Character(anilist_id=result['id'],
+                                   name=result['full_name'],
+                                   native_name=result['name']['native'],
+                                   alternative_names=result['name']['alternative'],
+                                   adult=result['isAdult'],
+                                   description=result['description'],
+                                   url=result['siteUrl'],
+                                   cover_url=result['image']['large'])
 
         def to_embed(self):
             embed = discord.Embed(description=f"{', '.join(self.alternative_names)}\n{self.native_name}")
@@ -553,6 +563,7 @@ query ($id: Int) {
             embed.add_field(name='\u200b', value=f"[Anilist]({self.url})", inline=False)
             embed.set_footer(text='Character')
             return embed
+        # end class
 
     class CommandCopyHelper:
         def __init__(self, callback, aliases):
@@ -565,6 +576,8 @@ query ($id: Int) {
     # This is where the actual cog starts
     # Anything else before are just helpers
     # endregion
+
+    # region Cog
 
     mediums = {'anime': Anime, 'hentai': Anime, 'manga': Manga, 'character': Character}
     for key in list(mediums.keys()):
@@ -722,6 +735,7 @@ query ($id: Int) {
             embed = medium.to_embed()
             await ctx.send(embed=embed)
             self._last_medium[ctx.author.id] = medium
+    # endregion
     # end class
 
 
