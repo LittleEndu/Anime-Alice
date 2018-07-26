@@ -22,7 +22,7 @@ class Presences:
         self.guilds_logger = logging.getLogger('alice.guilds')
         self.guilds_logger.handlers = []
         self.guilds_logger.addHandler(gh)
-        self.guilds_logger.addHandler(self.bot.trace_handler)
+        self.guilds_logger.addHandler(self.bot.alice_handler)
 
         self.task = self.bot.loop.create_task(self.presence_updater())
         if not os.path.isfile('status'):

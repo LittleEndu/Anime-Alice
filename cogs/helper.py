@@ -1,11 +1,13 @@
 import asyncio
 import collections
+import logging
 import math
 import traceback
 
 import async_timeout
 import discord
 from discord.ext import commands
+from logging.handlers import RotatingFileHandler
 
 if False:
     import alice
@@ -14,7 +16,7 @@ if False:
 class Helper:
     # region discord stuff
     @staticmethod
-    async def handle_error(ctx, err):
+    async def handle_error(ctx: commands.Context, err):
         can_send = ctx.channel.permissions_for(ctx.me).send_messages
         if not can_send:
             await Helper.react_or_false(ctx, ("\U0001f507",))
@@ -30,6 +32,17 @@ class Helper:
             await ctx.send("\u274c Check failure. " + str(err))
         elif isinstance(err, commands.errors.CommandNotFound):
             await Helper.react_or_false(ctx, ("\u2753",))
+            try:
+                logger = ctx.bot.commands_logger
+            except AttributeError:
+                logger = logging.getLogger('alice.commands')
+                ch = RotatingFileHandler("logs/commands.log", maxBytes=5000000, backupCount=1, encoding='UTF-8')
+                ch.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s [%(name)s] %(message)s'))
+                ch.setLevel(1)
+                logger.addHandler(ctx.bot.trace_handler)
+                logger.addHandler(ch)
+                ctx.bot.commands_logger = logger
+            logger.info(f'Unknown command: {ctx.invoked_with}')
         else:
             content = "\u274c Error occurred while handling the command."
             if isinstance(err, commands.errors.CommandInvokeError):
