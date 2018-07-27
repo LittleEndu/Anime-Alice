@@ -39,7 +39,7 @@ class Helper:
                 ch = RotatingFileHandler("logs/commands.log", maxBytes=5000000, backupCount=1, encoding='UTF-8')
                 ch.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s [%(name)s] %(message)s'))
                 ch.setLevel(1)
-                logger.addHandler(ctx.bot.trace_handler)
+                logger.addHandler(ctx.bot.alice_handler)
                 logger.addHandler(ch)
                 ctx.bot.commands_logger = logger
             logger.info(f'Unknown command: {ctx.invoked_with}')
