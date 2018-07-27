@@ -23,6 +23,22 @@ class NSFWBreach(Exception):
     pass
 
 
+def merge(a, b, path=None):
+    "merges b into a"
+    if path is None: path = []
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                merge(a[key], b[key], path + [str(key)])
+            elif a[key] == b[key]:
+                pass  # same leaf value
+            else:
+                raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
+        else:
+            a[key] = b[key]
+    return a
+
+
 class Otaku:
     # region Helpers
     @staticmethod
@@ -57,7 +73,7 @@ class Otaku:
                                     json=graphql) as response:
                 if response.status == 200:
                     jj = await response.json()
-                    result = {**previous_info, **jj['data'][result_type]}
+                    result = merge(previous_info, jj['data'][result_type])
                 else:
                     raise ResponseError(response.status, await response.text())
         try:
@@ -101,14 +117,21 @@ class Otaku:
         return description
 
     class GraphQLKey:
-        def __init__(self, *, name, signature=None, keys: list = None):
+        def __init__(self, *, name, signature=None, keys: tuple = None):
             self.name = name
             self.signature = signature or ""
             if keys:
                 for key in keys:
                     if not isinstance(key, Otaku.GraphQLKey):
                         raise TypeError
-            self.keys = keys or list()
+            self.keys = keys or tuple()
+
+        def __eq__(self, other):
+            if isinstance(other, Otaku.GraphQLKey):
+                return str(self) == str(other)
+            if isinstance(other, str):
+                return self.name == other
+            return NotImplemented
 
         def __getitem__(self, item) -> 'Otaku.GraphQLKey':
             if isinstance(item, str):
@@ -116,13 +139,13 @@ class Otaku:
                     if key.name == item:
                         return key
                 new_key = Otaku.GraphQLKey(name=item)
-                self.keys.append(new_key)
+                self.keys += (new_key,)
                 return new_key
             elif isinstance(item, Otaku.GraphQLKey):
                 for key in self.keys:
                     if key.name == item.name:
                         return key
-                self.keys.append(item)
+                self.keys += (item,)
                 return item
             raise TypeError
 
@@ -134,27 +157,31 @@ class Otaku:
                 after += "{" + " ".join(map(str, self.keys)) + "}"
             return f"{self.name}{after}"
 
-        def __iadd__(self, other):
+        def __add__(self, other):
             if isinstance(other, dict):
                 other = Otaku.GraphQLKey.from_dict(other, name=self.name)
             if not isinstance(other, Otaku.GraphQLKey):
-                return TypeError(f"unsupported operand type(s) for +=: 'GraphQLKey' and '{type(other)}'")
+                raise TypeError(f"unsupported operand type(s) for +=: 'GraphQLKey' and '{type(other)}'")
             if not self.name == other.name:
-                return ValueError('names must equal')
-            for key in other.keys:
-                if key not in self.keys:
-                    self.keys.append(key)
+                raise ValueError('names must equal')
+            return Otaku.GraphQLKey.from_dict(merge(self.to_dict(), other.to_dict()))
 
-        def __isub__(self, other):
+        def __sub__(self, other):
             if isinstance(other, dict):
                 other = Otaku.GraphQLKey.from_dict(other, name=self.name)
             if not isinstance(other, Otaku.GraphQLKey):
-                return TypeError(f"unsupported operand type(s) for -=: 'GraphQLKey' and '{type(other)}'")
+                raise TypeError(f"unsupported operand type(s) for -=: 'GraphQLKey' and '{type(other)}'")
             if not self.name == other.name:
-                return ValueError('names must equal')
+                raise ValueError('names must equal')
             for key in other.keys:
-                if key in self.keys:
-                    self.keys.remove(key)
+                my_keys = tuple()
+                for i in self.keys:
+                    if i.name == key.name and len(i.keys) > 0 and len(key.keys) > 0:
+                        my_keys += (i - key,)
+                    elif key != i:
+                        my_keys += (i,)
+                self.keys = my_keys
+            return self
 
         @staticmethod
         def from_dict(dictionary: dict, *, name=None, signature=None):
@@ -287,20 +314,17 @@ class Otaku:
                         asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
                     # Ask the user what anime they meant
                     index = await ctx.bot.helper.Asker(ctx, *asking[:9])
-
-                wanted = results[index]
-
-                # Query Anilist for all information about that anime
-                await ctx.trigger_typing()
-                graph_ql_key = Otaku.Anime.populate_query()
-                graph_ql = {'query': str(graph_ql_key),
-                            'variables': {'id': wanted['id']}}
-                wanted = await Otaku.get_more_anilist_info(graph_ql, wanted, ctx.bot.helper.ci_score)
-
-                return Otaku.Anime.from_results(wanted)
+                return await Otaku.Anime.from_results(ctx, results[index])
 
         @staticmethod
-        def from_results(result):
+        async def from_results(ctx, result):
+            await ctx.trigger_typing()
+            graph_ql_key = Otaku.Anime.populate_query()
+            media = graph_ql_key['Media']
+            media -= result
+            graph_ql = {'query': str(graph_ql_key),
+                        'variables': {'id': result['id']}}
+            result = await Otaku.get_more_anilist_info(graph_ql, result, ctx.bot.helper.ci_score)
             return Otaku.Anime(anilist_id=result['id'],
                                name=result['title']['romaji'],
                                url=result['siteUrl'],
@@ -787,8 +811,9 @@ query ($id: Int) {
         cls = Otaku.mediums.get(medium_name)
         assert issubclass(cls, Otaku.Medium)
         await ctx.trigger_typing()
+        nsfw = isinstance(ctx.channel, discord.DMChannel) or ctx.channel.nsfw
         try:
-            medium = await cls.via_search(ctx, query, adult=ctx.channel.nsfw, lucky=lucky)
+            medium = await cls.via_search(ctx, query, adult=nsfw, lucky=lucky)
         except asyncio.TimeoutError:
             return
         if medium is NotImplemented:

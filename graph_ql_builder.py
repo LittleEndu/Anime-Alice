@@ -1,22 +1,36 @@
-import pyperclip
+def merge(a, b, path=None):
+    "merges b into a"
+    if path is None: path = []
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                merge(a[key], b[key], path + [str(key)])
+            elif a[key] == b[key]:
+                pass  # same leaf value
+            else:
+                raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
+        else:
+            a[key] = b[key]
+    return a
 
 
 class GraphQLKey:
-    def __init__(self, *, name, signature=None, keys: list = None):
+    def __init__(self, *, name, signature=None, keys: tuple = None):
         self.name = name
         self.signature = signature or ""
         if keys:
             for key in keys:
                 if not isinstance(key, GraphQLKey):
                     raise TypeError
-        self.keys = keys or list()
+        self.keys = keys or tuple()
 
     def __eq__(self, other):
         if isinstance(other, GraphQLKey):
-            return self.name == other.name
+            print(f"{self} {'==' if str(self)==str(other) else '!='} {other}")
+            return str(self) == str(other)
         if isinstance(other, str):
             return self.name == other
-        raise NotImplemented
+        return NotImplemented
 
     def __getitem__(self, item) -> 'GraphQLKey':
         if isinstance(item, str):
@@ -24,13 +38,13 @@ class GraphQLKey:
                 if key.name == item:
                     return key
             new_key = GraphQLKey(name=item)
-            self.keys.append(new_key)
+            self.keys += (new_key,)
             return new_key
         elif isinstance(item, GraphQLKey):
             for key in self.keys:
                 if key.name == item.name:
                     return key
-            self.keys.append(item)
+            self.keys += (item,)
             return item
         raise TypeError
 
@@ -42,27 +56,31 @@ class GraphQLKey:
             after += "{" + " ".join(map(str, self.keys)) + "}"
         return f"{self.name}{after}"
 
-    def __iadd__(self, other):
+    def __add__(self, other):
         if isinstance(other, dict):
             other = GraphQLKey.from_dict(other, name=self.name)
         if not isinstance(other, GraphQLKey):
-            return TypeError(f"unsupported operand type(s) for +=: 'GraphQLKey' and '{type(other)}'")
+            raise TypeError(f"unsupported operand type(s) for +=: 'GraphQLKey' and '{type(other)}'")
         if not self.name == other.name:
-            return ValueError('names must equal')
-        for key in other.keys:
-            if key not in self.keys:
-                self.keys.append(key)
+            raise ValueError('names must equal')
+        return GraphQLKey.from_dict(merge(self.to_dict(), other.to_dict()))
 
-    def __isub__(self, other):
+    def __sub__(self, other):
         if isinstance(other, dict):
             other = GraphQLKey.from_dict(other, name=self.name)
         if not isinstance(other, GraphQLKey):
-            return TypeError(f"unsupported operand type(s) for -=: 'GraphQLKey' and '{type(other)}'")
+            raise TypeError(f"unsupported operand type(s) for -: 'GraphQLKey' and '{type(other)}'")
         if not self.name == other.name:
-            return ValueError('names must equal')
+            raise ValueError('names must equal')
         for key in other.keys:
-            if key in self.keys:
-                self.keys.remove(key)
+            my_keys = tuple()
+            for i in self.keys:
+                if i.name == key.name and len(i.keys) > 0 and len(key.keys) > 0:
+                    my_keys += (i - key,)
+                elif key != i:
+                    my_keys += (i,)
+            self.keys = my_keys
+        return self
 
     @staticmethod
     def from_dict(dictionary: dict, *, name=None, signature=None):
@@ -107,10 +125,14 @@ class GraphQLKey:
         return rv
 
 
-dd = {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_', 'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_', 'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}}, 'startDate': {'year': '_', 'month': '_', 'day': '_'}, 'endDate': {'year': '_', 'month': '_', 'day': '_'}, 'coverImage': {'large': '_'}})})}
-
-query = GraphQLKey.from_dict(dd)
-dd = query.to_dict()
-query2 = GraphQLKey.from_dict(dd)
-pyperclip.copy(str(query2))
-print(dd)
+dd = {'Media': ('id: $id, type: ANIME', {'id': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_',
+                                         'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_',
+                                         'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}},
+                                         'startDate': {'year': '_', 'month': '_', 'day': '_'},
+                                         'endDate': {'year': '_', 'month': '_', 'day': '_'},
+                                         'coverImage': {'large': '_'}})}
+dd2 = {'Media': {'id': '_', 'isAdult': '_', 'title': {'romaji': '_', 'english': '_'}, 'popularity': '_'}}
+graph = GraphQLKey.from_dict(dd)
+graph2 = GraphQLKey.from_dict(dd2)
+graph -= graph2
+print(graph)
