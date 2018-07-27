@@ -1,4 +1,4 @@
-import pyperclip
+import time
 
 
 def merge(a, b, path=None):
@@ -76,16 +76,22 @@ class GraphQLKey:
             raise TypeError(f"unsupported operand type(s) for -: 'GraphQLKey' and '{type(other)}'")
         if not self.name == other.name:
             raise ValueError('names must equal')
+
         for key in other.keys:
             my_keys = tuple()
             for i in self.keys:
+                # don't add it back when it's the same thing
+                if i == key:
+                    continue
                 # check if it has children and we could subtract those
-                if i.name == key.name and len(i.keys) > 0 and len(key.keys) > 0:
-                    my_keys += (i - key,)
-                # if not, check if it even is the same thing
-                elif key != i:
+                if i.name == key.name and len(key.keys) > 0:
+                    result = i - key
+                    if len(result.keys) == 0:
+                        continue
+                    my_keys += (result,)
+                else:
                     my_keys += (i,)
-                # if not, then don't add that key back, we want to subtract it if it matches
+
             self.keys = my_keys
         return self
 
@@ -132,82 +138,18 @@ class GraphQLKey:
         return rv
 
 
-null = None
-false = False
-dd = {
-    "query": ('$id: Int', {
-        "Media": ('id: $id, type: ANIME', {
-            "id": 21127,
-            "isAdult": false,
-            "siteUrl": "https://anilist.co/anime/21127",
-            "description": "The dark untold story of Steins;Gate that leads with the eccentric mad scientist Okabe, struggling to recover from a failed attempt at rescuing Kurisu. He decides to give up and abandons his lively scientist alter ego, in pursuit to forget the past. When all seems to be normal, he is seemingly pulled back into the past by meeting an acquaintance of Kurisu, who tells him that they have begun testing a device that stores the memory of a human and creates a simulation of them with their characteristics and personalities. Okabe begins testing and finds out that the simulation of Kurisu has brought back anguish and some new unexpected tragedies.\n<br><br>\nZero is a side story that explores events from the Beta Attractor Field's future that contribute in making the end of the original story possible.\n<br><br>\n(Source: MAL)",
-            "episodes": 23,
-            "title": {
-                "romaji": "Steins;Gate 0",
-                "english": null,
-                "native": "シュタインズ・ゲート ゼロ"
-            },
-            "status": "RELEASING",
-            "stats": {
-                "scoreDistribution": [
-                    {
-                        "score": 10,
-                        "amount": 31
-                    },
-                    {
-                        "score": 20,
-                        "amount": 10
-                    },
-                    {
-                        "score": 30,
-                        "amount": 18
-                    },
-                    {
-                        "score": 40,
-                        "amount": 24
-                    },
-                    {
-                        "score": 50,
-                        "amount": 71
-                    },
-                    {
-                        "score": 60,
-                        "amount": 93
-                    },
-                    {
-                        "score": 70,
-                        "amount": 262
-                    },
-                    {
-                        "score": 80,
-                        "amount": 581
-                    },
-                    {
-                        "score": 90,
-                        "amount": 1110
-                    },
-                    {
-                        "score": 100,
-                        "amount": 1409
-                    }
-                ]
-            },
-            "startDate": {
-                "year": 2018,
-                "month": 4,
-                "day": 12
-            },
-            "endDate": {
-                "year": null,
-                "month": null,
-                "day": null
-            },
-            "coverImage": {
-                "large": "https://cdn.anilist.co/img/dir/anime/reg/21127-qcwF0puffy3t.jpg"
-            }
-        })
-    })
-}
+start = time.time()
+dd = {'Media': ('id: $id, type: ANIME', {'id': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_',
+                                         'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_',
+                                         'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}},
+                                         'startDate': {'year': '_', 'month': '_', 'day': '_'},
+                                         'endDate': {'year': '_', 'month': '_', 'day': '_'},
+                                         'coverImage': {'large': '_'}})}
+dd2 = {'Media': {'id': '_', 'isAdult': '_', 'title': {'romaji': '_', 'english': '_'}, 'popularity': '_',
+                 'stats': {'scoreDistribution': {'score': '_', 'amount': '_', 'test': '_'}}}}
 graph = GraphQLKey.from_dict(dd)
-print(graph.to_dict())
-pyperclip.copy(str(graph))
+graph2 = GraphQLKey.from_dict(dd2)
+graph -= graph2
+stop = time.time()
+print(stop - start)
+print(graph)

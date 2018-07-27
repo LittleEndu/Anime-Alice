@@ -162,7 +162,7 @@ class Otaku:
             if isinstance(other, dict):
                 other = Otaku.GraphQLKey.from_dict(other, name=self.name)
             if not isinstance(other, Otaku.GraphQLKey):
-                raise TypeError(f"unsupported operand type(s) for +=: 'GraphQLKey' and '{type(other)}'")
+                raise TypeError(f"unsupported operand type(s) for +: 'GraphQLKey' and '{type(other)}'")
             if not self.name == other.name:
                 raise ValueError('names must equal')
             return Otaku.GraphQLKey.from_dict(merge(self.to_dict(), other.to_dict()))
@@ -171,19 +171,24 @@ class Otaku:
             if isinstance(other, dict):
                 other = Otaku.GraphQLKey.from_dict(other, name=self.name)
             if not isinstance(other, Otaku.GraphQLKey):
-                raise TypeError(f"unsupported operand type(s) for -=: 'GraphQLKey' and '{type(other)}'")
+                raise TypeError(f"unsupported operand type(s) for -: 'GraphQLKey' and '{type(other)}'")
             if not self.name == other.name:
                 raise ValueError('names must equal')
             for key in other.keys:
                 my_keys = tuple()
                 for i in self.keys:
+                    # don't add it back when it's the same thing
+                    if i == key:
+                        continue
                     # check if it has children and we could subtract those
-                    if i.name == key.name and len(i.keys) > 0 and len(key.keys) > 0:
-                        my_keys += (i - key,)
-                    # if not, check if it even is the same thing
-                    elif key != i:
+                    if i.name == key.name and len(key.keys) > 0:
+                        result = i - key
+                        if len(result.keys) == 0:
+                            continue
+                        my_keys += (result,)
+                    else:
                         my_keys += (i,)
-                    # if not, then don't add that key back, we want to subtract it if it matches
+
                 self.keys = my_keys
             return self
 
