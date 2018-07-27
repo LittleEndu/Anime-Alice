@@ -134,6 +134,44 @@ class Otaku:
                 after += "{" + " ".join(map(str, self.keys)) + "}"
             return f"{self.name}{after}"
 
+        def __iadd__(self, other):
+            if isinstance(other, dict):
+                other = Otaku.GraphQLKey.from_dict(other, name=self.name)
+            if not isinstance(other, Otaku.GraphQLKey):
+                return TypeError(f"unsupported operand type(s) for +=: 'GraphQLKey' and '{type(other)}'")
+            if not self.name == other.name:
+                return ValueError('names must equal')
+            for key in other.keys:
+                if key not in self.keys:
+                    self.keys.append(key)
+
+        def __isub__(self, other):
+            if isinstance(other, dict):
+                other = Otaku.GraphQLKey.from_dict(other, name=self.name)
+            if not isinstance(other, Otaku.GraphQLKey):
+                return TypeError(f"unsupported operand type(s) for -=: 'GraphQLKey' and '{type(other)}'")
+            if not self.name == other.name:
+                return ValueError('names must equal')
+            for key in other.keys:
+                if key in self.keys:
+                    self.keys.remove(key)
+
+        @staticmethod
+        def from_dict(dictionary: dict, *, name, signature=None):
+            rv = Otaku.GraphQLKey(name=name, signature=signature)
+            for key in dictionary:
+                assert isinstance(key, str)
+                if isinstance(dictionary[key], dict):
+                    _ = rv[Otaku.GraphQLKey.from_dict(dictionary[key], name=key)]
+                elif isinstance(dictionary[key], tuple):
+                    # Should never happen unless I want to build from dictionaries myself
+                    _ = rv[Otaku.GraphQLKey.from_dict(dictionary[key][1], name=key, signature=dictionary[key][0])]
+                else:
+                    _ = rv[key]
+            return rv
+
+
+
     class Medium:
         def __init__(self, some_id, name, is_nsfw=False):
             self.id = some_id
