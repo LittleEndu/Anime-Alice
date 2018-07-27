@@ -1,3 +1,5 @@
+import pyperclip
+
 class GraphQLKey:
     def __init__(self, *, name, signature=None, keys: list = None):
         self.name = name
@@ -62,8 +64,21 @@ class GraphQLKey:
                 self.keys.remove(key)
 
     @staticmethod
-    def from_dict(dictionary: dict, *, name, signature=None):
-        rv = GraphQLKey(name=name, signature=signature)
+    def from_dict(dictionary: dict, *, name=None, signature=None):
+        if name is None:
+            if len(dictionary) > 1:
+                raise ValueError('must provide name or have a dict with one key')
+            name = list(dictionary.keys())[0]
+            if not isinstance(name, str):
+                raise TypeError('must provide name or key in dict must be str')
+            if isinstance(dictionary[name], tuple):
+                rv = GraphQLKey(name=name, signature=dictionary[name][0])
+                dictionary = dictionary[name][1]
+            else:
+                rv = GraphQLKey(name=name)
+                dictionary = dictionary[name]
+        else:
+            rv = GraphQLKey(name=name, signature=signature)
         for key in dictionary:
             assert isinstance(key, str)
             if isinstance(dictionary[key], dict):
@@ -73,3 +88,37 @@ class GraphQLKey:
             else:
                 _ = rv[key]
         return rv
+
+    def to_dict(self):
+        rv = dict()
+        if self.signature:
+            dd = dict()
+            for key_dict in [key.to_dict() for key in self.keys]:
+                dd = {**dd, **key_dict}
+            rv[self.name] = (self.signature, dd if dd else '_')
+        else:
+            dd = dict()
+            for key_dict in [key.to_dict() for key in self.keys]:
+                dd = {**dd, **key_dict}
+            rv[self.name] = dd if dd else '_'
+        return rv
+
+
+dd = {'query': ('$id: Int',
+                {'Character': ('id: $id',
+                               {'description': '_',
+                                'name':
+                                    {'native': '_',
+                                     'alternative': '_'},
+                                'siteUrl': '_',
+                                'image':
+                                    {'large': '_'}
+                                })
+                 })
+      }
+
+query = GraphQLKey.from_dict(dd)
+dd = query.to_dict()
+query2 = GraphQLKey.from_dict(dd)
+pyperclip.copy(str(query2))
+print(dd)

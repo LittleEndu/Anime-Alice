@@ -157,20 +157,44 @@ class Otaku:
                     self.keys.remove(key)
 
         @staticmethod
-        def from_dict(dictionary: dict, *, name, signature=None):
-            rv = Otaku.GraphQLKey(name=name, signature=signature)
+        def from_dict(dictionary: dict, *, name=None, signature=None):
+            if name is None:
+                if len(dictionary) > 1:
+                    raise ValueError('must provide name or have a dict with one key')
+                name = list(dictionary.keys())[0]
+                if not isinstance(name, str):
+                    raise TypeError('must provide name or key in dict must be str')
+                if isinstance(dictionary[name], tuple):
+                    rv = Otaku.GraphQLKey(name=name, signature=dictionary[name][0])
+                    dictionary = dictionary[name][1]
+                else:
+                    rv = Otaku.GraphQLKey(name=name)
+                    dictionary = dictionary[name]
+            else:
+                rv = Otaku.GraphQLKey(name=name, signature=signature)
             for key in dictionary:
                 assert isinstance(key, str)
                 if isinstance(dictionary[key], dict):
                     _ = rv[Otaku.GraphQLKey.from_dict(dictionary[key], name=key)]
                 elif isinstance(dictionary[key], tuple):
-                    # Should never happen unless I want to build from dictionaries myself
                     _ = rv[Otaku.GraphQLKey.from_dict(dictionary[key][1], name=key, signature=dictionary[key][0])]
                 else:
                     _ = rv[key]
             return rv
 
-
+        def to_dict(self):
+            rv = dict()
+            if self.signature:
+                dd = dict()
+                for key_dict in [key.to_dict() for key in self.keys]:
+                    dd = {**dd, **key_dict}
+                rv[self.name] = (self.signature, dd if dd else '_')
+            else:
+                dd = dict()
+                for key_dict in [key.to_dict() for key in self.keys]:
+                    dd = {**dd, **key_dict}
+                rv[self.name] = dd if dd else '_'
+            return rv
 
     class Medium:
         def __init__(self, some_id, name, is_nsfw=False):
