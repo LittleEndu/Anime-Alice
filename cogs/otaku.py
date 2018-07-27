@@ -100,7 +100,41 @@ class Otaku:
             description = description[end + 1:]
         return description
 
-    class Medium(metaclass=abc.ABCMeta):
+    class GraphQLKey:
+        def __init__(self, *, name, signature=None, keys: list = None):
+            self.name = name
+            self.signature = signature or ""
+            if keys:
+                for key in keys:
+                    if not isinstance(key, Otaku.GraphQLKey):
+                        raise TypeError
+            self.keys = keys or list()
+
+        def __getitem__(self, item) -> 'Otaku.GraphQLKey':
+            if isinstance(item, str):
+                for key in self.keys:
+                    if key.name == item:
+                        return key
+                new_key = Otaku.GraphQLKey(name=item)
+                self.keys.append(new_key)
+                return new_key
+            elif isinstance(item, Otaku.GraphQLKey):
+                for key in self.keys:
+                    if key.name == item.name:
+                        return key
+                self.keys.append(item)
+                return item
+            raise TypeError
+
+        def __str__(self):
+            after = ""
+            if self.signature:
+                after += f"({self.signature})"
+            if self.keys:
+                after += "{" + " ".join(map(str, self.keys)) + "}"
+            return f"{self.name}{after}"
+
+    class Medium:
         def __init__(self, some_id, name, is_nsfw=False):
             self.id = some_id
             self.name = name
