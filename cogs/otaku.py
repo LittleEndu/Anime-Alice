@@ -174,6 +174,8 @@ class Otaku:
                 rv = Otaku.GraphQLKey(name=name, signature=signature)
             for key in dictionary:
                 assert isinstance(key, str)
+                if isinstance(dictionary[key], list):
+                    dictionary[key] = dictionary[key][0]
                 if isinstance(dictionary[key], dict):
                     _ = rv[Otaku.GraphQLKey.from_dict(dictionary[key], name=key)]
                 elif isinstance(dictionary[key], tuple):
@@ -244,68 +246,33 @@ class Otaku:
             return self
 
         @staticmethod
-        def search_query(query):
-            return {'query': """
-query ($terms: String) {
-  Page(page: 1) {
-    media(search: $terms, type: ANIME) {
-      id
-      isAdult
-      title {
-        romaji
-        english
-      }
-      popularity
-    }
-  }
-}""",
-                    'variables': {'terms': query}}
+        def search_query():
+            # You can use graph_ql_builder.py to prettify it
+            # @formatter:off
+            return Otaku.GraphQLKey.from_dict(
+                {'query': ('$terms: String', {'Page': ('page: 1', {'media': ('search: $terms, type: ANIME', {'id': '_', 'isAdult': '_', 'title': {'romaji': '_', 'english': '_'}, 'popularity': '_'})})})}
+            )
+            # @formatter:on
 
         @staticmethod
-        def populate_query(anilist_id: int):
-            return {'query': """
-query ($id: Int) {
-  Media(id: $id, type: ANIME) {
-    id
-    siteUrl
-    description
-    episodes
-    title {
-      romaji
-      english
-      native
-    }
-    status
-    stats {
-      scoreDistribution {
-        score
-        amount
-      }
-    }
-    startDate {
-      year
-      month
-      day
-    }
-    endDate {
-      year
-      month
-      day
-    }
-    coverImage {
-      large
-    }
-  }
-}
-""",
-                    'variables': {'id': anilist_id}}
+        def populate_query():
+            # You can use graph_ql_builder.py to prettify it
+            # @formatter:off
+            return Otaku.GraphQLKey.from_dict(
+                {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_', 'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_', 'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}}, 'startDate': {'year': '_', 'month': '_', 'day': '_'}, 'endDate': {'year': '_', 'month': '_', 'day': '_'}, 'coverImage': {'large': '_'}})})}
+            )
+            # @formatter:on
 
         @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
             # Searches Anilist for that query
             # Returns Anime()
 
-            results = await Otaku.get_anilist_results(Otaku.Anime.search_query(query), adult)
+            graph_ql_key = Otaku.Anime.search_query()
+            graph_ql = {'query': str(graph_ql_key),
+                        'variables': {'terms': query}}
+            results = await Otaku.get_anilist_results(graph_ql, adult)
+
             if results:
                 if lucky:
                     index = 0  # Lucky search always returns most popular
@@ -325,9 +292,10 @@ query ($id: Int) {
 
                 # Query Anilist for all information about that anime
                 await ctx.trigger_typing()
-                wanted = await Otaku.get_more_anilist_info(Otaku.Anime.populate_query(wanted['id']),
-                                                           wanted,
-                                                           ctx.bot.helper.ci_score)
+                graph_ql_key = Otaku.Anime.populate_query()
+                graph_ql = {'query': str(graph_ql_key),
+                            'variables': {'id': wanted['id']}}
+                wanted = await Otaku.get_more_anilist_info(graph_ql, wanted, ctx.bot.helper.ci_score)
 
                 return Otaku.Anime.from_results(wanted)
 

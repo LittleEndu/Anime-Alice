@@ -1,5 +1,6 @@
 import pyperclip
 
+
 class GraphQLKey:
     def __init__(self, *, name, signature=None, keys: list = None):
         self.name = name
@@ -81,6 +82,8 @@ class GraphQLKey:
             rv = GraphQLKey(name=name, signature=signature)
         for key in dictionary:
             assert isinstance(key, str)
+            if isinstance(dictionary[key], list):
+                dictionary[key] = dictionary[key][0]
             if isinstance(dictionary[key], dict):
                 _ = rv[GraphQLKey.from_dict(dictionary[key], name=key)]
             elif isinstance(dictionary[key], tuple):
@@ -104,18 +107,7 @@ class GraphQLKey:
         return rv
 
 
-dd = {'query': ('$id: Int',
-                {'Character': ('id: $id',
-                               {'description': '_',
-                                'name':
-                                    {'native': '_',
-                                     'alternative': '_'},
-                                'siteUrl': '_',
-                                'image':
-                                    {'large': '_'}
-                                })
-                 })
-      }
+dd = {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_', 'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_', 'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}}, 'startDate': {'year': '_', 'month': '_', 'day': '_'}, 'endDate': {'year': '_', 'month': '_', 'day': '_'}, 'coverImage': {'large': '_'}})})}
 
 query = GraphQLKey.from_dict(dd)
 dd = query.to_dict()
