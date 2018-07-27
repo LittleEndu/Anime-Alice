@@ -25,7 +25,8 @@ class NSFWBreach(Exception):
 
 def merge(a, b, path=None):
     "merges b into a"
-    if path is None: path = []
+    if path is None:
+        path = []
     for key in b:
         if key in a:
             if isinstance(a[key], dict) and isinstance(b[key], dict):
@@ -176,10 +177,13 @@ class Otaku:
             for key in other.keys:
                 my_keys = tuple()
                 for i in self.keys:
+                    # check if it has children and we could subtract those
                     if i.name == key.name and len(i.keys) > 0 and len(key.keys) > 0:
                         my_keys += (i - key,)
+                    # if not, check if it even is the same thing
                     elif key != i:
                         my_keys += (i,)
+                    # if not, then don't add that key back, we want to subtract it if it matches
                 self.keys = my_keys
             return self
 
@@ -286,7 +290,7 @@ class Otaku:
             # You can use graph_ql_builder.py to prettify it
             # @formatter:off
             return Otaku.GraphQLKey.from_dict(
-                {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_', 'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_', 'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}}, 'startDate': {'year': '_', 'month': '_', 'day': '_'}, 'endDate': {'year': '_', 'month': '_', 'day': '_'}, 'coverImage': {'large': '_'}})})}
+                {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'isAdult': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_', 'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_', 'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}}, 'startDate': {'year': '_', 'month': '_', 'day': '_'}, 'endDate': {'year': '_', 'month': '_', 'day': '_'}, 'coverImage': {'large': '_'}})})}
             )
             # @formatter:on
 
