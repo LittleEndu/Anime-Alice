@@ -14,6 +14,7 @@ import textwrap
 import traceback
 from contextlib import redirect_stdout, redirect_stderr
 from logging.handlers import RotatingFileHandler
+from difflib import SequenceMatcher
 
 import aiohttp
 import discord
@@ -21,6 +22,19 @@ from discord.ext import commands
 
 from cogs.database import Database
 from cogs.helper import Helper
+
+
+class ThousandSixHandler(RotatingFileHandler):
+    def emit(self, record: logging.LogRecord):
+        if record.levelno >= logging.ERROR:
+            s = SequenceMatcher(a=record.msg, b="Error while updating presence: "
+                                                "ConnectionClosed('WebSocket connection is closed: "
+                                                "code = 1006 (connection closed abnormally [internal]),"
+                                                " no reason',)")
+            if s.ratio() > 0.9:
+                asyncio.get_event_loop().close()
+                return
+        super().emit(record)
 
 
 class Alice(commands.Bot):
@@ -55,7 +69,10 @@ class Alice(commands.Bot):
         dh = RotatingFileHandler("logs/debug.log", maxBytes=5000000, backupCount=1, encoding='UTF-8')
         dh.setLevel(1)
         dh.setFormatter(formatter)
-        self.alice_handler = RotatingFileHandler("logs/alice.log", maxBytes=1000000, backupCount=1, encoding='UTF-8')
+        self.alice_handler = ThousandSixHandler(filename="logs/alice.log",
+                                                maxBytes=1000000,
+                                                backupCount=1,
+                                                encoding='UTF-8')
         self.alice_handler.setLevel(1)
         self.alice_handler.setFormatter(formatter)
         sh = logging.StreamHandler()
