@@ -176,7 +176,6 @@ class Helper:
                 raise ValueError("Amount of choices can't be 0")
 
             self.chunks = [i for i in Helper.chunks(self.choices, 5)]
-            ctx.bot.logger.debug(self.chunks)
             self.chosen = None
 
         def get_choice(self):

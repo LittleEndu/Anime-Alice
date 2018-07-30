@@ -647,6 +647,24 @@ class Otaku:
     def __unload(self):
         self.cleanup_task.cancel()
 
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        self.bot.logger.debug(hex(ord(payload.emoji.name)))
+        if payload.emoji.name != '\U0001f6ae':
+            return
+        self.bot.logger.debug("it's that emoji")
+        channel: discord.TextChannel = self.bot.get_channel(payload.channel_id)
+        message: discord.Message = await channel.get_message(payload.message_id)
+        if not message.author == self.bot.user:
+            return
+        self.bot.logger.debug("it's message by me")
+        try:
+            footer: str = message.embeds[0].footer.text
+        except IndexError:
+            return
+        else:
+            if footer.endswith(str(payload.user_id)):
+                await message.delete()
+
     async def cleanuper(self):
         try:
             while True:
@@ -671,8 +689,10 @@ class Otaku:
         elif medium is None:
             await ctx.send('No results...')
         else:
-            embed = medium.to_embed()
-            await ctx.send(embed=embed)
+            embed: discord.Embed = medium.to_embed()
+            embed.set_footer(text=embed.footer.text + f" - Requested by {ctx.author.display_name}, {ctx.author.id}")
+            msg = await ctx.send(embed=embed)
+            await msg.add_reaction('\U0001f6ae')
             self._last_medium[ctx.author.id] = medium
 
     @commands.command(name='search', aliases=['find', '?'])
@@ -685,6 +705,10 @@ class Otaku:
         if query is None:
             query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
         await self.find_helper(ctx, result_name, query, False)
+        try:
+            await ctx.message.delete()
+        except:
+            pass
 
     @commands.command(name='lucky', aliases=['luckysearch', '!'])
     @commands.bot_has_permissions(embed_links=True)
@@ -696,6 +720,10 @@ class Otaku:
         if query is None:
             query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
         await self.find_helper(ctx, result_name, query, True)
+        try:
+            await ctx.message.delete()
+        except:
+            pass
 
     @commands.command(name="last", aliases=list(mediums.keys()), hidden=True,
                       brief="Used for secondary functions of the last result from ``search``")
@@ -723,9 +751,15 @@ class Otaku:
         elif new_medium is None:
             await ctx.send('No results...')
         else:
-            embed = new_medium.to_embed()
-            await ctx.send(embed=embed)
+            embed: discord.Embed = new_medium.to_embed()
+            embed.set_footer(text=embed.footer.text + f" - Requested by {ctx.author.display_name}, {ctx.author.id}")
+            msg = await ctx.send(embed=embed)
+            await msg.add_reaction('\U0001f6ae')
             self._last_medium[ctx.author.id] = new_medium
+            try:
+                await ctx.message.delete()
+            except:
+                pass
 
     # endregion
     # end class
