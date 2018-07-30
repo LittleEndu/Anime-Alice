@@ -326,7 +326,7 @@ class Otaku:
                             under = ''
                         asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
                     # Ask the user what anime they meant
-                    index = await ctx.bot.helper.Asker(ctx, *asking[:9])
+                    index = await ctx.bot.helper.Asker(ctx, *asking)
                 return await Otaku.Anime.from_results(ctx, results[index])
 
         @staticmethod
@@ -434,7 +434,7 @@ class Otaku:
                             under += " __One shot__"
                         asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
                     # Ask the user what anime they meant
-                    index = await ctx.bot.helper.Asker(ctx, *asking[:9])
+                    index = await ctx.bot.helper.Asker(ctx, *asking)
 
                 wanted = results[index]
 
