@@ -245,6 +245,11 @@ class Otaku:
             self.is_nsfw = is_nsfw
             self.instance_created_at = time.time()
 
+        async def last(self, adult=False, lucky=False):
+            if not adult and self.is_nsfw:
+                raise NSFWBreach
+            return self
+
         async def related(self, adult=False, lucky=False):
             return NotImplemented
 
@@ -637,12 +642,6 @@ class Otaku:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
         self._last_medium = dict()
-        find_command = Otaku.CommandCopyHelper(self.find, ['?', 'search'])
-        lucky_command = Otaku.CommandCopyHelper(self.lucky, ['!', 'luckysearch'])
-        for com in [self.anime, self.manga, self.character]:
-            for s in [find_command, lucky_command]:
-                com.add_command(s.new_command())
-
         self.cleanup_task = self.bot.loop.create_task(self.cleanuper())
 
     def __unload(self):
@@ -657,122 +656,6 @@ class Otaku:
                 await asyncio.sleep(60)
         except asyncio.CancelledError:
             pass
-
-    async def last_medium_caller(self, ctx: commands.Context, parent_name: str, lucky=False):
-        medium = self._last_medium.get(ctx.author.id)
-        if not medium:
-            await ctx.send("You haven't used any search commands yet")
-            return
-        func = getattr(medium, parent_name)
-        try:
-            new_medium = await func(lucky=lucky)
-        except asyncio.TimeoutError:
-            return
-        except NSFWBreach:
-            await ctx.send(f"Can't show that {parent_name} here. It's NSFW")
-            return
-        if new_medium is NotImplemented:
-            await ctx.send(f"I'm sorry. I can't do that yet.\n"
-                           f"{medium.__class__.__name__} doesn't implement ``{ctx.prefix}{parent_name}`` yet.")
-        elif new_medium is None:
-            await ctx.send('No results...')
-        else:
-            embed = new_medium.to_embed()
-            await ctx.send(embed=embed)
-            self._last_medium[ctx.author.id] = new_medium
-
-    @commands.command(name='search', aliases=['find', '?'])
-    @commands.bot_has_permissions(embed_links=True)
-    async def _search(self, ctx, medium_name: str, *, query: str = None):
-        """Alias for when you type search before the medium you want to search for"""
-        medium_name = medium_name.lower()
-        if not medium_name in Otaku.mediums:
-            raise commands.UserInputError(f'{medium_name.capitalize()} is not something I can search for')
-        if query is None:
-            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
-        await self.find_helper(ctx, medium_name, query, False)
-
-    @commands.command(name='lucky', aliases=['luckysearch', '!'])
-    @commands.bot_has_permissions(embed_links=True)
-    async def _lucky(self, ctx, medium_name: str, *, query: str = None):
-        """Alias for when you type lucky before the medium you want to lucky search"""
-        medium_name = medium_name.lower()
-        if not medium_name in Otaku.mediums:
-            raise commands.UserInputError(f'{medium_name.capitalize()} is not something I can search for')
-        if query is None:
-            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
-        await self.find_helper(ctx, medium_name, query, True)
-
-    @commands.group(aliases=['hentai', 'hentais', 'animes'],
-                    brief="Used for anime lookup. Use ``help anime`` command for more info")
-    @commands.bot_has_permissions(embed_links=True)
-    async def anime(self, ctx: commands.Context):
-        """
-* ``!anime search <query>`` - Searches Anilist for anime. ``search`` can be replaced with ``?``
-* ``!anime lucky <query>`` - Searches Anilist for anime. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
-    * ``!anime`` - Shows the last anime you looked up
-    * ``!manga`` - *Currently doesn't work*
-    * ``!character`` - *Currently doesn't work*
-    """
-        if ctx.invoked_with.startswith('hentai') and not ctx.channel.nsfw:
-            await ctx.send("Can't search hentai in here")
-        if ctx.invoked_subcommand is None:
-            if ctx.message.content != f"{ctx.prefix}{ctx.invoked_with}":
-                await ctx.send(f"This is not how you use this command.\n"
-                               f"Please use ``{ctx.prefix}help {ctx.invoked_with}``")
-                return
-            await self.last_medium_caller(ctx, 'anime', False)
-            return
-
-    @commands.group(aliases=['mangas'],
-                    brief="Used for manga lookup. Use ``help manga`` command for more info")
-    @commands.bot_has_permissions(embed_links=True)
-    async def manga(self, ctx: commands.Context):
-        """
-* ``!manga search <query>`` - Searches Anilist for manga. ``search`` can be replaced with ``?``
-* ``!manga lucky <query>`` - Searches Anilist for manga. Automatically picks the most popular. ``lucky`` can be replaced with ``!``
-    * ``!anime`` - *Currently doesn't work*
-    * ``!manga`` - Shows the last manga you looked up
-    * ``!character`` - *Currently doesn't work*
-    """
-        if ctx.invoked_subcommand is None:
-            if ctx.message.content != f"{ctx.prefix}{ctx.invoked_with}":
-                await ctx.send(f"This is not how you use this command.\n"
-                               f"Please use ``{ctx.prefix}help {ctx.invoked_with}``")
-                return
-            await self.last_medium_caller(ctx, 'manga', False)
-            return
-
-    @commands.group(aliases=['characters'],
-                    brief="Used for character lookup. Use ``help character`` command for more info")
-    @commands.bot_has_permissions(embed_links=True)
-    async def character(self, ctx: commands.Context):
-        """
-* ``!character search <query>`` - Searches Anilist for characters. ``search`` can be replaced with ``?``
-* ``!character lucky <query>`` - Searches Anilist for characters. Automatically picks the character with most popular anime/manga. ``lucky`` can be replaced with ``!``
-    * ``!anime`` - *Currently doesn't work*
-    * ``!manga`` - *Currently doesn't work*
-    * ``!character`` - Shows the last result
-    """
-        if ctx.invoked_subcommand is None:
-            if ctx.message.content != f"{ctx.prefix}{ctx.invoked_with}":
-                await ctx.send(f"This is not how you use this command.\n"
-                               f"Please use ``{ctx.prefix}help {ctx.invoked_with}``")
-                return
-            await self.last_medium_caller(ctx, 'character', False)
-            return
-
-    # medium.command()
-    async def lucky(self, ctx: commands.Context, *, query: str = None):
-        if query is None:
-            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
-        await self.find_helper(ctx, ctx.command.parent.name, query, True)
-
-    # medium.command()
-    async def find(self, ctx: commands.Context, *, query: str = None):
-        if query is None:
-            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
-        await self.find_helper(ctx, ctx.command.parent.name, query, False)
 
     async def find_helper(self, ctx, medium_name, query, lucky):
         cls = Otaku.mediums.get(medium_name)
@@ -791,6 +674,59 @@ class Otaku:
             embed = medium.to_embed()
             await ctx.send(embed=embed)
             self._last_medium[ctx.author.id] = medium
+
+    @commands.command(name='search', aliases=['find', '?'])
+    @commands.bot_has_permissions(embed_links=True)
+    async def _search(self, ctx, result_name: str, *, query: str = None):
+        """Perform a search"""
+        result_name = result_name.lower()
+        if not result_name in Otaku.mediums:
+            raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
+        if query is None:
+            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
+        await self.find_helper(ctx, result_name, query, False)
+
+    @commands.command(name='lucky', aliases=['luckysearch', '!'])
+    @commands.bot_has_permissions(embed_links=True)
+    async def _lucky(self, ctx, result_name: str, *, query: str = None):
+        """Perform a lucky search"""
+        result_name = result_name.lower()
+        if not result_name in Otaku.mediums:
+            raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
+        if query is None:
+            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
+        await self.find_helper(ctx, result_name, query, True)
+
+    @commands.command(name="last", aliases=list(mediums.keys()), hidden=True,
+                      brief="Used for secondary functions of the last result from ``search``")
+    @commands.bot_has_permissions(embed_links=True)
+    async def _medium(self, ctx: commands.Context):
+        medium = self._last_medium.get(ctx.author.id)
+        if not medium:
+            await ctx.send("You haven't used any search commands yet")
+            return
+        if not ctx.invoked_with == "last":
+            parent_name = Otaku.mediums.get(ctx.invoked_with).__name__.lower()
+        else:
+            parent_name = 'last'
+        func = getattr(medium, parent_name)
+        try:
+            new_medium = await func(lucky=False)
+        except asyncio.TimeoutError:
+            return
+        except NSFWBreach:
+            await ctx.send(f"Can't show that {parent_name} here. It's NSFW")
+            return
+        if new_medium is NotImplemented:
+            await ctx.send(f"I'm sorry. I can't do that yet.\n"
+                           f"{medium.__class__.__name__} doesn't implement ``{ctx.prefix}{parent_name}`` yet.")
+        elif new_medium is None:
+            await ctx.send('No results...')
+        else:
+            embed = new_medium.to_embed()
+            await ctx.send(embed=embed)
+            self._last_medium[ctx.author.id] = new_medium
+
     # endregion
     # end class
 

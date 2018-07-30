@@ -18,8 +18,6 @@ Assuming you have ``!`` as your prefix
 
 Allowed result types are ``Anime``, ``Manga``, and ``Character``.
 
-* ``!<result type> search <?query>``
-* ``!<result type> lucky <?query>``
 * ``!search <result type> <?query>``
 * ``!luckysearch <result type> <?query>``
 
