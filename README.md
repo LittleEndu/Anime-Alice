@@ -59,5 +59,6 @@ These extra commands are available based on what was your last result:
  * *Send Messages* - To respond to users
  * *Embed links* - To send embeds. They are used to display info in concise manner.
     * *Add reactions* - To send out reactions while user has to make a choice.
+    * *Manage messages* - Used to delete messages/reactions while user has to make a choice.
     * *Attach Files* - Currently unused. Feel free to deny this permission
     * *Use External Emoji* - Currently unused. Feel free to deny this permission

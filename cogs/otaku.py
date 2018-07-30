@@ -545,7 +545,6 @@ class Otaku:
                 asking = []
                 for i in results[:]:
                     medias = i['media']['nodes']
-                    ctx.bot.logger.debug(medias)
                     i['isAdult'] = False
                     if not medias or medias[0]['isAdult']:
                         if not medias or not adult:
@@ -560,7 +559,7 @@ class Otaku:
                 index = 0  # Lucky search always returns most popular
                 if not lucky:
                     # Ask the user what anime they meant
-                    index = await ctx.bot.helper.Asker(ctx, *asking[:9])
+                    index = await ctx.bot.helper.Asker(ctx, *asking)
 
                 wanted = results[index]
                 return await Otaku.Character.from_results(ctx, wanted)

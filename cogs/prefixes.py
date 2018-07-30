@@ -50,7 +50,7 @@ class Prefixes:
         await ctx.send(embed=emb)
 
     @commands.command(aliases=['addprefix'])
-    async def setprefix(self, ctx: commands.Context, *, prefix: str):
+    async def setprefix(self, ctx: commands.Context, prefix: str):
         """Sets a prefix for the bot in this server"""
         if not (ctx.author.guild_permissions.administrator or self.bot.is_owner(ctx.author)):
             raise commands.CheckFailure("You can't change the prefix")
@@ -69,7 +69,7 @@ class Prefixes:
             await ctx.send("Successfully set the prefix.")
 
     @commands.command(aliases=['deleteprefix'])
-    async def removeprefix(self, ctx, *, prefix: str = None):
+    async def removeprefix(self, ctx, prefix: str = None):
         """Removes a prefix for the bot from this server"""
         if not (ctx.author.guild_permissions.administrator or self.bot.is_owner(ctx.author)):
             raise commands.CheckFailure("You can't change the prefix")

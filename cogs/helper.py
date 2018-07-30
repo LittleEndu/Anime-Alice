@@ -3,9 +3,11 @@ import collections
 import logging
 import math
 import traceback
+import concurrent.futures
 
 import async_timeout
 import discord
+import time
 from discord.ext import commands
 from logging.handlers import RotatingFileHandler
 
@@ -96,6 +98,12 @@ class Helper:
     def saftey_escape_regular(string: str):
         return str(string).replace('`', '\u02cb').replace('*', '\u2217')
 
+    @staticmethod
+    def chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
+
     # endregion
 
     # region general stuff
@@ -164,11 +172,11 @@ class Helper:
                     self.choices.append(choice.discord_str())
                 else:
                     self.choices.append(str(choice))
-            if len(self.choices) > 9:
-                raise ValueError("Amount of choices can't exceed 9")
             if not self.choices:
                 raise ValueError("Amount of choices can't be 0")
 
+            self.chunks = [i for i in Helper.chunks(self.choices, 5)]
+            ctx.bot.logger.debug(self.chunks)
             self.chosen = None
 
         def get_choice(self):
@@ -187,15 +195,76 @@ class Helper:
                 self.chosen = 0
                 return self.chosen
 
+            wait_until = time.time() + 60
+
+            def embed_helper():
+                return discord.Embed(
+                    title="Please choose",
+                    description="\n".join([
+                        f"**{Helper.number_to_reaction(i+1)}**: {self.chunks[chunks_index][i]}"
+                        for i in range(len(self.chunks[chunks_index]))
+                    ]).strip()
+                )
+
+            async def navigation_manager_r(msg: discord.Message):
+                def nav_check(r: discord.Reaction, u: discord.User):
+                    return all([
+                        u.id == self.ctx.author.id,
+                        r.message.id == msg.id,
+                        r.emoji in '\u25c0\u25b6'
+                    ])
+
+                while True:
+                    try:
+                        reaction, user = await self.ctx.bot.wait_for('reaction_add', check=nav_check)
+                        nonlocal chunks_index
+                        chunks_index += '\u25c0_\u25b6'.find(reaction.emoji) - 1
+                        chunks_index %= len(self.chunks)
+                        try:
+                            await msg.remove_reaction(reaction, user)
+                        except:
+                            pass
+                        await msg.edit(embed=embed_helper())
+                        nonlocal wait_until
+                        wait_until = time.time() + 60
+                    except concurrent.futures.CancelledError:
+                        break
+
+            async def navigation_manager_m(msg: discord.Message):
+                def message_check(m: discord.Message):
+                    return all([
+                        m.author.id == self.ctx.author.id,
+                        m.channel.id == self.ctx.channel.id,
+                        m.content[0].lower() in "nb"
+                    ])
+
+                messages = list()
+                while True:
+                    try:
+                        message = await self.ctx.bot.wait_for('message', check=message_check)
+                        nonlocal chunks_index
+                        chunks_index += "b_n".find(message.content[0].lower()) - 1
+                        chunks_index %= len(self.chunks)
+                        messages.append(message)
+                        await msg.edit(embed=embed_helper())
+                        nonlocal wait_until
+                        wait_until = time.time() + 60
+                    except concurrent.futures.CancelledError:
+                        try:
+                            await self.ctx.channel.delete_messages(messages)
+                        except:
+                            pass
+                        break
+
             async def stop_waiter(msg: discord.Message, choice_fut: asyncio.Future):
                 def stop_check(r: discord.Reaction, u: discord.User):
                     return all([
                         u.id == self.ctx.author.id,
                         r.message.id == msg.id,
-                        r.emoji == '\u274c'
+                        r.emoji == '\u23f9'
                     ])
 
-                reaction, user = await self.ctx.bot.wait_for('reaction_add', check=stop_check)
+                await self.ctx.bot.wait_for('reaction_add', check=stop_check)
                 try:
                     choice_fut.set_result(None)
                 except asyncio.InvalidStateError:
@@ -222,36 +291,48 @@ class Helper:
                     except:
                         return False
                     else:
-                        return message.author.id == self.ctx.author.id and 0 < number <= len(self.choices)
+                        return all([
+                            message.author.id == self.ctx.author.id,
+                            message.channel.id == self.ctx.channel.id,
+                            0 < number <= len(self.choices)
+                        ])
 
                 msg = await self.ctx.bot.wait_for('message', check=message_check)
                 try:
                     choice_fut.set_result(int(msg.content))
+                    try:
+                        await msg.delete()
+                    except discord.Forbidden:
+                        pass
                 except asyncio.InvalidStateError:
                     return
 
-            emb = discord.Embed(
-                title="Please choose",
-                description="\n".join([
-                    f"**{Helper.number_to_reaction(i+1)}**: {self.choices[i]}" for i in range(len(self.choices))
-                ]).strip()
-            )
-            asker = await self.ctx.send(embed=emb)
+            chunks_index = 0
+            asker = await self.ctx.send(embed=embed_helper())
             fut = asyncio.Future()
             reaction_task = self.ctx.bot.loop.create_task(reaction_waiter(asker, fut))
             message_task = self.ctx.bot.loop.create_task(message_waiter(fut))
             stop_task = self.ctx.bot.loop.create_task(stop_waiter(asker, fut))
-            await asker.add_reaction('\u274c')
+            if len(self.chunks) > 1:
+                navigation_task_r = self.ctx.bot.loop.create_task(navigation_manager_r(asker))
+                navigation_task_m = self.ctx.bot.loop.create_task(navigation_manager_m(asker))
             if self.ctx.channel.permissions_for(self.ctx.me).add_reactions:
-                for em in map(Helper.number_to_reaction, range(1, len(self.choices) + 1)):
+                await asker.add_reaction('\u23f9')
+                for em in map(Helper.number_to_reaction, range(1, min(len(self.choices) + 1, 6))):
                     if fut.done():
                         break
                     await asker.add_reaction(em)
+                if len(self.chunks) > 1:
+                    for em in '\u25c0\u25b6':
+                        if fut.done():
+                            break
+                        await asker.add_reaction(em)
             message_exists = True
             try:
-                async with async_timeout.timeout(60):
-                    while not fut.done():
-                        await asyncio.sleep(0)
+                while not fut.done() and wait_until >= time.time():
+                    await asyncio.sleep(0)
+                if wait_until < time.time():
+                    raise asyncio.TimeoutError
             except asyncio.TimeoutError:
                 await asker.delete()
                 message_exists = False
@@ -260,11 +341,17 @@ class Helper:
                 if not fut.result():
                     raise asyncio.TimeoutError
                 else:
-                    self.chosen = fut.result() - 1
+                    self.chosen = chunks_index * 5 + fut.result() - 1
                     return self.chosen
             finally:
                 reaction_task.cancel()
                 message_task.cancel()
+                if len(self.chunks) > 1:
+                    # Because the size of self.chunks doesn't change
+                    # noinspection PyUnboundLocalVariable
+                    navigation_task_r.cancel()
+                    # noinspection PyUnboundLocalVariable
+                    navigation_task_m.cancel()
                 stop_task.cancel()
                 if message_exists:
                     await asker.delete()
