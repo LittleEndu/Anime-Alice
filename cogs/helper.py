@@ -198,13 +198,16 @@ class Helper:
             wait_until = time.time() + 60
 
             def embed_helper():
-                return discord.Embed(
+                emb = discord.Embed(
                     title="Please choose",
                     description="\n".join([
                         f"**{Helper.number_to_reaction(i+1)}**: {self.chunks[chunks_index][i]}"
                         for i in range(len(self.chunks[chunks_index]))
                     ]).strip()
                 )
+                if len(self.chunks)>1:
+                    emb.set_footer(text="Say 'next' or 'back' to navigate the pages")
+                return emb
 
             async def navigation_manager_r(msg: discord.Message):
                 def nav_check(r: discord.Reaction, u: discord.User):
