@@ -6,6 +6,13 @@ from discord.ext import commands
 import alice
 
 
+class GuildChannelConverter(commands.Converter):
+    def convert(self, ctx, argument):
+        return commands.TextChannelConverter().convert(ctx, argument) \
+               or commands.CategoryChannelConverter().convert(ctx, argument) \
+               or commands.VoiceChannelConverter().convert(ctx, argument)
+
+
 class Info:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
@@ -126,6 +133,53 @@ class Info:
                 return
         else:
             await self.bot.helper.handle_error(ctx, error)
+
+    @commands.command(aliases=['permissionsfor'])
+    @commands.guild_only()
+    async def permissions(self, ctx, member: discord.Member = None):
+        """Shows what are the users permissions"""
+        perms = [name for name in dir(discord.Permissions) if isinstance(getattr(discord.Permissions, name), property)]
+        if member is None:
+            member = ctx.author
+        member_perms = member.guild_permissions
+        field = [[], []]
+        yes = '\U00002705'
+        no = self.bot.get_emoji(473537506063810561)
+        index = 0
+        for perm in perms:
+            value = no
+            if getattr(member_perms, perm):
+                value = yes
+            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}")
+            index += 1
+        emb = discord.Embed()
+        emb.add_field(name="Here are the permissions:", value="\n".join(field[0]))
+        emb.add_field(name="\u200b", value="\n".join(field[1]))
+        await ctx.send(embed=emb)
+
+    @commands.command()
+    @commands.guild_only()
+    async def permissionsin(self, ctx, channel: GuildChannelConverter, member: discord.Member = None):
+        """Shows what are the users permissions"""
+        assert isinstance(channel, discord.abc.GuildChannel)
+        perms = [name for name in dir(discord.Permissions) if isinstance(getattr(discord.Permissions, name), property)]
+        if member is None:
+            member = ctx.author
+        member_perms = channel.permissions_for(member)
+        field = [[], []]
+        yes = '\U00002705'
+        no = self.bot.get_emoji(473537506063810561)
+        index = 0
+        for perm in perms:
+            value = no
+            if getattr(member_perms, perm):
+                value = yes
+            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}")
+            index += 1
+        emb = discord.Embed()
+        emb.add_field(name="Here are the permissions:", value="\n".join(field[0]))
+        emb.add_field(name="\u200b", value="\n".join(field[1]))
+        await ctx.send(embed=emb)
 
 
 def setup(bot):
