@@ -41,7 +41,12 @@ class HelpCommand:
             last_cog = ""
             for i in sorted(self.bot.commands, key=lambda a: a.cog_name + a.name):
                 assert isinstance(i, commands.Command)
-                show = not i.hidden and await i.can_run(ctx)
+                can_run = False
+                try:
+                    can_run = await i.can_run(ctx)
+                except commands.CheckFailure:
+                    pass
+                show = not i.hidden and can_run
                 if show:
                     if i.cog_name != last_cog:
                         last_cog = i.cog_name
