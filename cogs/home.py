@@ -39,7 +39,7 @@ class Home:
             self.my_guild = discord.utils.get(self.bot.guilds, owner=self.bot.user)
         if member.guild == self.my_guild:
             name = member.display_name
-            while name and name < '0':
+            while name and name < 'A':
                 name = name[1:]
             if name != member.display_name:
                 if name:
