@@ -568,7 +568,6 @@ class Otaku:
         @staticmethod
         async def from_results(ctx, result, is_adult=None, full_name=None):
             graph_ql_key = Otaku.Character.populate_query()
-
             try:
                 result['isAdult']
             except KeyError:
@@ -584,6 +583,8 @@ class Otaku:
                 else:
                     name = graph_ql_key['Character']['name']
                     name += {'name': {'first': '_', 'last': '_'}}
+            chara = graph_ql_key['Character']
+            chara -= result
 
             graph_ql = {'query': str(graph_ql_key),
                         'variables': {'id': result['id']}}
