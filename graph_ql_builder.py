@@ -64,7 +64,7 @@ class GraphQLKey:
         if isinstance(other, dict):
             other = GraphQLKey.from_dict(other, name=self.name)
         if not isinstance(other, GraphQLKey):
-            raise TypeError(f"unsupported operand type(s) for +=: 'GraphQLKey' and '{type(other)}'")
+            raise TypeError(f"unsupported operand type(s) for +: 'GraphQLKey' and '{type(other)}'")
         if not self.name == other.name:
             raise ValueError('names must equal')
         return GraphQLKey.from_dict(merge(self.to_dict(), other.to_dict()))
@@ -138,18 +138,14 @@ class GraphQLKey:
         return rv
 
 
-start = time.time()
-dd = {'Media': ('id: $id, type: ANIME', {'id': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_',
-                                         'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_',
-                                         'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}},
-                                         'startDate': {'year': '_', 'month': '_', 'day': '_'},
-                                         'endDate': {'year': '_', 'month': '_', 'day': '_'},
-                                         'coverImage': {'large': '_'}})}
-dd2 = {'Media': {'id': '_', 'isAdult': '_', 'title': {'romaji': '_', 'english': '_'}, 'popularity': '_',
-                 'stats': {'scoreDistribution': {'score': '_', 'amount': '_', 'test': '_'}}}}
+false = False
+true = True
+null = None
+dd = {'name': {
+      'first' :'_',
+      'last' : '_'
+    }}
 graph = GraphQLKey.from_dict(dd)
-graph2 = GraphQLKey.from_dict(dd2)
-graph -= graph2
-stop = time.time()
-print(stop - start)
 print(graph)
+print()
+print(graph.to_dict())
