@@ -1,4 +1,4 @@
-import abc
+import itertools
 import asyncio
 import time
 
@@ -722,8 +722,10 @@ class Otaku:
         except:
             pass
 
-    @commands.command(name="last", aliases=list(mediums.keys()), hidden=True,
-                      brief="Used for secondary functions of the last result from ``search``")
+    @commands.command(name="last",
+                      aliases=list(itertools.chain.from_iterable((x, f"!{x}") for x in mediums.keys())),
+                      hidden=True,
+                      brief="Used for secondary functions. Read the bot ``description`` for more info.")
     @commands.bot_has_permissions(embed_links=True)
     async def _medium(self, ctx: commands.Context, *, query=None):
         if query is None:
@@ -760,12 +762,17 @@ class Otaku:
                 except:
                     pass
         else:
-            if ctx.invoked_with == "last":
+            # User wants to search something instead
+            lucky = False
+            if ctx.invoked_with.endswith('last'):
                 await ctx.send("This is not how you use this command...")
                 return
+            elif ctx.invoked_with.startswith('!'):
+                result_name = ctx.invoked_with[1:]
+                lucky = True
             else:
                 result_name = ctx.invoked_with
-            await self.find_helper(ctx, result_name, query, False)
+            await self.find_helper(ctx, result_name, query, lucky)
             try:
                 await ctx.message.delete()
             except:

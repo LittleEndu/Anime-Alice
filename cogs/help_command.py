@@ -112,6 +112,16 @@ I take my info from [AniList](https://anilist.co/).
                             f"{stuff}")
         await ctx.send(embed=emb)
 
+    @commands.command(aliases=['desc'])
+    @commands.bot_has_permissions(embed_links=True)
+    async def description(self, ctx: commands.Context):
+        emb = discord.Embed(description="[Description on Github]"
+                                        "(https://github.com/LittleEndu/Anime-Alice/blob/master/README.md)"
+                                        "\n"
+                                        "[Description on discordbots]"
+                                        "(https://discordbots.org/bot/354974625593032704)")
+        await ctx.send(embed=emb)
+
 
 def setup(bot: alice.Alice):
     bot.add_cog(HelpCommand(bot))

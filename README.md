@@ -18,8 +18,10 @@ Assuming you have ``!`` as your prefix
 
 Allowed result types are ``Anime``, ``Manga``, and ``Character``.
 
-* ``!search <result type> <?query>``
-* ``!luckysearch <result type> <?query>``
+* ``!search <result type> <?query>`` - Searches Anilist for that result type.
+* ``!luckysearch <result type> <?query>`` - Automatically returns the most popular result.
+* ``!<result type> <query>`` - Shortcut for the search command. Note that this command doesn't ask for a query if not provided
+* ``!!<result type> <query>`` - Shortcut for the lucky command. Note the double ``!``
 
 These extra commands are available based on what was your last result:
 * Anime
