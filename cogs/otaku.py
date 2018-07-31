@@ -648,15 +648,12 @@ class Otaku:
         self.cleanup_task.cancel()
 
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        self.bot.logger.debug(hex(ord(payload.emoji.name)))
         if payload.emoji.name != '\U0001f6ae':
             return
-        self.bot.logger.debug("it's that emoji")
         channel: discord.TextChannel = self.bot.get_channel(payload.channel_id)
         message: discord.Message = await channel.get_message(payload.message_id)
         if not message.author == self.bot.user:
             return
-        self.bot.logger.debug("it's message by me")
         try:
             footer: str = message.embeds[0].footer.text
         except IndexError:
@@ -728,34 +725,47 @@ class Otaku:
     @commands.command(name="last", aliases=list(mediums.keys()), hidden=True,
                       brief="Used for secondary functions of the last result from ``search``")
     @commands.bot_has_permissions(embed_links=True)
-    async def _medium(self, ctx: commands.Context):
-        medium = self._last_medium.get(ctx.author.id)
-        if not medium:
-            await ctx.send("You haven't used any search commands yet")
-            return
-        if not ctx.invoked_with == "last":
-            parent_name = Otaku.mediums.get(ctx.invoked_with).__name__.lower()
+    async def _medium(self, ctx: commands.Context, *, query=None):
+        if query is None:
+            # User didn't search for anything so we can just do the secondary command
+            medium = self._last_medium.get(ctx.author.id)
+            if not medium:
+                await ctx.send("You haven't used any search commands yet")
+                return
+            if not ctx.invoked_with == "last":
+                parent_name = Otaku.mediums.get(ctx.invoked_with).__name__.lower()
+            else:
+                parent_name = 'last'
+            func = getattr(medium, parent_name)
+            try:
+                new_medium = await func(lucky=False)
+            except asyncio.TimeoutError:
+                return
+            except NSFWBreach:
+                await ctx.send(f"Can't show that {parent_name} here. It's NSFW")
+                return
+            if new_medium is NotImplemented:
+                await ctx.send(f"I'm sorry. I can't do that yet.\n"
+                               f"{medium.__class__.__name__} doesn't implement ``{ctx.prefix}{parent_name}`` yet.")
+            elif new_medium is None:
+                await ctx.send('No results...')
+            else:
+                embed: discord.Embed = new_medium.to_embed()
+                embed.set_footer(text=embed.footer.text + f" - Requested by {ctx.author.display_name}, {ctx.author.id}")
+                msg = await ctx.send(embed=embed)
+                await msg.add_reaction('\U0001f6ae')
+                self._last_medium[ctx.author.id] = new_medium
+                try:
+                    await ctx.message.delete()
+                except:
+                    pass
         else:
-            parent_name = 'last'
-        func = getattr(medium, parent_name)
-        try:
-            new_medium = await func(lucky=False)
-        except asyncio.TimeoutError:
-            return
-        except NSFWBreach:
-            await ctx.send(f"Can't show that {parent_name} here. It's NSFW")
-            return
-        if new_medium is NotImplemented:
-            await ctx.send(f"I'm sorry. I can't do that yet.\n"
-                           f"{medium.__class__.__name__} doesn't implement ``{ctx.prefix}{parent_name}`` yet.")
-        elif new_medium is None:
-            await ctx.send('No results...')
-        else:
-            embed: discord.Embed = new_medium.to_embed()
-            embed.set_footer(text=embed.footer.text + f" - Requested by {ctx.author.display_name}, {ctx.author.id}")
-            msg = await ctx.send(embed=embed)
-            await msg.add_reaction('\U0001f6ae')
-            self._last_medium[ctx.author.id] = new_medium
+            if ctx.invoked_with == "last":
+                await ctx.send("This is not how you use this command...")
+                return
+            else:
+                result_name = ctx.invoked_with
+            await self.find_helper(ctx, result_name, query, False)
             try:
                 await ctx.message.delete()
             except:
