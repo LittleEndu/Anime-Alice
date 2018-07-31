@@ -354,6 +354,7 @@ class Alice(commands.Bot):
                     await ctx.send('\u2705')
 
             for sens in [self.config.get(i) for i in self.config.get('unsafe_to_expose')]:
+                # noinspection PyUnresolvedReferences
                 value = str(value).replace(sens, '\u2588' * 10)
 
             if ret is None:
