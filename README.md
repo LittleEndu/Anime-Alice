@@ -16,12 +16,13 @@ Assuming you have ``!`` as your prefix
 
 #### Anime commands
 
-Allowed result types are ``Anime``, ``Manga``, and ``Character``.
+Allowed result types are ``anime``, ``manga``, and ``character``.
+To make sure it works, please use the commands in all lowercase.
 
 * ``!search <result type> <?query>`` - Searches Anilist for that result type.
 * ``!luckysearch <result type> <?query>`` - Automatically returns the most popular result.
-* ``!<result type> <query>`` - Shortcut for the search command. Note that this command doesn't ask for a query if not provided
-* ``!!<result type> <query>`` - Shortcut for the lucky command. Note that the command name starts with ``!`` so the correct usage is ``<prefix>!result_type``
+* ``!<result type> <query>`` - Shortcut for the search command. Note that these shortcuts don't ask for a query if not provided
+* ``!!<result type> <query>`` - Shortcut for the lucky command. Note that the command name starts with ``!`` so the correct usage is ``<prefix>!<result type> <query>``
 
 These extra commands are available based on what was your last result:
 * Anime
