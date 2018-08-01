@@ -636,6 +636,7 @@ class Otaku:
     # region Cog
 
     mediums = {'anime': Anime, 'hentai': Anime, 'manga': Manga, 'character': Character}
+    alives = ['character']
     for key in list(mediums.keys()):
         mediums[f'{key}s'] = mediums[key]
 
@@ -744,6 +745,9 @@ class Otaku:
             except asyncio.TimeoutError:
                 return
             except NSFWBreach:
+                if parent_name in Otaku.alives:
+                    await ctx.send(f"Can't show that {parent_name} here. They are from NSFW medium.")
+                    return
                 await ctx.send(f"Can't show that {parent_name} here. It's NSFW")
                 return
             if new_medium is NotImplemented:
