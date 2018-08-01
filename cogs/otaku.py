@@ -1,5 +1,6 @@
-import itertools
 import asyncio
+import concurrent.futures
+import itertools
 import time
 
 import aiohttp
@@ -664,14 +665,15 @@ class Otaku:
                 await message.delete()
 
     async def cleanuper(self):
-        try:
-            while True:
+        while True:
+            try:
                 for k in list(self._last_medium.keys()):
                     if self._last_medium[k].instance_created_at < time.time() - 600:
                         del self._last_medium[k]
                 await asyncio.sleep(60)
-        except asyncio.CancelledError:
-            pass
+            except Exception as ex:
+                if isinstance(ex, concurrent.futures.CancelledError):
+                    return
 
     async def find_helper(self, ctx, medium_name, query, lucky):
         cls = Otaku.mediums.get(medium_name)
