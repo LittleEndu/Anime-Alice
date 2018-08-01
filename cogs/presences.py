@@ -41,10 +41,10 @@ class Presences:
 
     async def on_guild_join(self, guild: discord.Guild):
         self.guilds_logger.debug(f"Joined new guild {guild.id}:\n"
-                                 f"name={guild.name}\n"
-                                 f"channels={len(guild.channels)}\n"
-                                 f"bots/members={sum(i.bot for i in guild.members)/len(guild.members)}\n"
-                                 f"total bots/humans/members="
+                                 f"+ name={guild.name}\n"
+                                 f"+ channels={len(guild.channels)}\n"
+                                 f"+ bots/members={sum(i.bot for i in guild.members)/len(guild.members)}\n"
+                                 f"+ total bots/humans/members="
                                  f"{sum(i.bot for i in guild.members)}/"
                                  f"{sum(not i.bot for i in guild.members)}/"
                                  f"{len(guild.members)}")
@@ -54,10 +54,10 @@ class Presences:
 
     async def on_guild_remove(self, guild: discord.Guild):
         self.guilds_logger.debug(f"Guild {guild.id} was removed:\n"
-                                 f"name={guild.name}\n"
-                                 f"channels={len(guild.channels)}\n"
-                                 f"bots/members={sum(i.bot for i in guild.members)/len(guild.members)}\n"
-                                 f"total bots/humans/members="
+                                 f"- name={guild.name}\n"
+                                 f"- channels={len(guild.channels)}\n"
+                                 f"- bots/members={sum(i.bot for i in guild.members)/len(guild.members)}\n"
+                                 f"- total bots/humans/members="
                                  f"{sum(i.bot for i in guild.members)}/"
                                  f"{sum(not i.bot for i in guild.members)}/"
                                  f"{len(guild.members)}")
