@@ -750,6 +750,9 @@ class Otaku:
                 if parent_name in Otaku.alives:
                     await ctx.send(f"Can't show that {parent_name} here. They are from NSFW medium.")
                     return
+                if parent_name == 'last':
+                    await ctx.send(f"Can't show last result here. It's NSFW.")
+                    return
                 await ctx.send(f"Can't show that {parent_name} here. It's NSFW")
                 return
             if new_medium is NotImplemented:
