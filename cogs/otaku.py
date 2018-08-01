@@ -668,7 +668,7 @@ class Otaku:
             while True:
                 for k in list(self._last_medium.keys()):
                     if self._last_medium[k].age < time.time() - 600:
-                        del self._last_medium
+                        del self._last_medium[k]
                 await asyncio.sleep(60)
         except asyncio.CancelledError:
             pass
