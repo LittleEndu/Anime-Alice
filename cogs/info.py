@@ -105,7 +105,7 @@ class Info:
                 pass
         if emoji_id:
             emoji = discord.utils.get(self.bot.emojis, id=emoji_id)
-            if not emoji or ctx.author not in emoji.guild.members:
+            if not emoji or ctx.author not in emoji.guild.members and not self.bot.is_owner(ctx.author):
                 await ctx.send("We are not both in the server where that emoji is from")
             else:
                 await ctx.send(f"That emoji is from {self.bot.helper.safety_escape_monospace(emoji.guild.name)}")
