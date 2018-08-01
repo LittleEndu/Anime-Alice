@@ -95,15 +95,22 @@ class Info:
     @commands.command(aliases=['emoteinfo'])
     async def emojiinfo(self, ctx: commands.Context, request: str):
         """Shows where the given emoji is from"""
-        if not re.match('<a?:.+:\d+>', request):
-            await ctx.send("I'm afraid that isn't a custom emoji")
-        else:
+        emoji_id = None
+        if re.match('<a?:.+:\d+>', request):
             emoji_id = int(''.join([i for i in request if i.isdigit()]))
+        else:
+            try:
+                emoji_id = int(request)
+            except ValueError:
+                pass
+        if emoji_id:
             emoji = discord.utils.get(self.bot.emojis, id=emoji_id)
             if not emoji or ctx.author not in emoji.guild.members:
                 await ctx.send("We are not both in the server where that emoji is from")
             else:
                 await ctx.send(f"That emoji is from {self.bot.helper.safety_escape_monospace(emoji.guild.name)}")
+        else:
+            await ctx.send("I'm afraid that isn't a custom emoji")
 
     @commands.command(aliases=['mutualguilds'])
     @commands.cooldown(1, 60, commands.BucketType.user)

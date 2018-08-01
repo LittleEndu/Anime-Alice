@@ -106,7 +106,7 @@ class Alice(commands.Bot):
         self.logger.info('------')
 
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        if payload.user_id != self.owner_id:
+        if not self.is_owner(discord.Object(payload.user_id)):
             return
         if str(payload.emoji) == '\U0001f502':
             message = await self.get_channel(payload.channel_id).get_message(payload.message_id)
