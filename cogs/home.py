@@ -110,7 +110,7 @@ class Home:
         buffer = BytesIO()
         await ctx.message.attachments[0].save(buffer)
         buffer.seek(0)
-        await ctx.guild.create_custom_emoji(name=name, image=buffer)
+        await ctx.guild.create_custom_emoji(name=name, image=buffer.read())
 
     # end class
 
