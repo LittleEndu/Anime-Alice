@@ -19,6 +19,7 @@ class Helper:
     # region discord stuff
     @staticmethod
     async def handle_error(ctx: commands.Context, err):
+        ctx.bot: 'alice.Alice' = ctx.bot
         can_send = ctx.channel.permissions_for(ctx.me).send_messages
         if not can_send:
             await Helper.react_or_false(ctx, ("\U0001f507",))

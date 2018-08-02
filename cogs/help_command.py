@@ -122,6 +122,11 @@ I take my info from [AniList](https://anilist.co/).
                                         "(https://discordbots.org/bot/354974625593032704)")
         await ctx.send(embed=emb)
 
+    @commands.command(aliases='stats')
+    async def status(self, ctx: commands.Context):
+        emb = discord.Embed()
+
+
 
 def setup(bot: alice.Alice):
     bot.add_cog(HelpCommand(bot))

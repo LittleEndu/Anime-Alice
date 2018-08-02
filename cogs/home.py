@@ -3,8 +3,44 @@ import asyncio
 
 import datetime
 import discord
+from discord.ext import commands
+from io import BytesIO
 
 import alice
+from cogs import error_handler
+
+
+def owner_or_has_perms(**kwargs):
+    def inner(ctx: commands.Context):
+        if ctx.bot.is_owner(ctx.author):
+            return True
+
+        ch = ctx.channel
+        permissions = ch.permissions_for(ctx.author)
+
+        missing = [perm for perm, value in kwargs.items() if getattr(permissions, perm, None) != value]
+
+        if not missing:
+            return True
+
+        raise commands.MissingPermissions(missing)
+
+    return commands.check(inner)
+
+
+class OnlyMyGuild(commands.CheckFailure):
+    pass
+
+
+class OnlyMyGuildHandler(error_handler.DefaultHandler):
+    def __init__(self, priority=10):
+        super().__init__(priority)
+
+    async def handle(self, ctx: commands.Context, err: commands.CommandError):
+        if isinstance(err, OnlyMyGuild):
+            await ctx.bot.helper.react_or_false(ctx, ("\u2753",))
+        else:
+            await super().handle(ctx, err)
 
 
 class Home:
@@ -19,6 +55,9 @@ class Home:
                                            port=80)
         self.server_fut = asyncio.run_coroutine_threadsafe(coro, self.bot.loop)
         self.bot.loop.create_task(self.db_init())
+        err_cog: error_handler.ErrorCog = self.bot.get_cog('ErrorCog')
+        if err_cog:
+            err_cog.add_handler(OnlyMyGuildHandler())
 
     async def db_init(self):
         await self.bot.database.wait_for_start()
@@ -26,6 +65,11 @@ class Home:
 
     def __unload(self):
         asyncio.run_coroutine_threadsafe(self.unloader(), self.bot.loop)
+
+    def __local_check(self, ctx):
+        if ctx.guild != self.my_guild:
+            raise OnlyMyGuild()
+        return True
 
     async def unloader(self):
         while not self.server_fut.done():
@@ -52,7 +96,21 @@ class Home:
 
     async def on_member_join(self, member: discord.Member):
         await self.punish_hoisters(member)
+
     # endregion
+
+    @commands.command(aliases=['addemote'])
+    @owner_or_has_perms(manage_emojis=True)
+    async def addemoji(self, ctx: commands.Context, name: str):
+        if len(ctx.message.attachments) == 0:
+            raise commands.UserInputError('You must attach an image')
+        if len(ctx.message.attachments) > 1:
+            raise commands.UserInputError('You must attach only one image')
+        buffer = BytesIO()
+        await ctx.message.attachments[0].save(buffer)
+        buffer.seek(0)
+        await ctx.guild.create_custom_emoji(name=name, image=buffer)
+
     # end class
 
 

@@ -18,6 +18,7 @@ from difflib import SequenceMatcher
 
 import aiohttp
 import discord
+import time
 from discord.ext import commands
 
 from cogs.database import Database
@@ -39,6 +40,8 @@ class ThousandSixHandler(RotatingFileHandler):
 
 class Alice(commands.Bot):
     def __init__(self, config_name='config.json'):
+        self.real_start_time = time.time()
+        self.discord_start_time: int = None
         status = discord.Status.online
         if os.path.isfile('status'):
             with open('status') as in_file:
@@ -96,9 +99,10 @@ class Alice(commands.Bot):
         self._last_result = None
 
     def auto_load(self):
-        return ['helper', 'database'] + self.config.get('auto_load', [])
+        return ['helper', 'error_handler', 'database'] + self.config.get('auto_load', [])
 
     async def on_ready(self):
+        self.discord_start_time = time.time()
         self.logger.info('Logged in as')
         self.logger.info(self.user.name)
         self.logger.info(f"id:{self.user.id}")
@@ -134,9 +138,12 @@ class Alice(commands.Bot):
         return await super().get_prefix(message)
 
     async def on_command_error(self, ctx: commands.Context, err):
+        if self.get_cog('ErrorCog'):
+            return
         if hasattr(ctx.command, "on_error"):
             return
-        await self.helper.handle_error(ctx, err)
+
+        await super().on_command_error(ctx, err)
 
     # region Commands
 
