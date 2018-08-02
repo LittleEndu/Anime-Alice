@@ -149,7 +149,7 @@ I take my info from [AniList](https://anilist.co/).
     @commands.command(aliases=['stats'])
     async def status(self, ctx: commands.Context):
         cmds = self.bot.get_emoji(474599018761289729)
-        uptime = self.bot.get_emoji(474608068080959519)
+        uptime = self.bot.get_emoji(474628476406726656)
         uptime_value = display_time(time.time() - self.bot.real_start_time)
         discord_value = display_time(time.time() - self.bot.discord_start_time)
         emb = discord.Embed()
