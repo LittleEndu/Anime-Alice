@@ -113,8 +113,8 @@ class Home:
         buffer = BytesIO()
         await ctx.message.attachments[0].save(buffer)
         buffer.seek(0)
-        await ctx.guild.create_custom_emoji(name=name, image=buffer.read())
-        await self.bot.helper.react_or_false(ctx)
+        rv = await ctx.guild.create_custom_emoji(name=name, image=buffer.read())
+        await self.bot.helper.react_or_false(ctx, reactions=(rv,))
 
     # end class
 
