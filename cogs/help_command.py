@@ -174,13 +174,21 @@ I take my info from [AniList](https://anilist.co/).
     @commands.command(aliases=['stats'])
     async def status(self, ctx: commands.Context):
         uptime_value = display_time(time.time() - self.bot.real_start_time)
+        discord_value = display_time(time.time() - self.bot.discord_start_time)
+        latency = int(self.bot.latency * 1000)
+        if latency > 1000:
+            latency = display_time(self.bot.latency)
+        else:
+            latency = str(latency) + ' ms'
         emb = discord.Embed()
         emb.add_field(name='__**Current Status**__', value=f"""
 **``Commands``** - {len(self.bot.commands)} different commands
-**``. Guilds``** - {len(self.bot.guilds)} guilds
-**``. Uptime``** - {uptime_value}
-**``.... CPU``** - {int(self.cpu)}%
-**``.... RAM``** - {int(self.memory)}%
+**``\u200b \u200b \u200bGuilds``** - {len(self.bot.guilds)} guilds
+**``\u200b \u200b \u200bUptime``** - {uptime_value}
+**``\u200b \u200b \u200bOnline``** - {discord_value}
+**``\u200b \u200bLatency``** - {latency}
+**``\u200b \u200b \u200b \u200b \u200b \u200bCPU``** - {int(self.cpu)}%
+**``\u200b \u200b \u200b \u200b \u200b \u200bRAM``** - {int(self.memory)}%
         """)
         await ctx.send(embed=emb)
 
