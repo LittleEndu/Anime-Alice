@@ -6,13 +6,15 @@ from discord.ext import commands
 
 intervals = (
     ('weeks', 604800),  # 60 * 60 * 24 * 7
-    ('days', 86400),    # 60 * 60 * 24
-    ('hours', 3600),    # 60 * 60
+    ('days', 86400),  # 60 * 60 * 24
+    ('hours', 3600),  # 60 * 60
     ('minutes', 60),
     ('seconds', 1),
-    )
+)
+
 
 def display_time(seconds, granularity=2):
+    seconds = int(seconds)
     result = []
 
     for name, count in intervals:
@@ -23,6 +25,7 @@ def display_time(seconds, granularity=2):
                 name = name.rstrip('s')
             result.append("{} {}".format(value, name))
     return ', '.join(result[:granularity])
+
 
 class HelpCommand:
     def __init__(self, bot: alice.Alice):
@@ -74,7 +77,7 @@ class HelpCommand:
                         await appender.append(f"\n```\U0001f916 {last_cog} \U0001f916```")
                     new_line = "\n"  # Don't delete, used in nested fstring
                     help_string = i.brief or f'{i.help or ""}'.split(new_line)[0]
-                    prefix = ctx.prefix if len(ctx.prefix)<5 else ""
+                    prefix = ctx.prefix if len(ctx.prefix) < 5 else ""
                     await appender.append(
                         f"**``{prefix}{i.name}`` - **{f'{help_string}' if help_string else ''}\n"
                     )
@@ -146,17 +149,19 @@ I take my info from [AniList](https://anilist.co/).
     @commands.command(aliases=['stats'])
     async def status(self, ctx: commands.Context):
         cmds = self.bot.get_emoji(474599018761289729)
-        uptime_value = display_time(self.bot.real_start_time - time.time())
-        discord_value = display_time(self.bot.discord_start_time - time.time())
-        emb = discord.Embed(description=f"""
-__**Current status**__
-**Commands**
-{len(self.bot.commands)}{cmds} different commands
-**Uptime**
+        uptime = self.bot.get_emoji(474608068080959519)
+        uptime_value = display_time(time.time() - self.bot.real_start_time)
+        discord_value = display_time(time.time() - self.bot.discord_start_time)
+        emb = discord.Embed()
+        emb.add_field(name='__**Current Status**__', value=f"""
+**{cmds} Commands**
+{len(self.bot.commands)} different commands
+
+**{uptime} Uptime**
 {uptime_value} since last time bot restarted
 {discord_value} since last time discord reconnected
         """)
-
+        await ctx.send(embed=emb)
 
 
 def setup(bot: alice.Alice):
