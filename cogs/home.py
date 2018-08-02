@@ -107,6 +107,9 @@ class Home:
             raise commands.UserInputError('You must attach an image')
         if len(ctx.message.attachments) > 1:
             raise commands.UserInputError('You must attach only one image')
+        emj: discord.Emoji = discord.utils.get(ctx.guild.emojis, name=name)
+        if emj:
+            await emj.delete(reason='Updating this emoji')
         buffer = BytesIO()
         await ctx.message.attachments[0].save(buffer)
         buffer.seek(0)
