@@ -1,7 +1,28 @@
+import time
+
 import alice
 import discord
 from discord.ext import commands
 
+intervals = (
+    ('weeks', 604800),  # 60 * 60 * 24 * 7
+    ('days', 86400),    # 60 * 60 * 24
+    ('hours', 3600),    # 60 * 60
+    ('minutes', 60),
+    ('seconds', 1),
+    )
+
+def display_time(seconds, granularity=2):
+    result = []
+
+    for name, count in intervals:
+        value = seconds // count
+        if value:
+            seconds -= value * count
+            if value == 1:
+                name = name.rstrip('s')
+            result.append("{} {}".format(value, name))
+    return ', '.join(result[:granularity])
 
 class HelpCommand:
     def __init__(self, bot: alice.Alice):
@@ -124,7 +145,17 @@ I take my info from [AniList](https://anilist.co/).
 
     @commands.command(aliases=['stats'])
     async def status(self, ctx: commands.Context):
-        emb = discord.Embed()
+        cmds = self.bot.get_emoji(474599018761289729)
+        uptime_value = display_time(self.bot.real_start_time - time.time())
+        discord_value = display_time(self.bot.discord_start_time - time.time())
+        emb = discord.Embed(description=f"""
+__**Current status**__
+**Commands**
+{len(self.bot.commands)}{cmds} different commands
+**Uptime**
+{uptime_value} since last time bot restarted
+{discord_value} since last time discord reconnected
+        """)
 
 
 
