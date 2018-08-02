@@ -10,7 +10,7 @@ class Admin:
     def __init__(self, bot:alice.Alice):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases='git')
     @commands.is_owner()
     async def gitreload(self, ctx: commands.Context):
         fut = self.bot.loop.run_in_executor(self.bot.executor, os.system, 'git pull')

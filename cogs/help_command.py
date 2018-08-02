@@ -1,7 +1,11 @@
+import concurrent.futures
 import time
+
+import asyncio
 
 import alice
 import discord
+import psutil
 from discord.ext import commands
 
 intervals = (
@@ -30,6 +34,27 @@ def display_time(seconds, granularity=2):
 class HelpCommand:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
+        self.cpu = 0
+        self.memory = psutil.virtual_memory().percent
+        self.update_task = self.bot.loop.create_task(self.update_stats())
+
+    def __unload(self):
+        self.update_task.cancel()
+
+    async def update_stats(self):
+        while True:
+            try:
+                cpu_fut = self.bot.loop.run_in_executor(self.bot.executor, psutil.cpu_percent, 2)
+                await asyncio.sleep(2.1)
+                while not cpu_fut.done():
+                    await asyncio.sleep(0)
+                self.cpu += cpu_fut.result()
+                self.cpu /= 2
+                self.memory += psutil.virtual_memory().percent
+                self.memory /= 2
+                await asyncio.sleep(10)
+            except concurrent.futures.CancelledError:
+                break
 
     @commands.command(name='help', hidden=True)
     async def _help(self, ctx, *, name=None):
@@ -148,22 +173,19 @@ I take my info from [AniList](https://anilist.co/).
 
     @commands.command(aliases=['stats'])
     async def status(self, ctx: commands.Context):
-        cmds = self.bot.get_emoji(474599018761289729) or '\U0001f916'
+        cmds = self.bot.get_emoji(474677203687178240) or '\U0001f916'
         uptime = self.bot.get_emoji(474628476406726656) or '\U000023f1'
-        guild = self.bot.get_emoji(474630189792624650) or '\U0001f6e1'
+        guild = self.bot.get_emoji(474639131100708904) or '\U0001f6e1'
+        cpu = self.bot.get_emoji(474675321908494346) or '\U0001f5a5'
+        memory = self.bot.get_emoji(474680634980171777) or '\U0001f4df'
         uptime_value = display_time(time.time() - self.bot.real_start_time)
-        discord_value = display_time(time.time() - self.bot.discord_start_time)
         emb = discord.Embed()
         emb.add_field(name='__**Current Status**__', value=f"""
-**{cmds} Commands**
-{len(self.bot.commands)} different commands
-
-**{guild} Servers**
-{len(self.bot.guilds)} different servers
-
-**{uptime} Uptime**
-{uptime_value} since last time bot restarted
-{discord_value} since last time discord reconnected
+**{cmds} Commands** - {len(self.bot.commands)} different commands
+**{guild} Guilds** - {len(self.bot.guilds)} guilds
+**{uptime} Uptime** - {uptime_value}
+**{cpu} CPU %** - {int(self.cpu)}%
+**{memory} RAM %** - {int(self.memory)}%
         """)
         await ctx.send(embed=emb)
 
