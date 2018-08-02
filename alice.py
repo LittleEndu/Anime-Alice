@@ -140,9 +140,6 @@ class Alice(commands.Bot):
     async def on_command_error(self, ctx: commands.Context, err):
         if self.get_cog('ErrorCog'):
             return
-        if hasattr(ctx.command, "on_error"):
-            return
-
         await super().on_command_error(ctx, err)
 
     # region Commands
@@ -404,7 +401,7 @@ class Alice(commands.Bot):
                 await ctx.reinvoke()
                 return
         else:
-            self.helper.handle_error(ctx, error)
+            await self.get_cog('ErrorCog').error_handler.handle(ctx, err)
 
     # endregion
 

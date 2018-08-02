@@ -158,6 +158,8 @@ class ErrorCog:
         self.error_handler.add_handler(handler)
 
     async def on_command_error(self, ctx, err):
+        if hasattr(ctx.command, "on_error"):
+            return
         await self.error_handler.handle(ctx, err)
 
 

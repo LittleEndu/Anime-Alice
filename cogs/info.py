@@ -139,7 +139,7 @@ class Info:
                 await ctx.reinvoke()
                 return
         else:
-            await self.bot.helper.handle_error(ctx, error)
+            await self.bot.get_cog('ErrorCog').error_handler.handle(ctx, error)
 
     @commands.command(aliases=['permissionsfor'])
     @commands.guild_only()

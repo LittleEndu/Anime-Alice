@@ -18,49 +18,6 @@ if False:
 class Helper:
     # region discord stuff
     @staticmethod
-    async def handle_error(ctx: commands.Context, err):
-        ctx.bot: 'alice.Alice' = ctx.bot
-        can_send = ctx.channel.permissions_for(ctx.me).send_messages
-        if not can_send:
-            await Helper.react_or_false(ctx, ("\U0001f507",))
-        if isinstance(err, commands.errors.CommandOnCooldown):
-            if not await Helper.react_or_false(ctx, ("\u23f0",)) and can_send:
-                await ctx.send("\u23f0 " + str(err))
-            return
-        if isinstance(err, commands.UserInputError) and can_send:
-            await ctx.send("\u274c Bad argument: {}".format(' '.join(err.args)))
-        elif isinstance(err, commands.errors.CheckFailure) and can_send:
-            if any(i.__qualname__.startswith('is_owner') for i in ctx.command.checks):
-                return await Helper.react_or_false(ctx, ("\u2753",))
-            await ctx.send("\u274c Check failure. " + str(err))
-        elif isinstance(err, commands.errors.CommandNotFound):
-            await Helper.react_or_false(ctx, ("\u2753",))
-            try:
-                logger = ctx.bot.commands_logger
-            except AttributeError:
-                logger = logging.getLogger('alice.commands')
-                ch = RotatingFileHandler("logs/commands.log", maxBytes=5000000, backupCount=1, encoding='UTF-8')
-                ch.setFormatter(logging.Formatter('%(asctime)s %(levelname)-8s [%(name)s] %(message)s'))
-                ch.setLevel(1)
-                logger.addHandler(ctx.bot.alice_handler)
-                logger.addHandler(ch)
-                ctx.bot.commands_logger = logger
-            logger.info(f'Unknown command: {ctx.invoked_with}')
-        else:
-            content = "\u274c Error occurred while handling the command."
-            if isinstance(err, commands.errors.CommandInvokeError):
-                if isinstance(err.original, discord.errors.HTTPException):
-                    content = None
-            if content:
-                await ctx.send(content)
-            if ctx.command.name == 'debug':
-                return
-            ctx.bot.logger.error("{}.{}".format(err.__class__.__module__, err.__class__.__name__))
-            ctx.bot.logger.debug("".join(traceback.format_exception(type(err), err, err.__traceback__)))
-            ctx.bot.logger.debug(
-                "".join(traceback.format_exception(type(err), err.__cause__, err.__cause__.__traceback__)))
-
-    @staticmethod
     async def react_or_false(ctx, reactions: collections.Iterable = ("\u2705",)):
         if ctx.channel.permissions_for(ctx.me).add_reactions:
             aa = True
