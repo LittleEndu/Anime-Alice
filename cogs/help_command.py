@@ -173,19 +173,14 @@ I take my info from [AniList](https://anilist.co/).
 
     @commands.command(aliases=['stats'])
     async def status(self, ctx: commands.Context):
-        cmds = self.bot.get_emoji(474677203687178240) or '\U0001f916'
-        uptime = self.bot.get_emoji(474628476406726656) or '\U000023f1'
-        guild = self.bot.get_emoji(474639131100708904) or '\U0001f6e1'
-        cpu = self.bot.get_emoji(474675321908494346) or '\U0001f5a5'
-        memory = self.bot.get_emoji(474680634980171777) or '\U0001f4df'
         uptime_value = display_time(time.time() - self.bot.real_start_time)
         emb = discord.Embed()
         emb.add_field(name='__**Current Status**__', value=f"""
-**{cmds} Commands** - {len(self.bot.commands)} different commands
-**{guild} Guilds** - {len(self.bot.guilds)} guilds
-**{uptime} Uptime** - {uptime_value}
-**{cpu} CPU %** - {int(self.cpu)}%
-**{memory} RAM %** - {int(self.memory)}%
+**``Commands``** - {len(self.bot.commands)} different commands
+**``. Guilds``** - {len(self.bot.guilds)} guilds
+**``. Uptime``** - {uptime_value}
+**``.... CPU``** - {int(self.cpu)}%
+**``.... RAM``** - {int(self.memory)}%
         """)
         await ctx.send(embed=emb)
 
