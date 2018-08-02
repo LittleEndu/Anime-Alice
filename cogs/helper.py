@@ -1,15 +1,12 @@
 import asyncio
 import collections
-import logging
-import math
-import traceback
 import concurrent.futures
+import math
+import time
 
 import async_timeout
 import discord
-import time
 from discord.ext import commands
-from logging.handlers import RotatingFileHandler
 
 if False:
     import alice

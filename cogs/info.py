@@ -13,6 +13,7 @@ class GuildChannelConverter(commands.Converter):
                or commands.VoiceChannelConverter().convert(ctx, argument)
 
 
+
 class Info:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
@@ -157,6 +158,7 @@ class Info:
             value = no
             if getattr(member_perms, perm):
                 value = yes
+            # noinspection PyTypeChecker
             field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}")
             index += 1
         emb = discord.Embed()
@@ -182,11 +184,13 @@ class Info:
             value = no
             if getattr(member_perms, perm):
                 value = yes
+            # noinspection PyTypeChecker
             field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}")
             index += 1
         emb = discord.Embed()
         emb.add_field(name="Here are the permissions:", value="\n".join(field[0]))
         emb.add_field(name="\u200b", value="\n".join(field[1]))
+        # noinspection PyUnresolvedReferences
         emb.set_footer(text=f"Permissions for {ctx.author.display_name} in {channel.name}")
         await ctx.send(embed=emb)
 

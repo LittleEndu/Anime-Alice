@@ -50,6 +50,7 @@ class Home:
         self.app = aiohttp.web.Application(loop=self.bot.loop)
         self.app.bot = bot
         self.app.add_routes(routes)
+        # noinspection PyProtectedMember
         coro = self.bot.loop.create_server(self.app._make_handler(loop=self.app.loop),
                                            host='0.0.0.0',
                                            port=80)
