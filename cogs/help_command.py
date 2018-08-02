@@ -181,7 +181,7 @@ I take my info from [AniList](https://anilist.co/).
         else:
             latency = str(latency) + ' ms'
         emb = discord.Embed()
-        emb.add_field(name='__**Current Status**__', value=f"""
+        emb.add_field(name='**Current Status**', value=f"""
 **``Commands``** - {len(self.bot.commands)} different commands
 **``\u200b \u200b \u200bGuilds``** - {len(self.bot.guilds)} guilds
 **``\u200b \u200b \u200bUptime``** - {uptime_value}
