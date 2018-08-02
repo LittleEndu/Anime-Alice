@@ -368,6 +368,7 @@ class Alice(commands.Bot):
             else:
                 self._last_result = ret
                 for sens in [self.config.get(i) for i in self.config.get('unsafe_to_expose')]:
+                    # noinspection PyUnresolvedReferences
                     ret = str(ret).replace(sens, '\u2588' * 10)
                 ret = self.helper.saftey_escape_regular(ret)
                 await self.send_or_post_hastebin(ctx, f'```py\n{value}{ret}\n```')

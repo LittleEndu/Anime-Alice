@@ -150,12 +150,16 @@ I take my info from [AniList](https://anilist.co/).
     async def status(self, ctx: commands.Context):
         cmds = self.bot.get_emoji(474599018761289729)
         uptime = self.bot.get_emoji(474628476406726656)
+        guild = self.bot.get_emoji(474630189792624650)
         uptime_value = display_time(time.time() - self.bot.real_start_time)
         discord_value = display_time(time.time() - self.bot.discord_start_time)
         emb = discord.Embed()
         emb.add_field(name='__**Current Status**__', value=f"""
 **{cmds} Commands**
 {len(self.bot.commands)} different commands
+
+**{guild} Servers**
+{len(self.bot.guilds)} different servers
 
 **{uptime} Uptime**
 {uptime_value} since last time bot restarted
