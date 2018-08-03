@@ -28,7 +28,7 @@ These extra commands are available based on what was your last result:
 * Anime
   * ``!anime`` - Will show the last result
   * ``!manga`` - *Currently doesn't work*
-  * ``!character`` - *Currently doesn't work*
+  * ``!character`` - Searches for the characters in the anime
 * Manga
   * ``!anime`` - *Currently doesn't work*
   * ``!manga`` - Will show the last result
