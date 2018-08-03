@@ -158,6 +158,7 @@ class Alice(commands.Bot):
         """Uses importlib.reload to import a cog"""
         if f'cogs.{extension}' in self.extensions:
             await ctx.send('Already loaded!')
+            return
         lib = importlib.import_module(f'cogs.{extension}')
         lib = importlib.reload(lib)
         lib.setup(self)

@@ -246,21 +246,21 @@ class Otaku:
             self.is_nsfw = is_nsfw
             self.instance_created_at = time.time()
 
-        async def last(self, adult=False, lucky=False):
+        async def last(self, ctx: commands.Context, adult=False, lucky=False):
             if not adult and self.is_nsfw:
                 raise NSFWBreach
             return self
 
-        async def related(self, adult=False, lucky=False):
+        async def related(self, ctx: commands.Context, adult=False, lucky=False):
             return NotImplemented
 
-        async def anime(self, adult=False, lucky=False):
+        async def anime(self, ctx: commands.Context, adult=False, lucky=False):
             return NotImplemented
 
-        async def manga(self, adult=False, lucky=False):
+        async def manga(self, ctx: commands.Context, adult=False, lucky=False):
             return NotImplemented
 
-        async def character(self, adult=False, lucky=False):
+        async def character(self, ctx: commands.Context, adult=False, lucky=False):
             return NotImplemented
 
         @staticmethod
@@ -286,7 +286,7 @@ class Otaku:
             self.end_date = kwargs.get('end_date')
             self.kwargs = kwargs
 
-        async def anime(self, adult=False, lucky=False):
+        async def anime(self, ctx: commands.Context, adult=False, lucky=False):
             if not adult and self.is_nsfw:
                 raise NSFWBreach
             return self
@@ -308,6 +308,29 @@ class Otaku:
                 {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'isAdult': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_', 'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_', 'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}}, 'startDate': {'year': '_', 'month': '_', 'day': '_'}, 'endDate': {'year': '_', 'month': '_', 'day': '_'}, 'coverImage': {'large': '_'}})})}
             )
             # @formatter:on
+
+        @staticmethod
+        def characters_query():
+            # @formatter:off
+            return Otaku.GraphQLKey.from_dict(
+                {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'characters': {'nodes': {'id': '_', 'name': {'first': '_', 'last': '_'}}}})})}
+            )
+            # @formatter:on
+
+        async def character(self, ctx:commands.Context, adult=False, lucky=False):
+            if not adult and self.is_nsfw:
+                raise NSFWBreach
+            graph_ql_key = self.characters_query()
+            graph_ql = {'query': str(graph_ql_key),
+                        'variables': {'id': self.id}}
+            result = await Otaku.get_more_anilist_info(graph_ql, dict())
+            characters = result['characters']['nodes']
+            for i in characters:
+                i['full_name'] = Otaku.join_names(i['name']['first'], i['name']['last'])
+            index = 0
+            if not lucky:
+                index = await ctx.bot.helper.Asker(ctx, *[i['full_name'] for i in characters])
+            return await Otaku.Character.from_results(ctx, characters[index], is_adult=self.is_nsfw)
 
         @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
@@ -398,7 +421,7 @@ class Otaku:
             self.end_date = kwargs.get('end_date')
             self.kwargs = kwargs
 
-        async def manga(self, adult=False, lucky=False):
+        async def manga(self, ctx: commands.Context, adult=False, lucky=False):
             if not adult and self.is_nsfw:
                 raise NSFWBreach
             return self
@@ -442,11 +465,9 @@ class Otaku:
                     # Ask the user what anime they meant
                     index = await ctx.bot.helper.Asker(ctx, *asking)
 
-                wanted = results[index]
-
                 # Query Anilist for all information about that anime
 
-                return await Otaku.Manga.from_results(ctx, wanted)
+                return await Otaku.Manga.from_results(ctx, results[index])
 
         @staticmethod
         async def from_results(ctx, result):
@@ -510,7 +531,7 @@ class Otaku:
             self.description = kwargs.get('description')
             self.cover_url = kwargs.get('cover_url', 'https://puu.sh/vPxRa/6f563946ec.png')
 
-        async def character(self, adult=False, lucky=False):
+        async def character(self, ctx: commands.Context, adult=False, lucky=False):
             if not adult and self.is_nsfw:
                 raise NSFWBreach
             return self
@@ -552,6 +573,7 @@ class Otaku:
                 for i in results[:]:
                     medias = i['media']['nodes']
                     i['isAdult'] = False
+                    # TODO: also move this to its own method for Voice acter search later
                     if not medias or medias[0]['isAdult']:
                         if not medias or not adult:
                             results.remove(i)  # Remove non-existings (and hentai)
@@ -573,10 +595,11 @@ class Otaku:
         @staticmethod
         async def from_results(ctx, result, is_adult=None, full_name=None):
             graph_ql_key = Otaku.Character.populate_query()
+            ctx.bot.logger.debug(is_adult)
             try:
                 result['isAdult']
             except KeyError:
-                if is_adult:
+                if is_adult is not None:
                     result['isAdult'] = is_adult
                 else:
                     raise
@@ -743,7 +766,7 @@ class Otaku:
                 parent_name = 'last'
             func = getattr(medium, parent_name)
             try:
-                new_medium = await func(lucky=False)
+                new_medium = await func(ctx, lucky=False)
             except asyncio.TimeoutError:
                 return
             except NSFWBreach:
