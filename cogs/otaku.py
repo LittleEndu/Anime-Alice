@@ -325,6 +325,8 @@ class Otaku:
                         'variables': {'id': self.id}}
             result = await Otaku.get_more_anilist_info(graph_ql, dict())
             characters = result['characters']['nodes']
+            if len(characters) == 0:
+                return None
             for i in characters:
                 i['full_name'] = Otaku.join_names(i['name']['first'], i['name']['last'])
             index = 0
