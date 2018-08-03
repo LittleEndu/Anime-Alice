@@ -760,13 +760,18 @@ class Otaku:
             if not medium:
                 await ctx.send("You haven't used any search commands yet")
                 return
-            if not ctx.invoked_with == "last":
-                parent_name = Otaku.mediums.get(ctx.invoked_with).__name__.lower()
+            lucky = False
+            if not ctx.invoked_with.endswith('last'):
+                if ctx.invoked_with[0] == '!':
+                    lucky = True
+                    parent_name = Otaku.mediums.get(ctx.invoked_with[1:]).__name__.lower()
+                else:
+                    parent_name = Otaku.mediums.get(ctx.invoked_with).__name__.lower()
             else:
                 parent_name = 'last'
             func = getattr(medium, parent_name)
             try:
-                new_medium = await func(ctx, lucky=False)
+                new_medium = await func(ctx, lucky=lucky)
             except asyncio.TimeoutError:
                 return
             except NSFWBreach:
