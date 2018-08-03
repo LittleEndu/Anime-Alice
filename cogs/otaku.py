@@ -269,8 +269,8 @@ class Otaku:
         async def character(self, adult=False, lucky=False):
             return NotImplemented
 
-        @abstractmethod
         @staticmethod
+        @abstractmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
             return NotImplemented
 
@@ -324,8 +324,6 @@ class Otaku:
                 {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'characters': {'nodes': {'id': '_', 'name': {'first': '_', 'last': '_'}}}})})}
             )
             # @formatter:on
-
-
 
         @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
