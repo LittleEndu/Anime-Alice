@@ -138,10 +138,7 @@ class GraphQLKey:
 false = False
 true = True
 null = None
-dd = {'name': {
-      'first' :'_',
-      'last' : '_'
-    }}
+dd = {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'characters': {'nodes': {'id': '_', 'name': {'first': '_', 'last': '_'}}}})})}
 graph = GraphQLKey.from_dict(dd)
 print(graph)
 print()

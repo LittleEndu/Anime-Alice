@@ -2,6 +2,7 @@ import asyncio
 import concurrent.futures
 import itertools
 import time
+from abc import ABCMeta, abstractmethod
 
 import aiohttp
 import dateutil.parser
@@ -239,34 +240,41 @@ class Otaku:
                 rv[self.name] = dd if dd else '_'
             return rv
 
-    class Medium:
+    class Medium(metaclass=ABCMeta):
         def __init__(self, some_id, name, is_nsfw=False):
             self.id = some_id
             self.name = name
             self.is_nsfw = is_nsfw
             self.instance_created_at = time.time()
 
+        @abstractmethod
         async def last(self, adult=False, lucky=False):
             if not adult and self.is_nsfw:
                 raise NSFWBreach
             return self
 
+        @abstractmethod
         async def related(self, adult=False, lucky=False):
             return NotImplemented
 
+        @abstractmethod
         async def anime(self, adult=False, lucky=False):
             return NotImplemented
 
+        @abstractmethod
         async def manga(self, adult=False, lucky=False):
             return NotImplemented
 
+        @abstractmethod
         async def character(self, adult=False, lucky=False):
             return NotImplemented
 
+        @abstractmethod
         @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
             return NotImplemented
 
+        @abstractmethod
         def to_embed(self):
             return NotImplemented
         # end class
@@ -308,6 +316,16 @@ class Otaku:
                 {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'isAdult': '_', 'siteUrl': '_', 'description': '_', 'episodes': '_', 'title': {'romaji': '_', 'english': '_', 'native': '_'}, 'status': '_', 'stats': {'scoreDistribution': {'score': '_', 'amount': '_'}}, 'startDate': {'year': '_', 'month': '_', 'day': '_'}, 'endDate': {'year': '_', 'month': '_', 'day': '_'}, 'coverImage': {'large': '_'}})})}
             )
             # @formatter:on
+
+        @staticmethod
+        def characters_query():
+            # @formatter:off
+            return Otaku.GraphQLKey.from_dict(
+                {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'characters': {'nodes': {'id': '_', 'name': {'first': '_', 'last': '_'}}}})})}
+            )
+            # @formatter:on
+
+
 
         @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):

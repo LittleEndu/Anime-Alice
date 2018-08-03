@@ -118,7 +118,7 @@ class Info:
     async def mutualservers(self, ctx, member: discord.Member = None):
         """Shows the servers both the bot and the user are in"""
         appender = self.bot.helper.AppendOrSend(ctx)
-        if member and not self.bot.is_owner(ctx.author):
+        if member and not await self.bot.is_owner(ctx.author):
             await ctx.send("I won't show you servers some other person is in")
             return
         elif member:
