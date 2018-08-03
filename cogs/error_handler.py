@@ -35,7 +35,7 @@ class InvokeHandler(DefaultHandler):
         if isinstance(err, commands.CommandInvokeError):
             if ctx.command.name == 'debug':
                 return
-            ctx.bot.logger.error("{}.{}".format(err.original.__class__.__module__, err.original.__class__.__name__))
+            ctx.bot.logger.error("CommandInvokeError {}.{}".format(err.original.__class__.__module__, err.original.__class__.__name__))
             ctx.bot.logger.debug("".join(traceback.format_exception(type(err), err, err.__traceback__)))
             ctx.bot.logger.debug(
                 "".join(traceback.format_exception(type(err), err.__cause__, err.__cause__.__traceback__))
