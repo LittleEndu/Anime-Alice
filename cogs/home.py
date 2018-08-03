@@ -11,8 +11,8 @@ from cogs import error_handler
 
 
 def owner_or_has_perms(**kwargs):
-    def inner(ctx: commands.Context):
-        if ctx.bot.is_owner(ctx.author):
+    async def inner(ctx: commands.Context):
+        if await ctx.bot.is_owner(ctx.author):
             return True
 
         ch = ctx.channel
