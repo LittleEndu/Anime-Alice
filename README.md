@@ -27,7 +27,7 @@ To make sure it works, please use the commands in all lowercase.
 These extra commands are available based on what was your last result:
 * Anime
   * ``!anime`` - Will show the last result
-  * ``!manga`` - *Currently doesn't work*
+  * ``!manga`` - Searches for the manga this anime is adapted from
   * ``!character`` - Searches for the characters in the anime
 * Manga
   * ``!anime`` - *Currently doesn't work*
