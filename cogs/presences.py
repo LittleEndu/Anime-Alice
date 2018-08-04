@@ -62,6 +62,15 @@ class Presences:
                                  f"{sum(not i.bot for i in guild.members)}/"
                                  f"{len(guild.members)}")
 
+    async def on_ready(self):
+        await self.presence()
+
+    async def presence(self):
+        game_name = random.choice((
+            f'prefix == mention',
+        ))
+        await self.bot.change_presence(activity=discord.Game(name=game_name), status=self.status)
+
     async def presence_updater(self):
         try:
             # Initial wait
@@ -74,10 +83,7 @@ class Presences:
                 try:
                     while not self.bot.is_ready():
                         await asyncio.sleep(0)
-                    game_name = random.choice((
-                        f'prefix == mention',
-                    ))
-                    await self.bot.change_presence(activity=discord.Game(name=game_name), status=self.status)
+                    await self.presence()
                     if self.dbl_client:
                         try:
                             await self.dbl_client.post_server_count()
