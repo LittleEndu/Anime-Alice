@@ -90,7 +90,7 @@ class Otaku:
                 anilist_scores[score['score'] // 10 - 1] = score['amount']
             result['alice_score'] = score_func(anilist_scores)
         except:
-            pass
+            result['alice_score'] = 'N/A'
         start_date = None
         end_date = None
         try:
@@ -239,12 +239,19 @@ class Otaku:
                 rv[self.name] = dd if dd else '_'
             return rv
 
+    # TODO: Remove duplicate code using the Asker
     class Medium:
-        def __init__(self, some_id, name, is_nsfw=False):
+        def __init__(self, some_id, name, *, is_nsfw=False, result: dict = None, **kwargs):
             self.id = some_id
             self.name = name
             self.is_nsfw = is_nsfw
             self.instance_created_at = time.time()
+            self.result = result or dict()
+
+        async def expand_result(self, graph_ql_key):
+            graph_ql = {'query': str(graph_ql_key),
+                        'variables': {'id': self.id}}
+            self.result = await Otaku.get_more_anilist_info(graph_ql, self.result)
 
         async def last(self, ctx: commands.Context, adult=False, lucky=False):
             if not adult and self.is_nsfw:
@@ -273,7 +280,7 @@ class Otaku:
 
     class Anime(Medium):
         def __init__(self, anilist_id, name, **kwargs):
-            super().__init__(anilist_id, name, kwargs.get('is_nsfw', False))
+            super().__init__(anilist_id, name, **kwargs)
             self.url = kwargs.get('url')
             self.romaji_name = kwargs.get('romaji_name', name)
             self.aliases = kwargs.get('aliases', [])
@@ -310,6 +317,14 @@ class Otaku:
             # @formatter:on
 
         @staticmethod
+        def manga_query():
+            # @formatter:off
+            return Otaku.GraphQLKey.from_dict(
+                {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'relations': {'edges': {'node': {'id': '_', 'title': {'romaji': '_', 'english': '_'}, 'format': '_', 'isAdult': '_', 'popularity': '_'}, 'relationType': '_'}}})})}
+            )
+            # @formatter:on
+
+        @staticmethod
         def characters_query():
             # @formatter:off
             return Otaku.GraphQLKey.from_dict(
@@ -317,14 +332,47 @@ class Otaku:
             )
             # @formatter:on
 
-        async def character(self, ctx:commands.Context, adult=False, lucky=False):
+        async def manga(self, ctx: commands.Context, adult=False, lucky=False):
+            await ctx.trigger_typing()
+            await self.expand_result(self.manga_query())
+            relations = self.result['relations']['edges']
+            skipped_adult = False
+            results = []
+            for rel in relations:
+                if rel['relationType'] != 'ADAPTATION':
+                    continue
+                if rel['node']['format'] not in ['MANGA', 'ONE_SHOT']:
+                    continue
+                if not adult and rel['node']['isAdult']:
+                    skipped_adult = True
+                    continue
+                results.append(rel['node'])
+            if not results:
+                if not adult and skipped_adult:
+                    raise NSFWBreach
+                return None
+            results.sort(key=lambda a: a['popularity'], reverse=True)
+            asking = []
+            for i in results:  # TODO: This is duplicate code
+                under = i['title']['english']
+                if under is not None:
+                    under = f"*{under}*"
+                else:
+                    under = ''
+                if i['format'] == 'ONE_SHOT':
+                    under += " __One shot__"
+                asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
+            index = 0
+            if not lucky:
+                index = await ctx.bot.helper.Asker(ctx, *asking)
+            return await Otaku.Manga.from_results(ctx, results[index])
+
+        async def character(self, ctx: commands.Context, adult=False, lucky=False):
             if not adult and self.is_nsfw:
                 raise NSFWBreach
-            graph_ql_key = self.characters_query()
-            graph_ql = {'query': str(graph_ql_key),
-                        'variables': {'id': self.id}}
-            result = await Otaku.get_more_anilist_info(graph_ql, dict())
-            characters = result['characters']['nodes']
+            await ctx.trigger_typing()
+            await self.expand_result(self.characters_query())
+            characters = self.result['characters']['nodes']
             if len(characters) == 0:
                 return None
             for i in characters:
@@ -410,7 +458,7 @@ class Otaku:
 
     class Manga(Medium):
         def __init__(self, anilist_id, name, **kwargs):
-            super().__init__(anilist_id, name, kwargs.get('is_nsfw', False))
+            super().__init__(anilist_id, name, **kwargs)
             self.url = kwargs.get('url')
             self.romaji_name = kwargs.get('romaji_name', name)
             self.aliases = kwargs.get('aliases', [])
@@ -523,10 +571,10 @@ class Otaku:
         # end class
 
     class Character(Medium):
-        def __init__(self, anilist_id, name, adult, **kwargs):
+        def __init__(self, anilist_id, name, **kwargs):
             super().__init__(anilist_id,
                              name=name,
-                             is_nsfw=adult)
+                             **kwargs)
             self.url = kwargs.get('url')
             self.native_name = kwargs.get('native_name')
             self.alternative_names = kwargs.get('alternative_names')
@@ -627,7 +675,7 @@ class Otaku:
                                                    Otaku.join_names(result['name']['first'], result['name']['last'])),
                                    native_name=result['name']['native'],
                                    alternative_names=result['name']['alternative'],
-                                   adult=result['isAdult'],
+                                   is_nsfw=result['isAdult'],
                                    description=result['description'],
                                    url=result['siteUrl'],
                                    cover_url=result['image']['large'])
@@ -773,7 +821,7 @@ class Otaku:
                 parent_name = 'last'
             func = getattr(medium, parent_name)
             try:
-                new_medium = await func(ctx, lucky=lucky)
+                new_medium = await func(ctx, adult=ctx.channel.nsfw, lucky=lucky)
             except asyncio.TimeoutError:
                 return
             except NSFWBreach:
