@@ -114,7 +114,7 @@ class HelpCommand:
     @commands.bot_has_permissions(embed_links=True)
     async def info(self, ctx):
         """
-        Description of the bot
+        Information about the bot
         """
         # Bot: https://discordapp.com/oauth2/authorize?client_id=354974625593032704&scope=bot&permissions=378944
         # Server: http://discord.gg/HheVh3A
@@ -164,6 +164,7 @@ I take my info from [AniList](https://anilist.co/).
     @commands.command(aliases=['desc'])
     @commands.bot_has_permissions(embed_links=True)
     async def description(self, ctx: commands.Context):
+        """Link to bot's description"""
         emb = discord.Embed(description="[Description on Github]"
                                         "(https://github.com/LittleEndu/Anime-Alice/blob/master/README.md)"
                                         "\n"
@@ -173,6 +174,7 @@ I take my info from [AniList](https://anilist.co/).
 
     @commands.command(aliases=['stats'])
     async def status(self, ctx: commands.Context):
+        """Technical information about bot"""
         uptime_value = display_time(time.time() - self.bot.real_start_time)
         discord_value = display_time(time.time() - self.bot.discord_start_time)
         latency = int(self.bot.latency * 1000)
@@ -194,6 +196,7 @@ I take my info from [AniList](https://anilist.co/).
 
     @commands.command()
     async def uptime(self, ctx):
+        """Shows how long the bot has been running for"""
         # noinspection PyTypeChecker
         await ctx.send(display_time(time.time() - self.bot.real_start_time, granularity=None))
 
