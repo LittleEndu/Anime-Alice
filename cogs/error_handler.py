@@ -116,7 +116,7 @@ class CanNotSendHandler(DefaultHandler):
             await super().handle(ctx, err)
 
 
-class MainErrorHandler:
+class HandlersManager:
     def __init__(self, *args, handlers: collections.Iterable = tuple()):
         self.handlers = list(args + tuple(i for i in handlers))
 
@@ -145,7 +145,7 @@ class MainErrorHandler:
 class ErrorCog:
     def __init__(self, bot: 'alice.Alice'):
         self.bot = bot
-        self.error_handler = MainErrorHandler()
+        self.error_handler = HandlersManager()
         self.error_handler.handlers.extend((
             InvokeHandler(),
             NotFoundHandler(),

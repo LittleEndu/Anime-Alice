@@ -194,6 +194,7 @@ I take my info from [AniList](https://anilist.co/).
 
     @commands.command()
     async def uptime(self, ctx):
+        # noinspection PyTypeChecker
         await ctx.send(display_time(time.time() - self.bot.real_start_time, granularity=None))
 
 def setup(bot: alice.Alice):
