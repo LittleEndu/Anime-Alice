@@ -853,14 +853,15 @@ class Otaku:
         else:
             # User wants to search something instead
             lucky = False
+            result_name = ctx.invoked_with
             if ctx.invoked_with.endswith('last'):
                 await ctx.send("This is not how you use this command...")
                 return
             elif ctx.invoked_with.startswith('!'):
                 result_name = ctx.invoked_with[1:]
                 lucky = True
-            else:
-                result_name = ctx.invoked_with
+            elif isinstance(ctx.channel, discord.DMChannel) and ctx.prefix and ctx.prefix[-1] == '!':
+                lucky = True
             await self.find_helper(ctx, result_name, query, lucky)
             try:
                 await ctx.message.delete()
