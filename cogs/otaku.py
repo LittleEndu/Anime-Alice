@@ -821,7 +821,8 @@ class Otaku:
                 parent_name = 'last'
             func = getattr(medium, parent_name)
             try:
-                new_medium = await func(ctx, adult=ctx.channel.nsfw, lucky=lucky)
+                nsfw = isinstance(ctx.channel, discord.DMChannel) or ctx.channel.nsfw
+                new_medium = await func(ctx, adult=nsfw, lucky=lucky)
             except asyncio.TimeoutError:
                 return
             except NSFWBreach:
