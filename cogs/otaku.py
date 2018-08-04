@@ -812,9 +812,11 @@ class Otaku:
                 return
             lucky = False
             if not ctx.invoked_with.endswith('last'):
-                if ctx.invoked_with[0] == '!' or isinstance(ctx.channel, discord.DMChannel) and ctx.prefix[-1] == '!':
+                if ctx.invoked_with[0] == '!':
                     lucky = True
                     parent_name = Otaku.mediums.get(ctx.invoked_with[1:]).__name__.lower()
+                elif isinstance(ctx.channel, discord.DMChannel) and ctx.prefix and ctx.prefix[-1] == '!':
+                    lucky = True
                 else:
                     parent_name = Otaku.mediums.get(ctx.invoked_with).__name__.lower()
             else:
