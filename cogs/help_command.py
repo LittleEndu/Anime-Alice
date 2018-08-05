@@ -8,11 +8,13 @@ import discord
 import psutil
 from discord.ext import commands
 
-def custom_ljust(value:str, length:int):
+
+def custom_ljust(value: str, length: int):
     want = length - len(value)
     if want < 1:
         return value
     return " ".join('\u200b' for _ in range(want + 1)) + value
+
 
 class HelpCommand:
     def __init__(self, bot: alice.Alice):
@@ -198,10 +200,31 @@ I take my info from [AniList](https://anilist.co/).
         await ctx.send(embed=emb)
 
     @commands.command()
-    async def uptime(self, ctx):
+    async def uptime(self, ctx: commands.Context):
         """Shows how long the bot has been running for"""
         # noinspection PyTypeChecker
         await ctx.send(self.bot.helper.display_time(time.time() - self.bot.real_start_time, granularity=None))
+
+    @commands.command()
+    async def vote(self, ctx: commands.Context):
+        """Shows information about voting on discordbots.org"""
+        if ctx.channel.permissions_for(ctx.me).embed_links:
+            emb = discord.Embed(title="Voting for me on discordbots.org?",
+                                description="Why yes, please do that.\n"
+                                            "[Here's a link for it.]"
+                                            "(https://discordbots.org/bot/354974625593032704/vote)")
+            emb.add_field(name="NB!",
+                          value="I grab votes using a webhook, "
+                                "meaning I only know about you voting while my HTTP server is running.\n"
+                                "So for any benefits (which there are like 0 of) you should vote while I'm not offline")
+            emb.set_thumbnail(url=ctx.me.avatar_url)
+            await ctx.send(embed=emb)
+        else:
+            await ctx.send("Voting for me on discordbots.org? Why yes, please do that. Here's a link for that:\n"
+                           "<https://discordbots.org/bot/354974625593032704/vote>\n"
+                           "**Do note that** I grab votes using a webhook, "
+                           "meaning I only know about you voting while my HTTP server is running.\n"
+                           "So for any benefits (which there are like 0 of) you should vote while I'm not offline")
 
 
 def setup(bot: alice.Alice):
