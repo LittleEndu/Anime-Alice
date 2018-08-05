@@ -33,7 +33,7 @@ class Admin:
         msg.author = member
         await self.bot.process_commands(msg)
 
-    @commands.command(hidden=True, aliases=['die', 'kys'])
+    @commands.command(hidden=True, aliases=['exit', 'die', 'kys'])
     @commands.is_owner()
     async def restart(self, ctx: commands.Context, *, reason: str = None):
         if not reason:
@@ -42,7 +42,7 @@ class Admin:
             out_file.write(reason)
         if not await self.bot.helper.react_or_false('\U0001f44b'):
             await ctx.send('\U0001f44b')
-        
+
         raise KeyboardInterrupt
 
 def setup(bot):
