@@ -13,7 +13,6 @@ class GuildChannelConverter(commands.Converter):
                or commands.VoiceChannelConverter().convert(ctx, argument)
 
 
-
 class Info:
     def __init__(self, bot: alice.Alice):
         self.bot = bot
@@ -135,10 +134,9 @@ class Info:
 
     @mutualservers.error
     async def servers_error(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
-            if await self.bot.is_owner(ctx.author):
-                await ctx.reinvoke()
-                return
+        if isinstance(error, commands.CommandOnCooldown) and await self.bot.is_owner(ctx.author):
+            await ctx.reinvoke()
+            return
         else:
             await self.bot.get_cog('ErrorCog').error_handler.handle(ctx, error)
 

@@ -28,6 +28,13 @@ class Admin:
     @commands.command(aliases=['doas', 'as'], hidden=True)
     @commands.is_owner()
     async def su(self, ctx: commands.Context, member: discord.Member, *, command: str):
+        prefixes = await self.bot.get_prefix(ctx.message)
+        for pre in prefixes:
+            if command.startswith(pre):
+                break
+        else:
+            await ctx.send("That's not a valid way to trigger a command")
+            return
         await ctx.send(f'Running that command as {member.display_name}')
         msg: discord.Message = await ctx.send(command)
         msg.author = member

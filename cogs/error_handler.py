@@ -98,7 +98,8 @@ class CooldownHandler(DefaultHandler):
         super().__init__(priority)
 
     async def handle(self, ctx: commands.Context, err: commands.CommandError):
-        if isinstance(err, commands.errors.CommandOnCooldown):
+        if isinstance(err, commands.CommandOnCooldown):
+            ctx.bot.logger.debug('Handling cooldown')
             if not await ctx.bot.helper.react_or_false(ctx, ("\u23f0",)):
                 await ctx.send("\u23f0 " + str(err))
         else:
@@ -151,6 +152,7 @@ class ErrorCog:
             NotFoundHandler(),
             CheckFailureHandler(),
             BadInputHandler(),
+            CooldownHandler(),
             CanNotSendHandler()
         ))
 

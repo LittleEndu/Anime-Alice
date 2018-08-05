@@ -402,10 +402,9 @@ class Alice(commands.Bot):
 
     @_latency.error
     async def latency_error(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
-            if await self.is_owner(ctx.author):
-                await ctx.reinvoke()
-                return
+        if isinstance(error, commands.CommandOnCooldown) and await self.is_owner(ctx.author):
+            await ctx.reinvoke()
+            return
         else:
             await self.get_cog('ErrorCog').error_handler.handle(ctx, err)
 
