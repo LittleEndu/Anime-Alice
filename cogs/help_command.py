@@ -209,7 +209,8 @@ I take my info from [AniList](https://anilist.co/).
     async def vote(self, ctx: commands.Context):
         """Shows information about voting on discordbots.org"""
         if ctx.channel.permissions_for(ctx.me).embed_links:
-            emb = discord.Embed(title="Voting for me on discordbots.org?",
+            emb = discord.Embed(colour=discord.Colour(0xe29b9b),
+                                title="Voting for me on discordbots.org?",
                                 description="Why yes, please do that.\n"
                                             "[Here's a link for it.]"
                                             "(https://discordbots.org/bot/354974625593032704/vote)")
