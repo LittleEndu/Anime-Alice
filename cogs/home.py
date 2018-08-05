@@ -54,6 +54,8 @@ class Home:
         coro = self.bot.loop.create_server(self.app._make_handler(loop=self.app.loop),
                                            host='0.0.0.0',
                                            port=1025)
+        # We are not using AppRunner API because it won't let us use the bot loop.
+        # Not a problem when the bot loop is same as default event loop, but still
         self.server_fut = asyncio.run_coroutine_threadsafe(coro, self.bot.loop)
         self.bot.loop.create_task(self.db_init())
         err_cog: error_handler.ErrorCog = self.bot.get_cog('ErrorCog')
