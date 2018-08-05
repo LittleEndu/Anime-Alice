@@ -162,7 +162,7 @@ class Info:
         emb = discord.Embed()
         emb.add_field(name="Here are the permissions:", value="\n".join(field[0]))
         emb.add_field(name="\u200b", value="\n".join(field[1]))
-        emb.set_footer(text=f"Permissions for {ctx.author.display_name} in {ctx.guild.name}")
+        emb.set_footer(text=f"Permissions for {member.display_name} in {ctx.guild.name}")
         await ctx.send(embed=emb)
 
     @commands.command()
@@ -189,7 +189,7 @@ class Info:
         emb.add_field(name="Here are the permissions:", value="\n".join(field[0]))
         emb.add_field(name="\u200b", value="\n".join(field[1]))
         # noinspection PyUnresolvedReferences
-        emb.set_footer(text=f"Permissions for {ctx.author.display_name} in {channel.name}")
+        emb.set_footer(text=f"Permissions for {member.display_name} in {channel.name}")
         await ctx.send(embed=emb)
 
 
