@@ -8,28 +8,6 @@ import discord
 import psutil
 from discord.ext import commands
 
-intervals = (
-    ('weeks', 604800),  # 60 * 60 * 24 * 7
-    ('days', 86400),  # 60 * 60 * 24
-    ('hours', 3600),  # 60 * 60
-    ('minutes', 60),
-    ('seconds', 1),
-)
-
-
-def display_time(seconds, granularity=2):
-    seconds = int(seconds)
-    result = []
-
-    for name, count in intervals:
-        value = seconds // count
-        if value:
-            seconds -= value * count
-            if value == 1:
-                name = name.rstrip('s')
-            result.append("{} {}".format(value, name))
-    return ', '.join(result[:granularity])
-
 
 class HelpCommand:
     def __init__(self, bot: alice.Alice):
@@ -175,11 +153,11 @@ I take my info from [AniList](https://anilist.co/).
     @commands.command(aliases=['stats'])
     async def status(self, ctx: commands.Context):
         """Technical information about bot"""
-        uptime_value = display_time(time.time() - self.bot.real_start_time)
-        discord_value = display_time(time.time() - self.bot.discord_start_time)
+        uptime_value = self.bot.helper.display_time(time.time() - self.bot.real_start_time)
+        discord_value = self.bot.helper.display_time(time.time() - self.bot.discord_start_time)
         latency = int(self.bot.latency * 1000)
         if latency > 1000:
-            latency = display_time(self.bot.latency)
+            latency = self.bot.helper.display_time(self.bot.latency)
         else:
             latency = str(latency) + ' ms'
         emb = discord.Embed()
@@ -199,7 +177,7 @@ I take my info from [AniList](https://anilist.co/).
     async def uptime(self, ctx):
         """Shows how long the bot has been running for"""
         # noinspection PyTypeChecker
-        await ctx.send(display_time(time.time() - self.bot.real_start_time, granularity=None))
+        await ctx.send(self.bot.helper.display_time(time.time() - self.bot.real_start_time, granularity=None))
 
 
 def setup(bot: alice.Alice):

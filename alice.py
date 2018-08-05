@@ -107,6 +107,13 @@ class Alice(commands.Bot):
 
     async def on_ready(self):
         self.discord_start_time = time.time()
+        if os.path.isfile('exit_channel'):
+            with open('exit_channel') as in_file:
+                channel_id = int(in_file.read())
+            restart_start = os.path.getmtime('exit_channel')
+            os.remove('exit_channel')
+            channel = self.get_channel(channel_id)
+            await channel.send(f"Restarting took {self.helper.display_time(self.discord_start_time - restart_start)}")
         self.logger.info('Logged in as')
         self.logger.info(self.user.name)
         self.logger.info(f"id:{self.user.id}")
