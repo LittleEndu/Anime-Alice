@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import inspect
 import itertools
 import time
 
@@ -252,6 +253,21 @@ class Otaku:
             graph_ql = {'query': str(graph_ql_key),
                         'variables': {'id': self.id}}
             self.result = await Otaku.get_more_anilist_info(graph_ql, self.result)
+
+        @classmethod
+        def callables(cls):
+            rv = []
+            for i in [j for j in dir(cls) if not j.startswith('_')]:
+                attr = getattr(cls, i)
+                signature = inspect.signature(attr)
+                if not signature.parameters:
+                    continue
+                if not len(signature.parameters) == 4:
+                    continue
+                if all(list(signature.parameters.keys())[i] == ['self', 'ctx', 'adult', 'lucky'][i] for i in range(4)):
+                    rv.append(attr.__name__)
+            rv.remove('last')
+            return rv
 
         async def last(self, ctx: commands.Context, adult=False, lucky=False):
             if not adult and self.is_nsfw:
@@ -798,8 +814,12 @@ class Otaku:
         except:
             pass
 
+    medium_aliases = list(itertools.chain.from_iterable(
+        (x, f"!{x}", f"{x}s", f"!{x}s") for x in Medium.callables())
+    )
+
     @commands.command(name="last",
-                      aliases=list(itertools.chain.from_iterable((x, f"!{x}") for x in mediums.keys())),
+                      aliases=medium_aliases,
                       hidden=True,
                       brief="Used for secondary functions. Read the bot ``description`` for more info.")
     @commands.bot_has_permissions(embed_links=True)
@@ -811,15 +831,17 @@ class Otaku:
                 await ctx.send("You haven't used any search commands yet")
                 return
             lucky = False
-            parent_name = Otaku.mediums.get(ctx.invoked_with).__name__.lower()
+            parent_name = ctx.invoked_with
             if not ctx.invoked_with.endswith('last'):
                 if ctx.invoked_with[0] == '!':
                     lucky = True
-                    parent_name = Otaku.mediums.get(ctx.invoked_with[1:]).__name__.lower()
+                    parent_name = ctx.invoked_with[1:]
                 elif isinstance(ctx.channel, discord.DMChannel) and ctx.prefix and ctx.prefix[-1] == '!':
                     lucky = True
             else:
                 parent_name = 'last'
+            if parent_name.endswith('s'):
+                parent_name = parent_name[:-1]
             func = getattr(medium, parent_name)
             try:
                 nsfw = isinstance(ctx.channel, discord.DMChannel) or ctx.channel.nsfw

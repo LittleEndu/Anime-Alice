@@ -56,7 +56,7 @@ class HelpCommand:
             help_text = command.help or command.brief or "This command doesnt have help text :/"
             aliases = ""
             if command.aliases:
-                aliases = f"[, {', '.join([f'``{i}``' for i in command.aliases])}]"
+                aliases = f" [, {', '.join([f'``{i}``' for i in command.aliases])}]"
             await ctx.send(f"``{command.name}``{aliases}\n\n{help_text}")
 
     @commands.command(name='commands')
