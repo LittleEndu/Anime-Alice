@@ -884,6 +884,8 @@ class Otaku:
                 lucky = True
             elif isinstance(ctx.channel, discord.DMChannel) and ctx.prefix and ctx.prefix[-1] == '!':
                 lucky = True
+            if query.startswith('!'):
+                lucky = True
             await self.find_helper(ctx, result_name, query, lucky)
             try:
                 await ctx.message.delete()
