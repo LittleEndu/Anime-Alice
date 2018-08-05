@@ -193,6 +193,7 @@ class Alice(commands.Bot):
             self.unload_extension("cogs.{}".format(extension))
         except:
             pass
+        importlib.invalidate_caches()  # Just for good measure
         try:
             self.load_extension("cogs.{}".format(extension))
         except Exception as err:
