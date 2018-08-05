@@ -122,12 +122,16 @@ class HandlersManager:
         self.handlers = list(args + tuple(i for i in handlers))
 
     def add_handler(self, handler: DefaultHandler):
+        if not isinstance(handler, DefaultHandler):
+            raise TypeError
         self.handlers.append(handler)
 
     async def handle(self, ctx: commands.Context, err: commands.CommandError):
         self.handlers.sort(key=lambda a: a.priority, reverse=True)
         for handler in self.handlers:
-            assert isinstance(handler, DefaultHandler)
+            if not isinstance(handler, DefaultHandler):
+                ctx.bot.logger.debug("Error handler tried using something that isn't DefaultHandler")
+                continue
             try:
                 await handler.handle(ctx, err)
                 return
