@@ -17,6 +17,7 @@ def custom_ljust(value: str, length: int):
 
 
 class HelpCommand:
+    """Meta commands about the bot"""
     def __init__(self, bot: alice.Alice):
         self.bot = bot
         self.cpu = 0
