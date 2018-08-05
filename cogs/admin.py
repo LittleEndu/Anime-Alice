@@ -40,7 +40,7 @@ class Admin:
             await ctx.send('You must provide a reason')
         with open('exit_reason', 'w') as out_file:
             out_file.write(reason)
-        if not await self.bot.helper.react_or_false('\U0001f44b'):
+        if not await self.bot.helper.react_or_false(ctx, '\U0001f44b'):
             await ctx.send('\U0001f44b')
 
         raise KeyboardInterrupt
