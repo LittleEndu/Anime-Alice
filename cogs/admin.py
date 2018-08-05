@@ -45,6 +45,7 @@ class Admin:
     async def restart(self, ctx: commands.Context, *, reason: str = None):
         if not reason:
             await ctx.send('You must provide a reason')
+            return
         with open('exit_reason', 'w') as out_file:
             out_file.write(reason)
         with open('exit_channel', 'w') as out_file:
