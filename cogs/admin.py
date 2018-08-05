@@ -42,7 +42,7 @@ class Admin:
             out_file.write(reason)
         if not await self.bot.helper.react_or_false(ctx, '\U0001f44b'):
             await ctx.send('\U0001f44b')
-
+        await self.bot.change_presence(status=discord.Status.invisible)
         raise KeyboardInterrupt
 
 def setup(bot):

@@ -151,9 +151,9 @@ class Presences:
         if emoji == 'offline':
             emoji = 'invisible'
         status = discord.Status[emoji]
-        current_activity = ctx.me.activity.name
+        current_activity = ctx.me.activity
         reaction = discord.utils.get(self.emojis, name=emoji)
-        await self.bot.change_presence(activity=discord.Game(name=current_activity), status=status)
+        await self.bot.change_presence(activity=current_activity, status=status)
         if not await self.bot.helper.react_or_false(ctx, ('\u2705', reaction)):
             await ctx.send(f'Set my status to {status}')
         with open('status', 'w') as out_file:
