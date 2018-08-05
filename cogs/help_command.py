@@ -192,6 +192,7 @@ I take my info from [AniList](https://anilist.co/).
 **``\u200b \u200b \u200b \u200b \u200b \u200bCPU``** - {int(self.cpu)}%
 **``\u200b \u200b \u200b \u200b \u200b \u200bRAM``** - {int(self.memory)}%
         """)
+        emb.add_field(name='Last restart reason', value=self.bot.exit_reason, inline=False)
         await ctx.send(embed=emb)
 
     @commands.command()
@@ -199,6 +200,7 @@ I take my info from [AniList](https://anilist.co/).
         """Shows how long the bot has been running for"""
         # noinspection PyTypeChecker
         await ctx.send(display_time(time.time() - self.bot.real_start_time, granularity=None))
+
 
 def setup(bot: alice.Alice):
     bot.add_cog(HelpCommand(bot))

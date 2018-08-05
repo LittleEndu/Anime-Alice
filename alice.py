@@ -46,6 +46,10 @@ class Alice(commands.Bot):
         if os.path.isfile('status'):
             with open('status') as in_file:
                 status = discord.Status[in_file.read()]
+        self.exit_reason = "Manual restart"
+        if os.path.isfile('exit_reason'):
+            with open('exit_reason') as in_file:
+                self.exit_reason = in_file.read()
         super().__init__(command_prefix=_prefix, status=status)
         self._config_name = config_name
 
