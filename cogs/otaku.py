@@ -505,6 +505,68 @@ class Otaku:
             # @formatter:on
 
         @staticmethod
+        def anime_query():
+            # @formatter:off
+            return Otaku.GraphQLKey.from_dict({'query': ('$id: Int', {'Media': ('id: $id, type: MANGA', {'id': '_', 'relations': {'edges': {'node': {'id': '_', 'type': '_', 'title': {'romaji': '_', 'english': '_'}, 'isAdult': '_', 'popularity': '_'}, 'relationType': '_'}}})})})
+            # @formatter:on
+
+        @staticmethod
+        def characters_query():
+            # @formatter:off
+            return Otaku.GraphQLKey.from_dict(
+                {'query': ('$id: Int', {'Media': ('id: $id, type: MANGA', {'id': '_', 'characters': {'nodes': {'id': '_', 'name': {'first': '_', 'last': '_'}}}})})}
+            )
+            # @formatter:on
+
+        async def anime(self, ctx: commands.Context, adult=False, lucky=False):
+            await ctx.trigger_typing()
+            await self.expand_result(self.anime_query())
+            relations = self.result['relations']['edges']
+            skipped_adult = False
+            results = []
+            for rel in relations:
+                if rel['relationType'] != 'ADAPTATION':
+                    continue
+                if rel['node']['type'] != 'ANIME':
+                    continue
+                if not adult and rel['node']['isAdult']:
+                    skipped_adult = True
+                    continue
+                results.append(rel['node'])
+            if not results:
+                if not adult and skipped_adult:
+                    raise NSFWBreach
+                return None
+            results.sort(key=lambda a: a['popularity'], reverse=True)
+            asking = []
+            for i in results:  # TODO: This is duplicate code
+                under = i['title']['english']
+                if under is not None:
+                    under = f"*{under}*"
+                else:
+                    under = ''
+                asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
+            index = 0
+            if not lucky:
+                index = await ctx.bot.helper.Asker(ctx, *asking)
+            return await Otaku.Anime.from_results(ctx, results[index])
+
+        async def character(self, ctx: commands.Context, adult=False, lucky=False):
+            if not adult and self.is_nsfw:
+                raise NSFWBreach
+            await ctx.trigger_typing()
+            await self.expand_result(self.characters_query())
+            characters = self.result['characters']['nodes']
+            if len(characters) == 0:
+                return None
+            for i in characters:
+                i['full_name'] = Otaku.join_names(i['name']['first'], i['name']['last'])
+            index = 0
+            if not lucky:
+                index = await ctx.bot.helper.Asker(ctx, *[i['full_name'] for i in characters])
+            return await Otaku.Character.from_results(ctx, characters[index], is_adult=self.is_nsfw)
+
+        @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
             # Searches Anilist for that query
             # Returns Manga()
