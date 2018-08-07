@@ -21,11 +21,14 @@ class Info:
 
     async def info_giver(self, ctx, member: discord.Member = None):
         if member is None:
-            if ctx.guild is not None:
+            if ctx.guild:
                 member = ctx.guild.get_member(self.bot.user.id)
             else:
                 member = ctx.channel.me
-        emb = discord.Embed()
+        if ctx.guild:
+            emb = discord.Embed(colour=member.top_role.colour)
+        else:
+            emb = discord.Embed()
         emb.set_author(name="Whois for {}#{}".format(member.display_name, member.discriminator),
                        icon_url=member.avatar_url)
         emb.set_thumbnail(url=member.avatar_url)
