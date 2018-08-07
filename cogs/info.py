@@ -34,7 +34,7 @@ class Info:
                       value=discord.utils.snowflake_time(member.id).strftime('%Y-%m-%d %H:%M'))
         try:
             emb.add_field(name="**Color**", value=str(member.color))
-            emb.add_field(name="**Joined {}**".format(member.guild.name)[:256],
+            emb.add_field(name="**Joined {}**".format(self.bot.helper.safety_escape_monospace(member.guild.name))[:256],
                           value=member.joined_at.strftime('%Y-%m-%d %H:%M'))
             if member.activity:
                 emb.add_field(name="**Status**",

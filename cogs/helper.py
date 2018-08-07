@@ -46,12 +46,12 @@ class Helper:
 
     @staticmethod
     def safety_escape_monospace(string: str):
-        safe = str(string).replace('`', '\u02cb').replace('*', '\u2217')
+        safe = str(string).replace('`', '\u02cb')
         return f"``{safe}``"
 
     @staticmethod
-    def saftey_escape_regular(string: str):
-        return str(string).replace('`', '\u02cb').replace('*', '\u2217')
+    def safety_escape_regular(string: str):
+        return str(string).replace('`', '\u02cb').replace('*', '\u2217').replace('@', '@\u200b')
 
     @staticmethod
     def chunks(l, n):
