@@ -51,7 +51,9 @@ class Helper:
 
     @staticmethod
     def safety_escape_regular(string: str):
-        return str(string).replace('`', '\u02cb').replace('*', '\u2217').replace('@', '@\u200b')
+        return str(string).replace(
+            '`', '\u02cb'
+        ).replace('*', '\u2217').replace('@', '@\u200b').replace('\#', '\#\u200b')
 
     @staticmethod
     def chunks(l, n):
