@@ -779,7 +779,9 @@ class Otaku:
             await ctx.send('No results...')
         else:
             embed: discord.Embed = medium.to_embed()
-            embed.set_footer(text=embed.footer.text + f" - Requested by {ctx.author.display_name}, {ctx.author.id}")
+            embed.set_footer(
+                text=embed.footer.text + f" ({medium.id}) - Requested by {ctx.author.display_name}, {ctx.author.id}"
+            )
             msg = await ctx.send(embed=embed)
             await msg.add_reaction('\U0001f6ae')
             self._last_medium[ctx.author.id] = medium
@@ -864,7 +866,10 @@ class Otaku:
                 await ctx.send('No results...')
             else:
                 embed: discord.Embed = new_medium.to_embed()
-                embed.set_footer(text=embed.footer.text + f" - Requested by {ctx.author.display_name}, {ctx.author.id}")
+                embed.set_footer(
+                    text=embed.footer.text +
+                         f" ({new_medium.id}) - Requested by {ctx.author.display_name}, {ctx.author.id}"
+                )
                 msg = await ctx.send(embed=embed)
                 await msg.add_reaction('\U0001f6ae')
                 self._last_medium[ctx.author.id] = new_medium
