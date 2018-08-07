@@ -30,9 +30,9 @@ These extra commands are available based on what was your last result:
   * ``!manga`` - Searches for the manga this anime is adapted from
   * ``!character`` - Searches for the characters in the anime
 * Manga
-  * ``!anime`` - *Currently doesn't work*
+  * ``!anime`` - Searches for any anime adaptations this manga might have
   * ``!manga`` - Will show the last result
-  * ``!character`` - *Currently doesn't work*
+  * ``!character`` - Searches for the characters in the manga
 * Character
   * ``!anime`` - *Currently doesn't work*
   * ``!manga`` - *Currently doesn't work*
