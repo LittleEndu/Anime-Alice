@@ -34,8 +34,8 @@ These extra commands are available based on what was your last result:
   * ``!manga`` - Will show the last result
   * ``!character`` - Searches for the characters in the manga
 * Character
-  * ``!anime`` - *Currently doesn't work*
-  * ``!manga`` - *Currently doesn't work*
+  * ``!anime`` - Searches for any anime this character appeared in
+  * ``!manga`` - Searches for any manga this character appeared in
   * ``!character`` - Will show the last result
 
 #### Prefix commands
