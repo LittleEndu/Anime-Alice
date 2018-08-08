@@ -88,27 +88,28 @@ class HelpCommand:
                 show = not i.hidden and can_run
                 if not show:
                     sorted_commands.remove(i)
+
+            prefix = ctx.prefix if len(ctx.prefix) < 5 else ""
             for i in sorted_commands:
                 if i.cog_name != last_cog:
                     last_cog = i.cog_name
                     if cog_names:
                         ll = max(map(len, cog_names))
                         for name in cog_names:
-                            command_names[name] = custom_ljust(name, ll)
+                            command_names[name] = custom_ljust(f"{prefix}{name}", ll)
                     cog_names = []
                 cog_names.append(i.name)
             ll = max(map(len, cog_names))
             for name in cog_names:
-                command_names[name] = custom_ljust(name, ll)
+                command_names[name] = custom_ljust(f"{prefix}{name}", ll)
+
             ctx.bot.logger.debug(command_names)
             for i in sorted_commands:
                 assert isinstance(i, commands.Command)
                 if i.cog_name != last_cog:
                     last_cog = i.cog_name
                     await appender.append(f"\n```\U0001f916 {last_cog} \U0001f916```")
-                new_line = "\n"  # Don't delete, used in nested fstring
-                help_string = i.brief or f'{i.help or ""}'.split(new_line)[0]
-                prefix = ctx.prefix if len(ctx.prefix) < 5 else ""
+                help_string = i.brief or f'{i.help or ""}'.split("\n")[0]
                 await appender.append(
                     f"**``{prefix}{command_names[i.name]}`` - **{f'{help_string}' if help_string else ''}\n"
                 )
