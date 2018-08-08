@@ -111,7 +111,7 @@ class HelpCommand:
                     await appender.append(f"\n```\U0001f916 {last_cog} \U0001f916```")
                 help_string = i.brief or f'{i.help or ""}'.split("\n")[0]
                 await appender.append(
-                    f"**``{prefix}{command_names[i.name]}`` - **{f'{help_string}' if help_string else ''}\n"
+                    f"**``{command_names[i.name]}`` - **{f'{help_string}' if help_string else ''}\n"
                 )
         if ctx.guild:
             if not await self.bot.helper.react_or_false(ctx, "\U0001f4eb"):
