@@ -96,12 +96,12 @@ class HelpCommand:
                     if cog_names:
                         ll = max(map(len, cog_names))
                         for name in cog_names:
-                            command_names[name] = custom_ljust(f"{prefix}{name}", ll)
+                            command_names[name] = custom_ljust(name, ll)
                     cog_names = []
-                cog_names.append(i.name)
+                cog_names.append(f"{prefix}{i.name}")
             ll = max(map(len, cog_names))
             for name in cog_names:
-                command_names[name] = custom_ljust(f"{prefix}{name}", ll)
+                command_names[name] = custom_ljust(name, ll)
 
             ctx.bot.logger.debug(command_names)
             for i in sorted_commands:
