@@ -252,7 +252,9 @@ class Otaku:
         async def expand_result(self, graph_ql_key):
             graph_ql = {'query': str(graph_ql_key),
                         'variables': {'id': self.id}}
-            self.result = await Otaku.get_more_anilist_info(graph_ql, self.result)
+            result_type = list(graph_ql_key.keys)[0].name
+            self.result = await Otaku.get_more_anilist_info(graph_ql, self.result, result_type=result_type)
+            return self.result
 
         @classmethod
         def callables(cls):
@@ -364,22 +366,22 @@ class Otaku:
                     continue
                 results.append(rel['node'])
             if not results:
-                if not adult and skipped_adult:
+                if skipped_adult:
                     raise NSFWBreach
                 return None
             results.sort(key=lambda a: a['popularity'], reverse=True)
-            asking = []
-            for i in results:  # TODO: This is duplicate code
-                under = i['title']['english']
-                if under is not None:
-                    under = f"*{under}*"
-                else:
-                    under = ''
-                if i['format'] == 'ONE_SHOT':
-                    under += " __One shot__"
-                asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
             index = 0
             if not lucky:
+                asking = []
+                for i in results:  # TODO: This is duplicate code
+                    under = i['title']['english']
+                    if under is not None:
+                        under = f"*{under}*"
+                    else:
+                        under = ''
+                    if i['format'] == 'ONE_SHOT':
+                        under += " __One shot__"
+                    asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
                 index = await ctx.bot.helper.Asker(ctx, *asking)
             return await Otaku.Manga.from_results(ctx, results[index])
 
@@ -409,9 +411,8 @@ class Otaku:
             results = await Otaku.get_anilist_results(graph_ql, adult)
 
             if results:
-                if lucky:
-                    index = 0  # Lucky search always returns most popular
-                else:
+                index = 0  # Lucky search always returns most popular
+                if not lucky:
                     asking = []
                     for i in results:
                         under = i['title']['english']
@@ -538,16 +539,16 @@ class Otaku:
                     raise NSFWBreach
                 return None
             results.sort(key=lambda a: a['popularity'], reverse=True)
-            asking = []
-            for i in results:  # TODO: This is duplicate code
-                under = i['title']['english']
-                if under is not None:
-                    under = f"*{under}*"
-                else:
-                    under = ''
-                asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
             index = 0
             if not lucky:
+                asking = []
+                for i in results:  # TODO: This is duplicate code
+                    under = i['title']['english']
+                    if under is not None:
+                        under = f"*{under}*"
+                    else:
+                        under = ''
+                    asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
                 index = await ctx.bot.helper.Asker(ctx, *asking)
             return await Otaku.Anime.from_results(ctx, results[index])
 
@@ -577,9 +578,8 @@ class Otaku:
 
             results = await Otaku.get_anilist_results(graph_ql, adult)
             if results:
-                if lucky:
-                    index = 0  # Lucky search always returns most popular
-                else:
+                index = 0  # Lucky search always returns most popular
+                if not lucky:
                     asking = []
                     for i in results:
                         under = i['title']['english']
@@ -677,6 +677,76 @@ class Otaku:
             # @formatter:on
 
         @staticmethod
+        def medium_query():
+            # @formatter:off
+            return Otaku.GraphQLKey.from_dict({'query': ('$id: Int', {'Character': ('id: $id', {'media': {'nodes': {'id': '_', 'title': {'romaji': '_', 'english': '_'}, 'popularity': '_', 'isAdult': '_', 'type': '_', 'format': '_'}}})})})
+            # @formatter:on
+
+        async def anime(self, ctx: commands.Context, adult=False, lucky=False):
+            await ctx.trigger_typing()
+            await self.expand_result(self.medium_query())
+            relations = self.result['media']['nodes']
+            skipped_adult = False
+            results = []
+            for rel in relations:
+                if rel['type'] != 'ANIME':
+                    continue
+                if rel['isAdult'] and not adult:
+                    skipped_adult = True
+                    continue
+                results.append(rel)
+            if not results:
+                if skipped_adult:
+                    raise NSFWBreach
+                return None
+            results.sort(key=lambda a: a['popularity'], reverse=True)
+            index = 0
+            if not lucky:
+                asking = []
+                for i in results:
+                    under = i['title']['english']
+                    if under is not None:
+                        under = f"*{under}*"
+                    else:
+                        under = ''
+                    asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
+                index = await ctx.bot.helper.Asker(ctx, *asking)
+            return await Otaku.Anime.from_results(ctx, results[index])
+
+        async def manga(self, ctx: commands.Context, adult=False, lucky=False):
+            await ctx.trigger_typing()
+            await self.expand_result(self.medium_query())
+            relations = self.result['media']['nodes']
+            skipped_adult = False
+            results = []
+            for rel in relations:
+                if rel['format'] not in ['MANGA', 'ONE_SHOT']:
+                    continue
+                if rel['isAdult'] and not adult:
+                    skipped_adult = True
+                    continue
+                results.append(rel)
+            if not results:
+                if skipped_adult:
+                    raise NSFWBreach
+                return None
+            results.sort(key=lambda a: a['popularity'], reverse=True)
+            index = 0
+            if not lucky:
+                asking = []
+                for i in results:  # TODO: This is duplicate code
+                    under = i['title']['english']
+                    if under is not None:
+                        under = f"*{under}*"
+                    else:
+                        under = ''
+                    if i['format'] == 'ONE_SHOT':
+                        under += " __One shot__"
+                    asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
+                index = await ctx.bot.helper.Asker(ctx, *asking)
+            return await Otaku.Manga.from_results(ctx, results[index])
+
+        @staticmethod
         async def via_search(ctx: commands.Context, query: str, adult=False, lucky=False):
             # Searches Anilist for that query
             # Returns Character()
@@ -697,23 +767,22 @@ class Otaku:
                     i['popularity'] = medias[0]['popularity']
                 results.sort(key=lambda a: a['popularity'], reverse=True)
 
-                asking = []
-                for i in results[:]:
-                    medias = i['media']['nodes']
-                    i['isAdult'] = False
-                    # TODO: also move this to its own method for Voice acter search later
-                    if not medias or medias[0]['isAdult']:
-                        if not medias or not adult:
-                            results.remove(i)  # Remove non-existings (and hentai)
-                            continue
-                        elif medias:
-                            i['isAdult'] = True  # Set hentai to true if we searching for it
-                    under = f"*From {medias[0]['title']['romaji']}*"
-                    i['full_name'] = Otaku.join_names(i['name']['first'], i['name']['last'])
-                    asking.append(f"  **{i['full_name']}**\n\t{under}")
-
                 index = 0  # Lucky search always returns most popular
                 if not lucky:
+                    asking = []
+                    for i in results[:]:
+                        medias = i['media']['nodes']
+                        i['isAdult'] = False
+                        # TODO: also move this to its own method for Voice acter search later
+                        if not medias or medias[0]['isAdult']:
+                            if not medias or not adult:
+                                results.remove(i)  # Remove non-existings (and hentai)
+                                continue
+                            elif medias:
+                                i['isAdult'] = True  # Set hentai to true if we searching for it
+                        under = f"*From {medias[0]['title']['romaji']}*"
+                        i['full_name'] = Otaku.join_names(i['name']['first'], i['name']['last'])
+                        asking.append(f"  **{i['full_name']}**\n\t{under}")
                     # Ask the user what anime they meant
                     index = await ctx.bot.helper.Asker(ctx, *asking)
 
@@ -831,6 +900,8 @@ class Otaku:
         assert issubclass(cls, Otaku.Medium)
         await ctx.trigger_typing()
         nsfw = isinstance(ctx.channel, discord.DMChannel) or ctx.channel.nsfw
+        if query.startswith('!'):
+            lucky = True
         try:
             medium = await cls.via_search(ctx, query, adult=nsfw, lucky=lucky)
         except asyncio.TimeoutError:
@@ -950,8 +1021,6 @@ class Otaku:
                 result_name = ctx.invoked_with[1:]
                 lucky = True
             elif isinstance(ctx.channel, discord.DMChannel) and ctx.prefix and ctx.prefix[-1] == '!':
-                lucky = True
-            if query.startswith('!'):
                 lucky = True
             await self.find_helper(ctx, result_name, query, lucky)
             try:

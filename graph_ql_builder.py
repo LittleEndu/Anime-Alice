@@ -138,7 +138,38 @@ class GraphQLKey:
 false = False
 true = True
 null = None
-dd = {'query': ('$id: Int', {'Media': ('id: $id, type: ANIME', {'id': '_', 'characters': {'nodes': {'id': '_', 'name': {'first': '_', 'last': '_'}}}})})}
+dd = {
+  "query": ('$id: Int',{
+    "Character": ('id: $id',{
+      "media": {
+        "nodes": [
+          {
+            "id": 21857,
+            "title": {
+              "romaji": "Masamune-kun no Revenge",
+              "english": "Masamune-kun's Revenge"
+            },
+            "popularity": 19142,
+            "isAdult": false,
+            "type": "ANIME",
+            "format": "TV"
+          },
+          {
+            "id": 76716,
+            "title": {
+              "romaji": "Masamune-kun no Revenge",
+              "english": "Masamune-kun’s Revenge"
+            },
+            "popularity": 3369,
+            "isAdult": false,
+            "type": "MANGA",
+            "format": "MANGA"
+          }
+        ]
+      }
+    })
+  })
+}
 graph = GraphQLKey.from_dict(dd)
 print(graph)
 print()
