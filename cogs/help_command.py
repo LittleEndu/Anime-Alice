@@ -18,6 +18,7 @@ def custom_ljust(value: str, length: int):
 
 class HelpCommand:
     """Meta commands about the bot"""
+
     def __init__(self, bot: alice.Alice):
         self.bot = bot
         self.cpu = 0
@@ -67,7 +68,7 @@ class HelpCommand:
                 aliases = f" [, {', '.join([f'``{i}``' for i in command.aliases])}]"
             await ctx.send(f"``{command.name}``{aliases}\n\n{help_text}")
 
-    @commands.command(name='commands')
+    @commands.command(name='commands', aliases=['cmds', 'cmd', 'command'])
     async def _commands(self, ctx):
         """
         Lists all visible commands
