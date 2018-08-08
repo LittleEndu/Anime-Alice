@@ -1,4 +1,5 @@
 import asyncio
+import collections
 import concurrent.futures
 import inspect
 import itertools
@@ -240,7 +241,6 @@ class Otaku:
                 rv[self.name] = dd if dd else '_'
             return rv
 
-    # TODO: Remove duplicate code using the Asker
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     class Medium:
         def __init__(self, some_id, name, *, is_nsfw=False, result: dict = None, **kwargs):
@@ -317,6 +317,18 @@ class Otaku:
                 raise NSFWBreach
             return self
 
+        @staticmethod
+        def generate_asking_list(results: collections.Iterable):
+            asking = []
+            for i in results:
+                under = i['title']['english']
+                if under is not None:
+                    under = f"*{under}*"
+                else:
+                    under = ''
+                asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
+            return asking
+
         # region Queries
         @staticmethod
         def search_query():
@@ -377,17 +389,7 @@ class Otaku:
             results.sort(key=lambda a: a['popularity'], reverse=True)  # Sort for lucky here
             index = 0
             if not lucky:  # Lucky check here
-                asking = []
-                for i in results:  # TODO: This is duplicate code
-                    under = i['title']['english']
-                    if under is not None:
-                        under = f"*{under}*"
-                    else:
-                        under = ''
-                    if i['format'] == 'ONE_SHOT':
-                        under += " __One shot__"
-                    asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
-                index = await ctx.bot.helper.Asker(ctx, *asking)
+                index = await ctx.bot.helper.Asker(ctx, *Otaku.Manga.generate_asking_list(results))
             return await Otaku.Manga.from_results(ctx, results[index])
 
         async def character(self, ctx: commands.Context, adult=False, lucky=False):
@@ -420,16 +422,7 @@ class Otaku:
             if results:
                 index = 0  # Lucky search always returns most popular
                 if not lucky:  # Lucky check here
-                    asking = []
-                    for i in results:
-                        under = i['title']['english']
-                        if under is not None:
-                            under = f"*{under}*"
-                        else:
-                            under = ''
-                        asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
-                    # Ask the user what anime they meant
-                    index = await ctx.bot.helper.Asker(ctx, *asking)
+                    index = await ctx.bot.helper.Asker(ctx, *Otaku.Anime.generate_asking_list(results))
                 return await Otaku.Anime.from_results(ctx, results[index])
 
         @staticmethod
@@ -500,6 +493,20 @@ class Otaku:
                 raise NSFWBreach
             return self
 
+        @staticmethod
+        def generate_asking_list(results: collections.Iterable):
+            asking = []
+            for i in results:
+                under = i['title']['english']
+                if under is not None:
+                    under = f"*{under}*"
+                else:
+                    under = ''
+                if i['format'] == 'ONE_SHOT':
+                    under += " __One shot__"
+                asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
+            return asking
+
         # region Queries
 
         @staticmethod
@@ -553,15 +560,7 @@ class Otaku:
             results.sort(key=lambda a: a['popularity'], reverse=True)  # Sort here
             index = 0
             if not lucky:  # Lucky check here
-                asking = []
-                for i in results:  # TODO: This is duplicate code
-                    under = i['title']['english']
-                    if under is not None:
-                        under = f"*{under}*"
-                    else:
-                        under = ''
-                    asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
-                index = await ctx.bot.helper.Asker(ctx, *asking)
+                index = await ctx.bot.helper.Asker(ctx, *Otaku.Anime.generate_asking_list(results))
             return await Otaku.Anime.from_results(ctx, results[index])
 
         async def character(self, ctx: commands.Context, adult=False, lucky=False):
@@ -594,18 +593,8 @@ class Otaku:
             if results:
                 index = 0  # Lucky search always returns most popular
                 if not lucky:  # Lucky check here
-                    asking = []
-                    for i in results:  # TODO This is duplicate code
-                        under = i['title']['english']
-                        if under is not None:
-                            under = f"*{under}*"
-                        else:
-                            under = ''
-                        if i['format'] == 'ONE_SHOT':
-                            under += " __One shot__"
-                        asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
                     # Ask the user what anime they meant
-                    index = await ctx.bot.helper.Asker(ctx, *asking)
+                    index = await ctx.bot.helper.Asker(ctx, *Otaku.Manga.generate_asking_list(results))
 
                 # Query Anilist for all information about that anime
 
@@ -721,15 +710,7 @@ class Otaku:
             results.sort(key=lambda a: a['popularity'], reverse=True)  # Sort here
             index = 0
             if not lucky:  # Lucky check here
-                asking = []
-                for i in results:  # TODO: This is duplicate code
-                    under = i['title']['english']
-                    if under is not None:
-                        under = f"*{under}*"
-                    else:
-                        under = ''
-                    asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
-                index = await ctx.bot.helper.Asker(ctx, *asking)
+                index = await ctx.bot.helper.Asker(ctx, *Otaku.Anime.generate_asking_list(results))
             return await Otaku.Anime.from_results(ctx, results[index])
 
         async def manga(self, ctx: commands.Context, adult=False, lucky=False):
@@ -753,17 +734,7 @@ class Otaku:
             results.sort(key=lambda a: a['popularity'], reverse=True)  # Sort here
             index = 0
             if not lucky:  # Lucky check here
-                asking = []
-                for i in results:  # TODO: This is duplicate code
-                    under = i['title']['english']
-                    if under is not None:
-                        under = f"*{under}*"
-                    else:
-                        under = ''
-                    if i['format'] == 'ONE_SHOT':
-                        under += " __One shot__"
-                    asking.append(f"  **{i['title']['romaji']}**\n\t{under}")
-                index = await ctx.bot.helper.Asker(ctx, *asking)
+                index = await ctx.bot.helper.Asker(ctx, *Otaku.Manga.generate_asking_list(results))
             return await Otaku.Manga.from_results(ctx, results[index])
 
         @staticmethod
