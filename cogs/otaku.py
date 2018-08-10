@@ -84,6 +84,8 @@ class Otaku:
             # Escape html that's in description
             # lxml seems to be the only thing that works
             result['description'] = BS(result['description'], "lxml").text
+            if not result['description']:
+                result['description'] = "N/A"
         except:
             pass
         try:
