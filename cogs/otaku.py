@@ -84,8 +84,6 @@ class Otaku:
             # Escape html that's in description
             # lxml seems to be the only thing that works
             result['description'] = BS(result['description'], "lxml").text
-            if not result['description']:
-                result['description'] = "N/A"
         except:
             pass
         try:
@@ -660,8 +658,8 @@ class Otaku:
                              **kwargs)
             self.url = kwargs.get('url')
             self.native_name = kwargs.get('native_name')
-            self.alternative_names = kwargs.get('alternative_names')
-            self.description = kwargs.get('description')
+            self.alternative_names = kwargs.get('alternative_names') or []
+            self.description = kwargs.get('description', 'N/A') or 'N/A'
             self.cover_url = kwargs.get('cover_url', 'https://puu.sh/vPxRa/6f563946ec.png')
 
         async def character(self, ctx: commands.Context, adult=False, lucky=False):
