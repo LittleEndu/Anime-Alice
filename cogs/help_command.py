@@ -116,6 +116,7 @@ class HelpCommand:
                     await appender.append(
                         f"**``{command_names[f'{prefix}{i.name}']}`` - **{f'{help_string}' if help_string else ''}\n"
                     )
+                await appender.append("\n\nDon't forget to also look at ``description`` command.")
 
         except (discord.HTTPException, discord.Forbidden):
             if not await self.bot.helper.react_or_false(ctx, '\u26a0'):
