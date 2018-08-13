@@ -56,6 +56,7 @@ class HelpCommand:
             await ctx.send(f"If you are reading this it means that I have failed to make my bot intuitive enough.\n"
                            f"You should contact me ({owner.name}#{owner.discriminator}) so we could fix it.\n"
                            f"Or maybe you just wanted to list all commands. Use ``{ctx.prefix}commands`` for that.\n"
+                           f"You should also look at ``{ctx.prefix}description`` for extended help on commands.\n"
                            f"Or if you want help on a specific command, do ``{ctx.prefix}help <command name>``.")
         else:
             command = self.bot.get_command(name)
@@ -75,6 +76,7 @@ class HelpCommand:
         """
         try:
             async with self.bot.helper.AppendOrSend(ctx.author) as appender:
+                await appender.append("Don't forget to also look at ``description`` command. \n\n")
                 last_cog = ""
                 sorted_commands = sorted(self.bot.commands, key=lambda a: a.cog_name + a.name)
                 command_names = dict()
@@ -114,10 +116,11 @@ class HelpCommand:
                     await appender.append(
                         f"**``{command_names[f'{prefix}{i.name}']}`` - **{f'{help_string}' if help_string else ''}\n"
                     )
+
         except (discord.HTTPException, discord.Forbidden):
             if not await self.bot.helper.react_or_false(ctx, '\u26a0'):
                 await ctx.send('\u26a0 Could not send the DM...')
-            return 
+            return
         if ctx.guild:
             if not await self.bot.helper.react_or_false(ctx, "\U0001f4eb"):
                 await ctx.send("Sent you the commands")
