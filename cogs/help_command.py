@@ -106,7 +106,6 @@ class HelpCommand:
                 for name in cog_names:
                     command_names[name] = custom_ljust(name, ll)
 
-                ctx.bot.logger.debug(command_names)
                 for i in sorted_commands:
                     assert isinstance(i, commands.Command)
                     if i.cog_name != last_cog:
