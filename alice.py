@@ -409,7 +409,7 @@ class Alice(commands.Bot):
         elif ctx.invoked_with in ['hello', 'hi', 'hey']:
             msg = await ctx.send("Hey")
         else:
-            msg = await ctx.send("\u200b")
+            msg = await ctx.send("\U0001f4e1")
         latency = msg.created_at.timestamp() - ctx.message.created_at.timestamp()
         await ctx.send("That took {}ms. Discord reports latency of {}ms".format(int(latency * 1000),
                                                                                 int(self.latency * 1000)))
