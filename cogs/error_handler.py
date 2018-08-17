@@ -7,6 +7,7 @@ from logging.handlers import RotatingFileHandler
 import discord
 from discord.ext import commands
 
+# noinspection PyUnreachableCode
 if False:
     import alice
 

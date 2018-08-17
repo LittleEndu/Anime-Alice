@@ -3,6 +3,7 @@ import asyncio
 import asyncpg
 import discord
 
+# noinspection PyUnreachableCode
 if False:
     import alice
 

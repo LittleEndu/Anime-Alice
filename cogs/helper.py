@@ -8,6 +8,7 @@ import async_timeout
 import discord
 from discord.ext import commands
 
+# noinspection PyUnreachableCode
 if False:
     import alice
 
@@ -183,7 +184,7 @@ class Helper:
                         for i in range(len(self.chunks[chunks_index]))
                     ]).strip()
                 )
-                if len(self.chunks)>1:
+                if len(self.chunks) > 1:
                     emb.set_footer(text="Say 'next' or 'back' to navigate the pages")
                 return emb
 
