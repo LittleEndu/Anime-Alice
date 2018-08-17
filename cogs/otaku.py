@@ -8,7 +8,7 @@ import time
 import aiohttp
 import dateutil.parser
 import discord
-from bs4 import BeautifulSoup as BS
+from bs4 import BeautifulSoup as Soup
 from discord.ext import commands
 
 import alice
@@ -27,7 +27,7 @@ class NSFWBreach(Exception):
 
 
 def merge(a, b, path=None):
-    "merges b into a"
+    """merges b into a"""
     if path is None:
         path = []
     for key in b:
@@ -43,6 +43,7 @@ def merge(a, b, path=None):
     return a
 
 
+# noinspection PyTypeChecker
 class Otaku:
     # region Helpers
     @staticmethod
@@ -83,7 +84,7 @@ class Otaku:
         try:
             # Escape html that's in description
             # lxml seems to be the only thing that works
-            result['description'] = BS(result['description'], "lxml").text
+            result['description'] = Soup(result['description'], "lxml").text
         except:
             pass
         try:
@@ -241,7 +242,7 @@ class Otaku:
                 rv[self.name] = dd if dd else '_'
             return rv
 
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    # noinspection PyMethodMayBeStatic, PyUnusedLocal, PyTypeChecker
     class Medium:
         def __init__(self, some_id, name, *, is_nsfw=False, result: dict = None, **kwargs):
             self.id = some_id
@@ -297,6 +298,7 @@ class Otaku:
             return NotImplemented
         # end class
 
+    # noinspection PyTypeChecker
     class Anime(Medium):
         def __init__(self, anilist_id, name, **kwargs):
             super().__init__(anilist_id, name, **kwargs)
@@ -473,6 +475,7 @@ class Otaku:
             return embed
         # end class
 
+    # noinspection PyTypeChecker
     class Manga(Medium):
         def __init__(self, anilist_id, name, **kwargs):
             super().__init__(anilist_id, name, **kwargs)
@@ -651,6 +654,7 @@ class Otaku:
             return embed
         # end class
 
+    # noinspection PyTypeChecker
     class Character(Medium):
         def __init__(self, anilist_id, name, **kwargs):
             super().__init__(anilist_id,

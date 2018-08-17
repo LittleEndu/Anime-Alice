@@ -40,6 +40,7 @@ class Presences:
         self.task.cancel()
 
     async def on_guild_join(self, guild: discord.Guild):
+        # noinspection PyUnresolvedReferences
         self.guilds_logger.debug(f"Joined new guild {guild.id}:\n"
                                  f"+ name={guild.name}\n"
                                  f"+ channels={len(guild.channels)}\n"
@@ -53,6 +54,7 @@ class Presences:
             self.guilds_logger.info(f'Joined guild {guild.id} seems to be full of bots')
 
     async def on_guild_remove(self, guild: discord.Guild):
+        # noinspection PyUnresolvedReferences
         self.guilds_logger.debug(f"Guild {guild.id} was removed:\n"
                                  f"- name={guild.name}\n"
                                  f"- channels={len(guild.channels)}\n"
