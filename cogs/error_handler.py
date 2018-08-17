@@ -25,17 +25,18 @@ class DefaultHandler(metaclass=ABCMeta):
     async def handle(self, ctx: commands.Context, err: commands.CommandError):
         raise UnhandledError
 
+    def __str__(self):
+        return f"<{self.__class__.__name__}>"
+
 
 class InvokeHandler(DefaultHandler):
-    def __init__(self, priority=0):
-        super().__init__(priority)
-
     async def handle(self, ctx: commands.Context, err: commands.CommandError):
         ctx.bot: 'alice.Alice' = ctx.bot
         if isinstance(err, commands.CommandInvokeError):
             if ctx.command.name == 'debug':
                 return
-            ctx.bot.logger.error("CommandInvokeError {}.{}".format(err.original.__class__.__module__, err.original.__class__.__name__))
+            ctx.bot.logger.error(
+                "CommandInvokeError {}.{}".format(err.original.__class__.__module__, err.original.__class__.__name__))
             ctx.bot.logger.debug("".join(traceback.format_exception(type(err), err, err.__traceback__)))
             ctx.bot.logger.debug(
                 "".join(traceback.format_exception(type(err), err.__cause__, err.__cause__.__traceback__))
@@ -48,9 +49,6 @@ class InvokeHandler(DefaultHandler):
 
 
 class NotFoundHandler(DefaultHandler):
-    def __init__(self, priority=1):
-        super().__init__(priority)
-
     async def handle(self, ctx: commands.Context, err: commands.CommandError):
         if isinstance(err, commands.errors.CommandNotFound):
             await ctx.bot.helper.react_or_false(ctx, ("\u2753",))
@@ -70,9 +68,6 @@ class NotFoundHandler(DefaultHandler):
 
 
 class CheckFailureHandler(DefaultHandler):
-    def __init__(self, priority=2):
-        super().__init__(priority)
-
     async def handle(self, ctx: commands.Context, err: commands.CommandError):
         if isinstance(err, commands.errors.CheckFailure):
             if any(i.__qualname__.startswith('is_owner') for i in ctx.command.checks):
@@ -83,9 +78,6 @@ class CheckFailureHandler(DefaultHandler):
 
 
 class BadInputHandler(DefaultHandler):
-    def __init__(self, priority=3):
-        super().__init__(priority)
-
     async def handle(self, ctx: commands.Context, err: commands.CommandError):
         if isinstance(err, commands.UserInputError):
             await ctx.send("\u274c Bad argument: {}".format(' '.join(err.args)))
@@ -93,13 +85,18 @@ class BadInputHandler(DefaultHandler):
             await super().handle(ctx, err)
 
 
-class CooldownHandler(DefaultHandler):
-    def __init__(self, priority=4):
-        super().__init__(priority)
+class ConversionHandler(DefaultHandler):
+    async def handle(self, ctx: commands.Context, err: commands.CommandError):
+        if isinstance(err, commands.errors.ConversionError):
+            await ctx.send("\u274c Bad argument: Failed to use converter. "
+                           "You shouldn't see this error, please report it")
+        else:
+            await super().handle(ctx, err)
 
+
+class CooldownHandler(DefaultHandler):
     async def handle(self, ctx: commands.Context, err: commands.CommandError):
         if isinstance(err, commands.CommandOnCooldown):
-            ctx.bot.logger.debug('Handling cooldown')
             if not await ctx.bot.helper.react_or_false(ctx, ("\u23f0",)):
                 await ctx.send("\u23f0 " + str(err))
         else:
@@ -137,8 +134,9 @@ class HandlersManager:
                 return
             except UnhandledError:
                 continue
-            except Exception:
-                ctx.bot.logger.debug("Couldn't handle this command error correctly")
+            except Exception as e:
+                ctx.bot.logger.debug(f"{handler} couldn't handle {err.__class__.__name__} error correctly")
+                ctx.bot.logger.debug(f"It raised: {repr(e)}")
                 continue
         ctx.bot.logger.debug(f'Unhandled error of type {type(err)}')
         try:
@@ -151,14 +149,17 @@ class ErrorCog:
     def __init__(self, bot: 'alice.Alice'):
         self.bot = bot
         self.error_handler = HandlersManager()
-        self.error_handler.handlers.extend((
-            InvokeHandler(),
-            NotFoundHandler(),
-            CheckFailureHandler(),
-            BadInputHandler(),
-            CooldownHandler(),
-            CanNotSendHandler()
-        ))
+        handlers = [
+            InvokeHandler,
+            NotFoundHandler,
+            CheckFailureHandler,
+            BadInputHandler,
+            ConversionHandler,
+            CooldownHandler
+        ]
+        for priority, cls in enumerate(handlers):
+            self.error_handler.add_handler(cls(priority=priority))
+        self.error_handler.add_handler(CanNotSendHandler())
 
     def add_handler(self, handler: DefaultHandler):
         self.error_handler.add_handler(handler)
