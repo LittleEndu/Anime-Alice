@@ -149,7 +149,7 @@ class Info:
         """Shows what are the users permissions"""
         perms = [name for name in dir(discord.Permissions) if isinstance(getattr(discord.Permissions, name), property)]
         if member is None:
-            member = ctx.author
+            member = ctx.me
         member_perms = member.guild_permissions
         field = [[], []]
         yes = '\U00002705'
@@ -175,7 +175,7 @@ class Info:
         assert isinstance(channel, discord.abc.GuildChannel)
         perms = [name for name in dir(discord.Permissions) if isinstance(getattr(discord.Permissions, name), property)]
         if member is None:
-            member = ctx.author
+            member = ctx.me
         member_perms = channel.permissions_for(member)
         field = [[], []]
         yes = '\U00002705'
