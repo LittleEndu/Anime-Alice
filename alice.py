@@ -86,11 +86,13 @@ class Alice(commands.Bot):
         sh.setLevel(logging.INFO)
         sh.setFormatter(formatter)
 
+        root_logger.handlers = []
         root_logger.addHandler(fh)
         root_logger.addHandler(sh)
         root_logger.addHandler(dh)
         root_logger.setLevel(1)
 
+        self.logger.handlers = []
         self.logger.addHandler(self.alice_handler)
         self.logger.setLevel(1)
 
