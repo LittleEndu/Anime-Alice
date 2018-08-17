@@ -297,7 +297,7 @@ class Alice(commands.Bot):
             await ctx.send(embed=emb)
         else:
             await ctx.send("```xl\nOutput: {}\nOutput class: {} {} {}```".format(
-                self.helper.saftey_escape_regular(safe_result)[:1500],
+                self.helper.safety_escape_regular(safe_result)[:1500],
                 result_class,
                 "| Command has been awaited" if has_been_awaited else "",
                 "| Result has been cut" if result_too_big else ""))
@@ -380,14 +380,14 @@ class Alice(commands.Bot):
 
             if ret is None:
                 if value:
-                    value = self.helper.saftey_escape_regular(value)
+                    value = self.helper.safety_escape_regular(value)
                     await self.send_or_post_hastebin(ctx, f'```py\n{value}\n```')
             else:
                 self._last_result = ret
                 for sens in [self.config.get(i) for i in self.config.get('unsafe_to_expose')]:
                     # noinspection PyUnresolvedReferences
                     ret = str(ret).replace(sens, '\u2588' * 10)
-                ret = self.helper.saftey_escape_regular(ret)
+                ret = self.helper.safety_escape_regular(ret)
                 await self.send_or_post_hastebin(ctx, f'```py\n{value}{ret}\n```')
         await self.helper.react_or_false(ctx, ['\U0001f502'])
         if hasattr(ctx, 're_runner'):
