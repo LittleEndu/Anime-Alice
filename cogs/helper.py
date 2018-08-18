@@ -257,7 +257,7 @@ class Helper:
                     return all([
                         u.id == self.ctx.author.id,
                         r.message.id == msg.id,
-                        0 < Helper.reaction_to_number(r.emoji) <= len(self.choices)
+                        0 < Helper.reaction_to_number(r.emoji) <= len(self.chunks[chunks_index])
                     ])
 
                 reaction, user = await self.ctx.bot.wait_for('reaction_add', check=reaction_check)
@@ -276,7 +276,7 @@ class Helper:
                         return all([
                             message.author.id == self.ctx.author.id,
                             message.channel.id == self.ctx.channel.id,
-                            0 < number <= len(self.choices)
+                            0 < number <= len(self.chunks[chunks_index])
                         ])
 
                 msg = await self.ctx.bot.wait_for('message', check=message_check)
@@ -353,6 +353,7 @@ class Helper:
         def _get_all(self):
             return self.data + self.joining_data
 
+        # TODO: Make it so you could append data bigger than 2000 characters
         async def append(self, arg: str):
             if self.joining_data:
                 self.data = self._get_all()
