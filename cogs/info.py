@@ -32,22 +32,22 @@ class Info:
         emb.set_author(name="Whois for {}#{}".format(member.display_name, member.discriminator),
                        icon_url=member.avatar_url)
         emb.set_thumbnail(url=member.avatar_url)
-        emb.add_field(name="**ID**", value=member.id)
-        emb.add_field(name="**Joined Discord**",
+        emb.add_field(name="ID", value=member.id)
+        emb.add_field(name="Joined Discord",
                       value=discord.utils.snowflake_time(member.id).strftime('%Y-%m-%d %H:%M'))
         try:
-            emb.add_field(name="**Color**", value=str(member.color))
-            emb.add_field(name="**Joined {}**".format(self.bot.helper.safety_escape_monospace(member.guild.name))[:256],
+            emb.add_field(name="Color", value=str(member.color))
+            emb.add_field(name="Joined {}".format(self.bot.helper.safety_escape_monospace(member.guild.name))[:256],
                           value=member.joined_at.strftime('%Y-%m-%d %H:%M'))
             if member.activity:
-                emb.add_field(name="**Status**",
+                emb.add_field(name="Status",
                               value=f'{member.activity.type.name.capitalize()} {member.activity.name}')
             roles = ", ".join([r.mention for r in member.roles[1:]])
             if roles and len(roles) < 500:
-                emb.add_field(name="**Roles**", value=roles)
+                emb.add_field(name="Roles", value=roles)
         except:
             pass
-        emb.add_field(name="**Avatar url**", value="[Here]({})".format(member.avatar_url))
+        emb.add_field(name="Avatar url", value="[Here]({})".format(member.avatar_url))
         try:
             await ctx.send(embed=emb)
         except:
