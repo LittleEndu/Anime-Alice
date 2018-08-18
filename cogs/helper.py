@@ -185,7 +185,7 @@ class Helper:
                     ]).strip()
                 )
                 if len(self.chunks) > 1:
-                    emb.set_footer(text="Say 'next' or 'back' to navigate the pages")
+                    emb.set_footer(text=f"Page {chunks_index+1}/{len(self.chunks)}. Say 'next' or 'back' to navigate")
                 return emb
 
             async def navigation_manager_r(msg: discord.Message):
@@ -220,22 +220,20 @@ class Helper:
                         m.content[0].lower() in "nb"
                     ])
 
-                messages = list()
                 while True:
                     try:
                         message = await self.ctx.bot.wait_for('message', check=message_check)
                         nonlocal chunks_index
                         chunks_index += "b_n".find(message.content[0].lower()) - 1
                         chunks_index %= len(self.chunks)
-                        messages.append(message)
+                        try:
+                            await message.delete()
+                        except discord.Forbidden:
+                            pass
                         await msg.edit(embed=embed_helper())
                         nonlocal wait_until
                         wait_until = time.time() + 60
                     except concurrent.futures.CancelledError:
-                        try:
-                            await self.ctx.channel.delete_messages(messages)
-                        except:
-                            pass
                         break
 
             async def stop_waiter(msg: discord.Message, choice_fut: asyncio.Future):
