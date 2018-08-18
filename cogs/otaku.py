@@ -457,7 +457,7 @@ class Otaku:
             embed.add_field(name="Score", value=str(self.alice_score)[:4] if self.alice_score else "N/A")
             text = self.description
             if len(text) > 300:
-                text = " ".join(text[:300].split()[:-1])
+                text = " ".join(text[:300].split(' ')[:-1])
                 embed.add_field(name="Synopsis", value=text + " ...", inline=False)
             else:
                 embed.add_field(name="Synopsis", value=text, inline=False)
@@ -636,7 +636,7 @@ class Otaku:
             embed.add_field(name="Score", value=str(self.alice_score)[:4] if self.alice_score else "N/A")
             text = self.description
             if len(text) > 300:
-                text = " ".join(text[:300].split()[:-1])
+                text = " ".join(text[:300].split(' ')[:-1])
                 embed.add_field(name="Synopsis", value=text + " ...", inline=False)
             else:
                 embed.add_field(name="Synopsis", value=text, inline=False)
@@ -832,7 +832,7 @@ class Otaku:
             embed.set_thumbnail(url=self.cover_url)
             text = self.description
             if len(text) > 300:
-                text = " ".join(text[:300].split()[:-1])
+                text = " ".join(text[:300].split(' ')[:-1])
                 embed.add_field(name="Description", value=text + " ...", inline=False)
             else:
                 embed.add_field(name="Description", value=text, inline=False)
