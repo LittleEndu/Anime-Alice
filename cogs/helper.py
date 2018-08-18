@@ -214,6 +214,8 @@ class Helper:
 
             async def navigation_manager_m(msg: discord.Message):
                 def message_check(m: discord.Message):
+                    if not m.content:
+                        return False
                     return all([
                         m.author.id == self.ctx.author.id,
                         m.channel.id == self.ctx.channel.id,
