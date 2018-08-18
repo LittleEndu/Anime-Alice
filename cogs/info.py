@@ -42,8 +42,8 @@ class Info:
             if member.activity:
                 emb.add_field(name="**Status**",
                               value=f'{member.activity.type.name.capitalize()} {member.activity.name}')
-            roles = ", ".join([r.name for r in member.roles])
-            if len(roles) < 500:
+            roles = ", ".join([r.mention for r in member.roles[1:]])
+            if roles and len(roles) < 500:
                 emb.add_field(name="**Roles**", value=roles)
         except:
             pass
