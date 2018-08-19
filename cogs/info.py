@@ -145,6 +145,7 @@ class Info:
 
     @commands.command(aliases=['permissionsfor'])
     @commands.guild_only()
+    @commands.bot_has_permissions(embed_links=True, external_emojis=True)
     async def permissions(self, ctx, member: discord.Member = None):
         """Shows what are the users permissions"""
         perms = [name for name in dir(discord.Permissions) if isinstance(getattr(discord.Permissions, name), property)]
@@ -170,6 +171,7 @@ class Info:
 
     @commands.command()
     @commands.guild_only()
+    @commands.bot_has_permissions(embed_links=True, external_emojis=True)
     async def permissionsin(self, ctx, channel: GuildChannelConverter, member: discord.Member = None):
         """Shows what are the users permissions"""
         assert isinstance(channel, discord.abc.GuildChannel)
