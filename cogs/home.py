@@ -65,7 +65,6 @@ class Home:
     async def db_init(self):
         while not self.bot.database:
             await asyncio.sleep(0)
-        await self.bot.database.wait_for_start()
         await self.bot.database.create_votes_table()
 
     def __unload(self):

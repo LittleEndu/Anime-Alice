@@ -17,10 +17,6 @@ class Database:
         self.password = password
         self.pool: asyncpg.pool.Pool = None
 
-    async def wait_for_start(self):
-        while not self.pool:
-            await asyncio.sleep(0)
-
     async def start(self):
         self.pool = await asyncpg.create_pool(host=self.db_host,
                                               database=self.db_name,
