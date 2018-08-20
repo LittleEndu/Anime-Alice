@@ -63,7 +63,7 @@ class HelpCommand:
             cog = self.bot.get_cog(name.capitalize())
             if not command:
                 if cog:
-                    await ctx.send('That is a cog... You need a command name')
+                    await ctx.send('That is a cog... Give me a command name')
                 else:
                     await ctx.send('Unable to find that command')
                 return
