@@ -931,7 +931,15 @@ class Otaku:
         if not result_name in Otaku.mediums:
             raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
         if query is None:
-            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
+            try:
+                query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
+            except concurrent.futures.TimeoutError:
+                try:
+                    await ctx.message.delete()
+                except:
+                    pass
+                finally:
+                    return
         await self.find_helper(ctx, result_name, query, False)
         try:
             await ctx.message.delete()
@@ -941,12 +949,24 @@ class Otaku:
     @commands.command(name='lucky', aliases=['luckysearch', '!'])
     @commands.bot_has_permissions(embed_links=True)
     async def _lucky(self, ctx, result_name: str, *, query: str = None):
-        """Perform a lucky search"""
+        """
+        Perform a lucky search
+
+        For more info about what you can search, read the bot ``description``
+        """
         result_name = result_name.lower()
         if not result_name in Otaku.mediums:
             raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
         if query is None:
-            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
+            try:
+                query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
+            except concurrent.futures.TimeoutError:
+                try:
+                    await ctx.message.delete()
+                except:
+                    pass
+                finally:
+                    return
         await self.find_helper(ctx, result_name, query, True)
         try:
             await ctx.message.delete()
