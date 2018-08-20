@@ -1,12 +1,12 @@
+import asyncio
 import concurrent.futures
 import time
 
-import asyncio
-
-import alice
 import discord
 import psutil
 from discord.ext import commands
+
+import alice
 
 
 def custom_ljust(value: str, length: int):
@@ -44,7 +44,7 @@ class HelpCommand:
                 break
 
     @commands.command(name='help', hidden=True)
-    async def _help(self, ctx, *, name=None):
+    async def _help(self, ctx, *, name: str = None):
         """
         Used to see help text on commands
         """
@@ -59,9 +59,13 @@ class HelpCommand:
                            f"You should also look at ``{ctx.prefix}description`` for extended help on commands.\n"
                            f"Or if you want help on a specific command, do ``{ctx.prefix}help <command name>``.")
         else:
-            command = self.bot.get_command(name)
+            command = self.bot.get_command(name.lower())
+            cog = self.bot.get_cog(name.capitalize())
             if not command:
-                await ctx.send('Unable to find that command')
+                if cog:
+                    await ctx.send('That is a cog... You need a command name')
+                else:
+                    await ctx.send('Unable to find that command')
                 return
             help_text = command.help or command.brief or "This command doesnt have help text :/"
             aliases = ""

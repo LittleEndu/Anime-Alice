@@ -19,6 +19,7 @@ ANILIST_QUERY_URL = 'https://graphql.anilist.co'
 class ResponseError(Exception):
     def __init__(self, status, *args, **kwargs):
         self.status = status
+        super().__init__(*args, **kwargs)
     # end class
 
 
