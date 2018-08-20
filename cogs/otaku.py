@@ -922,7 +922,11 @@ class Otaku:
     @commands.command(name='search', aliases=['find', '?'])
     @commands.bot_has_permissions(embed_links=True)
     async def _search(self, ctx, result_name: str, *, query: str = None):
-        """Perform a search"""
+        """
+        Perform a search
+
+        For more info about what you can search, read the bot ``description``
+        """
         result_name = result_name.lower()
         if not result_name in Otaku.mediums:
             raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
