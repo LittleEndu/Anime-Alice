@@ -66,7 +66,7 @@ class Info:
     async def owner(self, ctx):
         await ctx.send("Use ``serverowner`` or ``botowner`` instead")
 
-    @whois.command()
+    @whois.command(aliases=['yourowner'])
     @commands.bot_has_permissions(embed_links=True)
     async def botowner(self, ctx):
         try:
@@ -161,7 +161,7 @@ class Info:
             if getattr(member_perms, perm):
                 value = yes
             # noinspection PyTypeChecker
-            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}")
+            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}\u200b \u200b")
             index += 1
         emb = discord.Embed()
         emb.add_field(name="Here are the permissions:", value="\n".join(field[0]))
@@ -188,7 +188,7 @@ class Info:
             if getattr(member_perms, perm):
                 value = yes
             # noinspection PyTypeChecker
-            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}")
+            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}\u200b \u200b")
             index += 1
         emb = discord.Embed()
         emb.add_field(name="Here are the permissions:", value="\n".join(field[0]))
