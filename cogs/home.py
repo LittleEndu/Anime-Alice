@@ -86,14 +86,8 @@ class Home:
             await self.bot.wait_until_ready()
             self.my_guild = discord.utils.get(self.bot.guilds, owner=self.bot.user)
         if member.guild == self.my_guild:
-            name = member.display_name
-            while name and name < 'A':
-                name = name[1:]
-            if name != member.display_name:
-                if name:
-                    await member.edit(nick=name)
-                else:
-                    await member.edit(nick="\u2744")
+            if member.display_name < 'A':
+                await member.edit(nick=f"\u200b{member.display_name[:31]}")
 
     async def on_member_update(self, before: discord.Member, after: discord.Member):
         await self.punish_hoisters(after)
