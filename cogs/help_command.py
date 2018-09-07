@@ -54,13 +54,15 @@ class HelpCommand:
             except:
                 if self.bot.owner_id is None:
                     app = await self.bot.application_info()
-                    self.bot.owner_id = app.owner.id
-                owner = self.bot.get_user(self.bot.owner_id)
+                    self.bot.owner_id = app.owner
+                else:
+                    owner = self.bot.get_user(self.bot.owner_id)
+            prefix = ctx.prefix if len(ctx.prefix) < 10 else ""
             await ctx.send(f"If you are reading this it means that I have failed to make my bot intuitive enough.\n"
                            f"You should contact me ({owner.name}#{owner.discriminator}) so we could fix it.\n"
-                           f"Or maybe you just wanted to list all commands. Use ``{ctx.prefix}commands`` for that.\n"
-                           f"You should also look at ``{ctx.prefix}description`` for extended help on commands.\n"
-                           f"Or if you want help on a specific command, do ``{ctx.prefix}help <command name>``.")
+                           f"Or maybe you just wanted to list all commands. Use ``{prefix}commands`` for that.\n"
+                           f"You should also look at ``{prefix}description`` for extended help on commands.\n"
+                           f"Or if you want help on a specific command, do ``{prefix}help <command name>``.")
         else:
             command = self.bot.get_command(name.lower())
             cog = self.bot.get_cog(name.capitalize())
