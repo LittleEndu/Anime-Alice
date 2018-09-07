@@ -52,6 +52,9 @@ class HelpCommand:
             try:
                 owner = ctx.guild.get_member(self.bot.owner_id)
             except:
+                if self.bot.owner_id is None:
+                    app = await self.bot.application_info()
+                    self.bot.owner_id = app.owner.id
                 owner = self.bot.get_user(self.bot.owner_id)
             await ctx.send(f"If you are reading this it means that I have failed to make my bot intuitive enough.\n"
                            f"You should contact me ({owner.name}#{owner.discriminator}) so we could fix it.\n"
