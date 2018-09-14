@@ -919,7 +919,7 @@ class Otaku:
             await msg.add_reaction('\U0001f6ae')
             self._last_medium[ctx.author.id] = medium
 
-    @commands.command(name='search', aliases=['find', '?'])
+    @commands.command(name='search', aliases=['find', '?', 'luckysearch', 'lucky', '!'])
     @commands.bot_has_permissions(embed_links=True)
     async def _search(self, ctx, result_name: str, *, query: str = None):
         """
@@ -927,7 +927,11 @@ class Otaku:
 
         For more info about what you can search, read the bot ``description``
         """
+        lucky = ctx.invokedwith in ['luckysearch', 'lucky', '!']
         result_name = result_name.lower()
+        if result_name.startswith('!'):
+            result_name = result_name[1:]
+            lucky = True
         if not result_name in Otaku.mediums:
             raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
         if query is None:
@@ -940,34 +944,7 @@ class Otaku:
                     pass
                 finally:
                     return
-        await self.find_helper(ctx, result_name, query, False)
-        try:
-            await ctx.message.delete()
-        except:
-            pass
-
-    @commands.command(name='lucky', aliases=['luckysearch', '!'])
-    @commands.bot_has_permissions(embed_links=True)
-    async def _lucky(self, ctx, result_name: str, *, query: str = None):
-        """
-        Perform a lucky search
-
-        For more info about what you can search, read the bot ``description``
-        """
-        result_name = result_name.lower()
-        if not result_name in Otaku.mediums:
-            raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
-        if query is None:
-            try:
-                query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
-            except concurrent.futures.TimeoutError:
-                try:
-                    await ctx.message.delete()
-                except:
-                    pass
-                finally:
-                    return
-        await self.find_helper(ctx, result_name, query, True)
+        await self.find_helper(ctx, result_name, query, lucky)
         try:
             await ctx.message.delete()
         except:
