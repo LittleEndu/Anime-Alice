@@ -66,7 +66,7 @@ class Info:
     async def owner(self, ctx):
         await ctx.send("Use ``serverowner`` or ``botowner`` instead")
 
-    @whois.command()
+    @whois.command(aliases=['yourowner'])
     @commands.bot_has_permissions(embed_links=True)
     async def botowner(self, ctx):
         try:
@@ -145,6 +145,7 @@ class Info:
 
     @commands.command(aliases=['permissionsfor'])
     @commands.guild_only()
+    @commands.bot_has_permissions(embed_links=True, external_emojis=True)
     async def permissions(self, ctx, member: discord.Member = None):
         """Shows what are the users permissions"""
         perms = [name for name in dir(discord.Permissions) if isinstance(getattr(discord.Permissions, name), property)]
@@ -160,16 +161,17 @@ class Info:
             if getattr(member_perms, perm):
                 value = yes
             # noinspection PyTypeChecker
-            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}")
+            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}\u200b \u200b")
             index += 1
         emb = discord.Embed()
-        emb.add_field(name="Here are the permissions:", value="\n".join(field[0]))
+        emb.add_field(name="Here are the permissions:\u200b \u200b", value="\n".join(field[0]))
         emb.add_field(name="\u200b", value="\n".join(field[1]))
         emb.set_footer(text=f"Permissions for {member.display_name} in {ctx.guild.name}")
         await ctx.send(embed=emb)
 
     @commands.command()
     @commands.guild_only()
+    @commands.bot_has_permissions(embed_links=True, external_emojis=True)
     async def permissionsin(self, ctx, channel: GuildChannelConverter, member: discord.Member = None):
         """Shows what are the users permissions"""
         assert isinstance(channel, discord.abc.GuildChannel)
@@ -186,10 +188,10 @@ class Info:
             if getattr(member_perms, perm):
                 value = yes
             # noinspection PyTypeChecker
-            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}")
+            field[index % 2].append(f"{value} {perm.replace('_',' ').capitalize()}\u200b \u200b")
             index += 1
         emb = discord.Embed()
-        emb.add_field(name="Here are the permissions:", value="\n".join(field[0]))
+        emb.add_field(name="Here are the permissions:\u200b \u200b", value="\n".join(field[0]))
         emb.add_field(name="\u200b", value="\n".join(field[1]))
         # noinspection PyUnresolvedReferences
         emb.set_footer(text=f"Permissions for {member.display_name} in {channel.name}")

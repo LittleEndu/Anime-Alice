@@ -80,6 +80,8 @@ class Prefixes:
             mentions = commands.bot.when_mentioned(ctx.bot, ctx.message)
             prefixes = [i for i in prefixes if i not in mentions]
             index = await self.bot.helper.Asker(ctx, *prefixes)
+            if index is None:
+                return
             prefix = prefixes[index]
 
         prefix = await self.bot.database.remove_prefix(ctx.guild, prefix)

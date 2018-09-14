@@ -19,6 +19,7 @@ ANILIST_QUERY_URL = 'https://graphql.anilist.co'
 class ResponseError(Exception):
     def __init__(self, status, *args, **kwargs):
         self.status = status
+        super().__init__(*args, **kwargs)
     # end class
 
 
@@ -855,8 +856,9 @@ class Otaku:
 
     # region Cog
 
-    mediums = {'anime': Anime, 'hentai': Anime, 'manga': Manga, 'character': Character}
-    alives = ['character']
+    mediums = {'anime': Anime, 'hentai': Anime, 'manga': Manga, 'character': Character, 'chara': Character}
+    alives = ['character', 'chara']
+    nsfws = ['hentai']
     for key in list(mediums.keys()):
         mediums[f'{key}s'] = mediums[key]
 
@@ -918,38 +920,41 @@ class Otaku:
             await msg.add_reaction('\U0001f6ae')
             self._last_medium[ctx.author.id] = medium
 
-    @commands.command(name='search', aliases=['find', '?'])
+    @commands.command(name='search', aliases=['find', '?', 'luckysearch', 'lucky', '!'])
     @commands.bot_has_permissions(embed_links=True)
     async def _search(self, ctx, result_name: str, *, query: str = None):
-        """Perform a search"""
-        result_name = result_name.lower()
-        if not result_name in Otaku.mediums:
-            raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
-        if query is None:
-            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
-        await self.find_helper(ctx, result_name, query, False)
-        try:
-            await ctx.message.delete()
-        except:
-            pass
+        """
+        Perform a search
 
-    @commands.command(name='lucky', aliases=['luckysearch', '!'])
-    @commands.bot_has_permissions(embed_links=True)
-    async def _lucky(self, ctx, result_name: str, *, query: str = None):
-        """Perform a lucky search"""
+        For more info about what you can search, read the bot ``description``
+        """
+        lucky = ctx.invoked_with in ['luckysearch', 'lucky', '!']
         result_name = result_name.lower()
+        if result_name.startswith('!'):
+            result_name = result_name[1:]
+            lucky = True
         if not result_name in Otaku.mediums:
             raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
+        if result_name in Otaku.nsfws and not ctx.channel.nsfw:
+            await ctx.send("Can't search NSFW stuff here, defaulting to SFW only")
         if query is None:
-            query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
-        await self.find_helper(ctx, result_name, query, True)
+            try:
+                query = (await self.bot.helper.AdditionalInfo(ctx, *('What do you want to search for?',)))[0]
+            except concurrent.futures.TimeoutError:
+                try:
+                    await ctx.message.delete()
+                except:
+                    pass
+                finally:
+                    return
+        await self.find_helper(ctx, result_name, query, lucky)
         try:
             await ctx.message.delete()
         except:
             pass
 
     medium_aliases = list(itertools.chain.from_iterable(
-        (x, f"!{x}", f"{x}s", f"!{x}s") for x in Medium.callables())
+        (x, f"!{x}") for x in mediums.keys())
     )
 
     @commands.command(name="last",
@@ -976,7 +981,7 @@ class Otaku:
                 parent_name = 'last'
             if parent_name.endswith('s'):
                 parent_name = parent_name[:-1]
-            func = getattr(medium, parent_name)
+            func = getattr(medium, Otaku.mediums[parent_name].__name__.lower())
             try:
                 nsfw = isinstance(ctx.channel, discord.DMChannel) or ctx.channel.nsfw
                 new_medium = await func(ctx, adult=nsfw, lucky=lucky)
