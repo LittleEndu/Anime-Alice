@@ -11,30 +11,39 @@ import os.path
 import shutil
 import sys
 import textwrap
+import time
 import traceback
 from contextlib import redirect_stdout, redirect_stderr
 from logging.handlers import RotatingFileHandler
-from difflib import SequenceMatcher
 
 import aiohttp
 import discord
-import time
 from discord.ext import commands
 
 from cogs.database import Database
 from cogs.helper import Helper
 
 
-class ThousandSixHandler(RotatingFileHandler):
+class WebSocketErrorHandler(RotatingFileHandler):
+    def __init__(self, bot: "Alice", *args, **kwargs):
+        self.last_message = ""
+        self.same_message = 0
+        self.bot = bot
+        super().__init__(*args, **kwargs)
+
     def emit(self, record: logging.LogRecord):
         if record.levelno >= logging.ERROR:
-            s = SequenceMatcher(a=record.msg, b="Error while updating presence: "
-                                                "ConnectionClosed('WebSocket connection is closed: "
-                                                "code = 1006 (connection closed abnormally [internal]),"
-                                                " no reason',)")
-            if s.ratio() > 0.9:
-                asyncio.get_event_loop().close()
-                return
+            if record.msg == self.last_message:
+                self.same_message += 1
+            else:
+                self.same_message = 0
+            if self.same_message > 20:
+                self.same_message = 0
+                self.bot.logger.error("Assuming something bad happened. Restarting...")
+                with open('exit_reason', 'w') as out_file:
+                    out_file.write(record.msg.split(':')[0])
+                raise KeyboardInterrupt
+            self.last_message = record.msg
         super().emit(record)
 
 
@@ -46,10 +55,11 @@ class Alice(commands.Bot):
         if os.path.isfile('status'):
             with open('status') as in_file:
                 status = discord.Status[in_file.read()]
-        self.exit_reason = "Manual restart"
+        self.exit_reason = "Something crashed"
         if os.path.isfile('exit_reason'):
             with open('exit_reason') as in_file:
                 self.exit_reason = in_file.read()
+            os.remove('exit_reason')
         super().__init__(command_prefix=_prefix, status=status)
         self._config_name = config_name
 
@@ -76,10 +86,11 @@ class Alice(commands.Bot):
         dh = RotatingFileHandler("logs/debug.log", maxBytes=5000000, backupCount=1, encoding='UTF-8')
         dh.setLevel(1)
         dh.setFormatter(formatter)
-        self.alice_handler = ThousandSixHandler(filename="logs/alice.log",
-                                                maxBytes=1000000,
-                                                backupCount=1,
-                                                encoding='UTF-8')
+        self.alice_handler = WebSocketErrorHandler(bot=self,
+                                                   filename="logs/alice.log",
+                                                   maxBytes=1000000,
+                                                   backupCount=1,
+                                                   encoding='UTF-8')
         self.alice_handler.setLevel(1)
         self.alice_handler.setFormatter(formatter)
         sh = logging.StreamHandler()
