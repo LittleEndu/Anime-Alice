@@ -68,7 +68,7 @@ class Presences:
 
     async def presence(self):
         game_name = random.choice((
-            f'prefix == mention',
+            f'prefix is mention',
         ))
         await self.bot.change_presence(activity=discord.Game(name=game_name), status=self.status)
 
