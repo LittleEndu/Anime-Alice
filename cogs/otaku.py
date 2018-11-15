@@ -934,7 +934,8 @@ class Otaku:
             result_name = result_name[1:]
             lucky = True
         if not result_name in Otaku.mediums:
-            raise commands.UserInputError(f'{result_name.capitalize()} is not something I can search for')
+            raise commands.UserInputError(f'{self.bot.helper.safety_escape_monospace(result_name.capitalize())}'
+                                          f'is not something I can search for')
         if result_name in Otaku.nsfws and not ctx.channel.nsfw:
             await ctx.send("Can't search NSFW stuff here, defaulting to SFW only")
         if query is None:
