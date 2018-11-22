@@ -911,7 +911,7 @@ class Otaku:
             await ctx.send("I'm sorry. I can't do that yet.")
             return False
         elif medium is None:
-            await ctx.send('No results...')
+            await ctx.send(f'{self.bot.helper.safety_escape_monospace(query)} returned no results...')
             return False
         else:
             embed: discord.Embed = medium.to_embed()
