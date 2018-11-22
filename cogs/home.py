@@ -56,6 +56,7 @@ class Home:
                                            port=1025)
         # We are not using AppRunner API because it won't let us use the bot loop.
         # Not a problem when the bot loop is same as default event loop, but still
+        # This is future Endu: I'm stupid and I know, but hey, it works so I'm not changing it no matter what
         self.server_fut = asyncio.run_coroutine_threadsafe(coro, self.bot.loop)
         self.bot.loop.create_task(self.db_init())
         err_cog: error_handler.ErrorCog = self.bot.get_cog('ErrorCog')

@@ -906,11 +906,13 @@ class Otaku:
         try:
             medium = await cls.via_search(ctx, query, adult=nsfw, lucky=lucky)
         except asyncio.TimeoutError:
-            return
+            return True
         if medium is NotImplemented:
             await ctx.send("I'm sorry. I can't do that yet.")
+            return False
         elif medium is None:
             await ctx.send('No results...')
+            return False
         else:
             embed: discord.Embed = medium.to_embed()
             embed.set_footer(
@@ -919,6 +921,8 @@ class Otaku:
             msg = await ctx.send(embed=embed)
             await msg.add_reaction('\U0001f6ae')
             self._last_medium[ctx.author.id] = medium
+            return True
+        return False
 
     @commands.command(name='search', aliases=['find', '?', 'luckysearch', 'lucky', '!'])
     @commands.bot_has_permissions(embed_links=True)
@@ -948,11 +952,11 @@ class Otaku:
                     pass
                 finally:
                     return
-        await self.find_helper(ctx, result_name, query, lucky)
-        try:
-            await ctx.message.delete()
-        except:
-            pass
+        if await self.find_helper(ctx, result_name, query, lucky):
+            try:
+                await ctx.message.delete()
+            except:
+                pass
 
     medium_aliases = list(itertools.chain.from_iterable(
         (x, f"!{x}") for x in mediums.keys())
@@ -998,7 +1002,7 @@ class Otaku:
                 await ctx.send(f"Can't show that {parent_name} here. It's NSFW")
                 return
             if new_medium is NotImplemented:
-                await ctx.send(f"I'm sorry. I can't do that yet.\n"
+                await ctx.send(f"I'm sorry. I can't do that.\n"
                                f"{medium.__class__.__name__} doesn't implement ``{ctx.prefix}{parent_name}`` yet.")
             elif new_medium is None:
                 await ctx.send('No results...')
@@ -1027,11 +1031,11 @@ class Otaku:
                 lucky = True
             elif isinstance(ctx.channel, discord.DMChannel) and ctx.prefix and ctx.prefix[-1] == '!':
                 lucky = True
-            await self.find_helper(ctx, result_name, query, lucky)
-            try:
-                await ctx.message.delete()
-            except:
-                pass
+            if await self.find_helper(ctx, result_name, query, lucky):
+                try:
+                    await ctx.message.delete()
+                except:
+                    pass
 
     # endregion
     # end class
