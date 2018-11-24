@@ -43,25 +43,30 @@ class HelpCommand:
             except concurrent.futures.CancelledError:
                 break
 
+    async def find_guild_invite(self):
+        my_guild = discord.utils.get(self.bot.guilds, owner=self.bot.user)
+        guild_invite = None
+        for i in my_guild.text_channels:
+            invs = await i.invites()
+            if invs:
+                guild_invite = invs[0]
+        if guild_invite is None:
+            guild_invite = await my_guild.text_channels[0].create_invite()
+        return my_guild, guild_invite
+
     @commands.command(name='help', hidden=True)
     async def _help(self, ctx, *, name: str = None):
         """
         Used to see help text on commands
         """
         if name is None:
-            try:
-                owner = ctx.guild.get_member(self.bot.owner_id)
-            except:
-                if self.bot.owner_id is None:
-                    app = await self.bot.application_info()
-                    self.bot.owner_id = app.owner
-                else:
-                    owner = self.bot.get_user(self.bot.owner_id)
+            _, guild_invite = await self.find_guild_invite()
             prefix = ctx.prefix if len(ctx.prefix) < 10 else ""
             await ctx.send(f"If you are reading this it means that I have failed to make my bot intuitive enough.\n"
-                           f"You should contact me ({owner.name}#{owner.discriminator}) so we could fix it.\n"
+                           f"You should contact me (alice@anime-alice.moe or join {guild_invite}) so we could fix it.\n"
+                           f"\n"
                            f"Or maybe you just wanted to list all commands. Use ``{prefix}commands`` for that.\n"
-                           f"You should also look at ``{prefix}description`` for extended help on commands.\n"
+                           f"You should also look at ``{prefix}description`` for example usage of commands.\n"
                            f"Or if you want help on a specific command, do ``{prefix}help <command name>``.")
         else:
             command = self.bot.get_command(name.lower())
@@ -158,18 +163,8 @@ I take my info from [AniList](https://anilist.co/).
         emb.add_field(name="Bot invite",
                       value="[Here](https://discordapp.com/oauth2/authorize"
                             "?client_id=354974625593032704&scope=bot&permissions=378944)")
-
-        my_guild = discord.utils.get(self.bot.guilds, owner=self.bot.user)
-        guild_invite = None
-        for i in my_guild.text_channels:
-            invs = await i.invites()
-            if invs:
-                guild_invite = invs[0]
-        if guild_invite is None:
-            guild_invite = await my_guild.text_channels[0].create_invite()
         emb.add_field(name="My server invite",
-                      value=f"[{my_guild.name}]({guild_invite.url})")
-
+                      value="[{0.name}]({1.url})".format(*await self.find_guild_invite()))
         emb.add_field(name="discordbots.org entry",
                       value=f"[Alice](https://discordbots.org/bot/354974625593032704)")
         emb.add_field(name="Github repo",
