@@ -55,13 +55,19 @@ class HelpCommand:
         return my_guild, guild_invite
 
     @commands.command(name='help', hidden=True)
-    async def _help(self, ctx, *, name: str = None):
+    async def _help(self, ctx: commands.Context, *, name: str = None):
         """
         Used to see help text on commands
         """
         if name is None:
             _, guild_invite = await self.find_guild_invite()
             prefix = ctx.prefix if len(ctx.prefix) < 10 else ""
+            if not prefix:
+                prefix = await self.bot.get_prefix(ctx.message)
+                prefix.sort()
+                prefix = prefix[0]
+            if len(prefix) > 10:
+                prefix = ""
             await ctx.send(f"If you are reading this it means that I have failed to make my bot intuitive enough.\n"
                            f"You should contact me (alice@anime-alice.moe or join {guild_invite}) so we could fix it.\n"
                            f"\n"
