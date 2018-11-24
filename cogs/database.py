@@ -132,8 +132,8 @@ class Database:
 
     async def frd(self, query):
         async with self.pool.acquire() as connection:
-            return await connection.execute(query)
-        
+            return await connection.fetchrow(query)
+
     async def ed(self, query):
         async with self.pool.acquire() as connection:
             return await connection.execute(query)
