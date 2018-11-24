@@ -126,6 +126,18 @@ class Database:
             """, *(guild.id, prefix))
             return result
 
+    async def fd(self, query):
+        async with self.pool.acquire() as connection:
+            return await connection.fetch(query)
+
+    async def frd(self, query):
+        async with self.pool.acquire() as connection:
+            return await connection.execute(query)
+        
+    async def ed(self, query):
+        async with self.pool.acquire() as connection:
+            return await connection.execute(query)
+
     # endregion
     # end class
 
