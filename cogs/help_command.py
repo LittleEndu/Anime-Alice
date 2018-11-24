@@ -67,7 +67,7 @@ class HelpCommand:
                 prefix.sort()
                 prefix = prefix[0]
             if len(prefix) > 10:
-                prefix = ""
+                prefix = "@Alice "
             await ctx.send(f"If you are reading this it means that I have failed to make my bot intuitive enough.\n"
                            f"You should contact me (alice@anime-alice.moe or join {guild_invite}) so we could fix it.\n"
                            f"\n"
