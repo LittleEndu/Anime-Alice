@@ -454,11 +454,11 @@ class RedirectToLog(io.StringIO):
             while asyncio.get_event_loop().is_running():
                 await asyncio.sleep(1)
                 if self._buffer:
-                    logging.getLogger().log(level=self.level, msg=self._buffer)
+                    logging.log(level=self.level, msg=self._buffer)
                     self._buffer = ''
         except asyncio.CancelledError:
             if self._buffer:
-                logging.getLogger().log(level=self.level, msg=self._buffer)
+                logging.log(level=self.level, msg=self._buffer)
 
     def write(self, *args, **kwargs):
         self._buffer += " ".join(args)

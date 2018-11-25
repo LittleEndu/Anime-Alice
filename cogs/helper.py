@@ -185,7 +185,10 @@ class Helper:
                     ]).strip()
                 )
                 if len(self.chunks) > 1:
-                    emb.set_footer(text=f"Page {chunks_index+1}/{len(self.chunks)}. Say 'next' or 'back' to navigate")
+                    emb.set_footer(text=f"Page {chunks_index+1}/{len(self.chunks)}. Say 'next' or 'back' to navigate,"
+                                        f" say 'cancel' to stop")
+                else:
+                    emb.set_footer(text=f"Say 'cancel' to stop")
                 return emb
 
             async def navigation_manager_r(msg: discord.Message):
@@ -238,7 +241,7 @@ class Helper:
                     except concurrent.futures.CancelledError:
                         break
 
-            async def stop_waiter(msg: discord.Message, choice_fut: asyncio.Future):
+            async def stop_waiter_r(msg: discord.Message, choice_fut: asyncio.Future):
                 def stop_check(r: discord.Reaction, u: discord.User):
                     return all([
                         u.id == self.ctx.author.id,
@@ -249,6 +252,26 @@ class Helper:
                 await self.ctx.bot.wait_for('reaction_add', check=stop_check)
                 try:
                     choice_fut.set_result(None)
+                except asyncio.InvalidStateError:
+                    return
+
+            async def stop_waiter_m(msg: discord.Message, choice_fut: asyncio.Future):
+                def message_check(m: discord.Message):
+                    if not m.content:
+                        return False
+                    return all([
+                        m.author.id == self.ctx.author.id,
+                        m.channel.id == self.ctx.channel.id,
+                        m.content[0].lower() in "cs"
+                    ])
+
+                msg = await self.ctx.bot.wait_for('message', check=message_check)
+                try:
+                    choice_fut.set_result(None)
+                    try:
+                        await msg.delete()
+                    except discord.Forbidden:
+                        pass
                 except asyncio.InvalidStateError:
                     return
 
@@ -294,7 +317,8 @@ class Helper:
             fut = asyncio.Future()
             reaction_task = self.ctx.bot.loop.create_task(reaction_waiter(asker, fut))
             message_task = self.ctx.bot.loop.create_task(message_waiter(fut))
-            stop_task = self.ctx.bot.loop.create_task(stop_waiter(asker, fut))
+            stop_task = self.ctx.bot.loop.create_task(stop_waiter_r(asker, fut))
+            stop_task2 = self.ctx.bot.loop.create_task(stop_waiter_m(asker, fut))
             if len(self.chunks) > 1:
                 navigation_task_r = self.ctx.bot.loop.create_task(navigation_manager_r(asker))
                 navigation_task_m = self.ctx.bot.loop.create_task(navigation_manager_m(asker))
@@ -335,6 +359,7 @@ class Helper:
                     # noinspection PyUnboundLocalVariable
                     navigation_task_m.cancel()
                 stop_task.cancel()
+                stop_task2.cancel()
                 if message_exists:
                     await asker.delete()
 
