@@ -47,7 +47,7 @@ class Info:
                 emb.add_field(name="Roles", value=roles)
         except:
             pass
-        emb.add_field(name="Avatar url", value="[Here]({})".format(member.avatar_url_as(format='png')))
+        emb.add_field(name="Avatar url", value="[Here]({})".format(member.avatar_url_as(static_format='png')))
         try:
             await ctx.send(embed=emb)
         except:
