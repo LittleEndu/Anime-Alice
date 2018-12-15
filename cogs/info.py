@@ -53,7 +53,7 @@ class Info:
         except:
             await ctx.send("Too much info...")
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, case_insensitive=True)
     @commands.bot_has_permissions(embed_links=True)
     async def whois(self, ctx, member: discord.Member = None):
         """

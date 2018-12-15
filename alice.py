@@ -60,7 +60,7 @@ class Alice(commands.Bot):
             with open('exit_reason') as in_file:
                 self.exit_reason = in_file.read()
             os.remove('exit_reason')
-        super().__init__(command_prefix=_prefix, status=status)
+        super().__init__(command_prefix=_prefix, status=status, case_insensitive=True)
         self._config_name = config_name
 
         # Get config and set other initial variables
