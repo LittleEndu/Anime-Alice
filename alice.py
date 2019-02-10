@@ -465,6 +465,12 @@ class RedirectToLog(io.StringIO):
 
 
 if __name__ == '__main__':
+    try:
+        import uvloop
+    except ModuleNotFoundError:
+        pass
+    else:
+        uvloop.install()
     if len(sys.argv) >= 2:
         alice = Alice(config_name=sys.argv[1])
     else:
